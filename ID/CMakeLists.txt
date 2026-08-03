@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 # 选项
 set(USE_IMGUI ON)          # 是否使用 ImGui
 set(ID_SHARED_LIB ON)      # 是否编译为动态库（ON: 动态库 / OFF: 静态库）
-
+set(USE_ID_IMPL ON)        # 是否使用 ID 库的实现（ON: 使用 / OFF: 不使用，需自行实现）
 
 set(ID_RENDERER "OpenGL" CACHE STRING "渲染后端: OpenGL, Vulkan, DirectX")
 
@@ -24,6 +24,10 @@ add_definitions(-D_ID_DEBUG)
 
 if(ID_SHARED_LIB)
     add_definitions(-D_ID_SHARED_LIB)
+endif()
+
+if(USE_ID_IMPL)
+    add_definitions(-D_ID_USE_IMPL)
 endif()
 
 # 源文件查找

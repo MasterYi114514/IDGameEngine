@@ -8,6 +8,7 @@
 // Vector
 #include "Vector/Vector.hpp"
 #include "Vector/VectorImpl.hpp"
+#include "Vector/Quaternion.hpp"
 
 // Matrix
 #include "Matrix/Matrix.hpp"
@@ -21,6 +22,8 @@ namespace ID
     using Vec2 = Vector<float, 2>;
     using Vec3 = Vector<float, 3>;
     using Vec4 = Vector<float, 4>;
+
+    using Quat = Quaternion;
     
     using Mat2 = Matrix<float, 2, 2>;
     using Mat3 = Matrix<float, 3, 3>;

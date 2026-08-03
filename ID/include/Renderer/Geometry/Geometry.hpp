@@ -12,6 +12,12 @@ namespace ID
         Sphere,             // 球体，接收 半径、经度分段数、纬度分段数 参数
     };
 
+    // 用于描述几何体的位置、旋转、缩放等变换信息
+    struct GeometryPose
+    {
+        Pos3 position = Pos3(0.0f, 0.0f, 0.0f);   // 位置
+    };
+
     class ID_API Geometry
     {
     public:
@@ -50,6 +56,7 @@ namespace ID
     private:
         VertexBufferID                  m_VB;
         IndexBufferID                   m_IB;
+
 
         static VertexBufferLayout       s_layout;
     };

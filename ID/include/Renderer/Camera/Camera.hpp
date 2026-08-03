@@ -1,18 +1,12 @@
 #pragma once
 
 #include "IDpch.hpp"
-#include "Camera/ProjectionParams.hpp"
+#include "Renderer/Camera/ProjectionParams.hpp"
+#include "Renderer/Pose.hpp"
 
 namespace ID
 {
-    struct CameraPose
-    {
-        Pos3 position   = Pos3(0.0f, 0.0f, 0.0f);
-        Vec3 front      = Vec3(0.0f, 0.0f, -1.0f);
-        Vec3 up         = Vec3(0.0f, 1.0f, 0.0f);
-
-        Vec3 right() const { return Math::cross(front, up); }
-    };
+    using CameraPose = Pose<OrientationDescType::FrontUp>;
 
     // 视椎体平面，法向量指向视椎体内部，距离为平面到原点的距离
     struct FrustumPlane
@@ -52,14 +46,14 @@ namespace ID
         void                set_orientation(const Vec3& front, const Vec3& up);
 
         // projection 有关操作
-        const ProjectionParams&     get_projection() const { return m_projection; }
-        void                        set_projection(const ProjectionParams& projection);
-        ProjectionType              get_projection_type() const { return m_projection.type; }
-        void                        set_projection_type(ProjectionType type);
-        void                        set_orthographic(float left, float right, float top, 
-                                        float bottom, float near_plane, float far_plane);
-        void                        set_perspective(float fov_y, float aspect);
-        void                        set_viewport_size(float width, float height);
+        const ProjectionParams& get_projection() const { return m_projection; }
+        void set_projection(const ProjectionParams& projection);
+        ProjectionType get_projection_type() const { return m_projection.type; }
+        void set_projection_type(ProjectionType type);
+        void set_orthographic(float left, float right, float top, 
+            float bottom, float near_plane, float far_plane);
+        void set_perspective(float fov_y, float aspect);
+        void set_viewport_size(float width, float height);
 
         // 矩阵查询操作
         const Mat4& get_view_matrix() const { return m_view_matrix; }

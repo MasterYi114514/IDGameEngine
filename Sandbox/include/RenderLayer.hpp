@@ -2,10 +2,12 @@
 
 #include "ID.hpp"
 #include "TextureLoader.hpp"
-#include "CameraLayer.hpp"
 
 namespace ID
 {
+    Vec3 light_dir{ -0.2f, -1.0f, -0.3f };
+    Vec3 light_color{ 1.0f, 1.0f, 1.0f };
+
     class RenderLayer : public Layer
     {
     public:
@@ -38,7 +40,10 @@ namespace ID
             m_pipeline = PipelineManager::create(pipeline_create_info);
 
             // 创建几何体
-            m_geometry = Geometry::create_sphere(1.0f, 32, 16);
+            m_geometry = Geometry::create_cube(2.0f);
+
+            // 预处理光线
+            light_dir.normalize();
         }
 
         void on_update(Timestep ts) override
@@ -52,6 +57,10 @@ namespace ID
             // 计算 MVP 矩阵
             Mat4 mvp = m_camera_layer->get_projection_matrix() * m_camera_layer->get_view_matrix() * ID::Math::get_identity_mat4();
             IDRCmd::set_param(m_pipeline, "MVP", mvp);
+
+            // 设置光照参数
+            IDRCmd::set_param(m_pipeline, "light_dir", light_dir);
+            IDRCmd::set_param(m_pipeline, "light_color", light_color);
 
             // 绘制几何体
             IDRCmd::draw_indexed(m_pipeline, m_geometry->get_vb(), m_geometry->get_ib());

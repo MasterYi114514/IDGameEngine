@@ -123,6 +123,15 @@ namespace ID
 
     template<typename T, std::size_t Dim>
     requires Math::CanBeVector<T, Dim>
+    Vector<T, Dim> Vector<T, Dim>::operator*(const Vector& other) const requires Math::IsDecimal<T>
+    {
+        Vector result;
+        result.m_vector = m_vector * other.m_vector;
+        return result;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
     Vector<T, Dim>& Vector<T, Dim>::operator+=(const Vector& other) requires Math::IsDecimal<T>
     {
         m_vector += other.m_vector;
@@ -155,6 +164,14 @@ namespace ID
             return *this;
         }
         m_vector /= scalar;
+        return *this;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
+    Vector<T, Dim>& Vector<T, Dim>::operator*=(const Vector& other) requires Math::IsDecimal<T>
+    {
+        m_vector *= other.m_vector;
         return *this;
     }
 
@@ -364,6 +381,18 @@ namespace ID
 
     template<typename T, std::size_t Dim>
     requires Math::CanBeVector<T, Dim>
+    Vector<T, Dim> Vector<T, Dim>::operator*(const Vector& other) const requires Math::IsDecimal<T>
+    {
+        Vector result;
+        for (std::size_t i = 0; i < s_dimension; ++i)
+        {
+            result[i] = m_array[i] * other.m_array[i];
+        }
+        return result;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
     Vector<T, Dim>& Vector<T, Dim>::operator+=(const Vector& other) requires Math::IsDecimal<T>
     {
         for (std::size_t i = 0; i < s_dimension; ++i)
@@ -407,6 +436,17 @@ namespace ID
         for (std::size_t i = 0; i < s_dimension; ++i)
         {
             m_array[i] /= scalar;
+        }
+        return *this;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
+    Vector<T, Dim>& Vector<T, Dim>::operator*=(const Vector& other) requires Math::IsDecimal<T>
+    {
+        for (std::size_t i = 0; i < s_dimension; ++i)
+        {
+            m_array[i] *= other.m_array[i];
         }
         return *this;
     }

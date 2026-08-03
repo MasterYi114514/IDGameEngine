@@ -1,10 +1,18 @@
 #pragma once
 
-#include "ID.hpp"
-#include "IDMath.hpp"
+#ifdef _ID_USE_IMPL
+
+#include "Layer/Layer.hpp"
+#include "Layer/LayerStack.hpp"
+
+#include "Renderer/Camera/Camera.hpp"
+#include "Renderer/Camera/CameraController.hpp"
 
 namespace ID
 {
+    /**
+     *  ID 内部实现的 CameraLayer，可以在实际游戏中自己实现
+     */
     class CameraLayer : public Layer
     {
     public:
@@ -31,3 +39,5 @@ namespace ID
         CameraController* m_camera_controller = nullptr;
     };
 }
+
+#endif

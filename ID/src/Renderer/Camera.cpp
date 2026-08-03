@@ -1,5 +1,5 @@
-#include "Camera/Camera.hpp"
-#include "Camera/CameraController.hpp"
+#include "Renderer/Camera/Camera.hpp"
+#include "Renderer/Camera/CameraController.hpp"
 
 namespace ID
 {

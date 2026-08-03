@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "Camera/Camera.hpp"
+#include "Renderer/Camera/Camera.hpp"
 #include "Input/Input.hpp"
 #include "Input/KeyCode.hpp"
 

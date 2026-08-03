@@ -26,13 +26,16 @@
 #include "Layer/Layer.hpp"
 #include "Layer/LayerStack.hpp"
 
+#include "Layer/CameraLayer.hpp"
+#include "Layer/SceneLayer.hpp"
+
 // Application
 #include "Application/Application.hpp"
 #include "Application/Timestep.hpp"
 
 // Camera
-#include "Camera/Camera.hpp"
-#include "Camera/CameraController.hpp"
+#include "Renderer/Camera/Camera.hpp"
+#include "Renderer/Camera/CameraController.hpp"
 
 // Renderer
 #include "Renderer/IDRCore.hpp"
@@ -43,6 +46,13 @@
 // Renderer/Light
 #include "Renderer/Light/Light.hpp"
 #include "Renderer/Light/LightUniforms.hpp"
+
+// Scene
+#include "Scene/Scene.hpp"
+#include "Scene/Component.hpp"
+#include "Scene/TransformComponent.hpp"
+#include "Scene/GameObject.hpp"
+#include "Scene/SceneManager.hpp"
 
 // EntryPoint 入口（包含 main()，必须最后）
 #include "Application/EntryPoint.hpp"

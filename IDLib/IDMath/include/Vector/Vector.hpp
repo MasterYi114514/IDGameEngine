@@ -59,7 +59,7 @@ namespace ID
         GlmType& get_glm_vector() { return m_vector; }
         const GlmType& get_glm_vector() const { return m_vector; }
 
-    private:
+    protected:
         static constexpr std::size_t s_dimension = Dim;
         GlmType m_vector;
 
@@ -79,10 +79,13 @@ namespace ID
         Vector  operator-(const Vector& other)                  const   requires Math::IsDecimal<T>;
         Vector  operator*(float scalar)                         const   requires Math::IsDecimal<T>;
         Vector  operator/(float scalar)                         const   requires Math::IsDecimal<T>;
+        Vector  operator*(const Vector& other)                  const   requires Math::IsDecimal<T>;
+
         Vector& operator+=(const Vector& other)                         requires Math::IsDecimal<T>;
         Vector& operator-=(const Vector& other)                         requires Math::IsDecimal<T>;
         Vector& operator*=(float scalar)                                requires Math::IsDecimal<T>;
         Vector& operator/=(float scalar)                                requires Math::IsDecimal<T>;
+        Vector& operator*=(const Vector& other)                         requires Math::IsDecimal<T>;
 
     public:
         // 迭代器的实现
@@ -154,7 +157,7 @@ namespace ID
         // 获取维度
         static constexpr std::size_t get_dimension() { return s_dimension; }
 
-    private:
+    protected:
         static constexpr std::size_t s_dimension = Dim;
         ValueType* m_array = new ValueType[s_dimension]();
 
@@ -184,10 +187,13 @@ namespace ID
         Vector  operator-(const Vector& other)                  const   requires Math::IsDecimal<T>;
         Vector  operator*(float scalar)                         const   requires Math::IsDecimal<T>;
         Vector  operator/(float scalar)                         const   requires Math::IsDecimal<T>;
+        Vector  operator*(const Vector& other)                  const   requires Math::IsDecimal<T>;
+
         Vector& operator+=(const Vector& other)                         requires Math::IsDecimal<T>;
         Vector& operator-=(const Vector& other)                         requires Math::IsDecimal<T>;
         Vector& operator*=(float scalar)                                requires Math::IsDecimal<T>;
         Vector& operator/=(float scalar)                                requires Math::IsDecimal<T>;
+        Vector& operator*=(const Vector& other)                         requires Math::IsDecimal<T>;
 
     public:
         // 迭代器的实现
