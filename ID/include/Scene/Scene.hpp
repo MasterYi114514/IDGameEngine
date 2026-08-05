@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IDpch.hpp"
-#include "Scene/Component.hpp"
+#include "Scene/Component/Component.hpp"
 #include "Scene/GameObject.hpp"
 
 namespace ID

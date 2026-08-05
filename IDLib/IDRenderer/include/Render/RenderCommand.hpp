@@ -20,8 +20,11 @@ namespace ID::RenderCommand
 
     // 绑定渲染目标
     void IDR_API bind_framebuffer(const FrameBufferID framebuffer);
+    void IDR_API bind_default_framebuffer();
 
-    // 绘制
+    // 绑定管线
+    void IDR_API bind_pipeline(const PipelineID pipeline);
+    void IDR_API bind_shader(const ShaderID shader);
 
     // 按照 IBO 绘制顶点
     void IDR_API draw_indexed(const PipelineID pipeline, const VertexBufferID vb, const IndexBufferID ib);
@@ -33,7 +36,6 @@ namespace ID::RenderCommand
     void IDR_API draw_arrays(const PipelineID pipeline, const VertexBufferID vb, 
         uint32_t first_vertex, uint32_t vertex_count);
 
-    // Shader 的 参数设置，允许通过 pipeline 或 shader 设置参数
 
     template<typename... Args>
     requires ParamConcept::CanSetParam<Args...>

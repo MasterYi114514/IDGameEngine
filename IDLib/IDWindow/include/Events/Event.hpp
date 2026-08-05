@@ -95,38 +95,4 @@ namespace ID
     protected:
         bool m_handled = false;
     };
-
-    /*
-    *   EventDispatcher 类用于分发事件，根据事件类型调用相应的处理函数。
-    */
-    class IDWINDOW_API EventDispatcher
-    {
-    public:
-        /*
-        *   构造 EventDispatcher。
-        *   @param event 要分发的事件引用
-        */
-        EventDispatcher(Event& event) : m_event(event) { }
-
-        /*
-        *   尝试将事件分发给回调函数。
-        *   @tparam T 目标事件类型
-        *   @tparam F 回调函数类型
-        *   @param func 回调函数，接受 T& 参数并返回 bool 表示是否处理
-        *   @return 如果事件类型匹配并完成分发返回 true
-        */
-        template<typename T, typename F>
-        bool dispatch(const F& func)
-        {
-            if(m_event.get_type() == T::get_static_type())
-            {
-                m_event.set_handled(func(static_cast<T&>(m_event)));
-                return true;
-            }
-            return false;
-        }
-
-    private:
-        Event& m_event;
-    };
 } // namespace ID

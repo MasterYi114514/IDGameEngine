@@ -27,6 +27,8 @@ namespace ID
         m_window_id = WindowPool::create_window(
             WindowProps{ title, width, height }
         );
+        WindowPool::set_current(m_window_id);
+
         WindowPool::set_event_callback(m_window_id, [this](Event& event)
         {
             on_event(event);
@@ -51,16 +53,15 @@ namespace ID
 
         while(m_running)
         {
-            // ---- 1. 计算帧时间 ----
+            // 计算帧时间
             auto current_time = clock::now();
             float delta = std::chrono::duration<float>(current_time - last_time).count();
             last_time = current_time;
             Timestep timestep(delta);
 
-            // ---- 2. 轮询事件（内部触发回调 → on_event → 分发给 Layer）----
             WindowPool::on_update();
 
-            // ---- 3. 更新所有 Layer（从上到下）----
+            // 更新所有 Layer
             for(Layer* layer : m_layer_stack)
             {
                 layer->on_update(timestep);
@@ -70,35 +71,28 @@ namespace ID
 
     void Application::on_event(Event& event)
     {
-        EventDispatcher dispatcher(event);
-        dispatcher.dispatch<WindowCloseEvent>([this](WindowCloseEvent& e)
+        switch(event.get_type())
         {
-            return on_window_close(e);
-        });
-        dispatcher.dispatch<WindowResizeEvent>([this](WindowResizeEvent& e)
-        {
-            return on_window_resize(e);
-        });
-
-        // 再分发给 Layer（从栈顶开始，最上层优先）
-        // 使用反向迭代器：栈顶在 vector 末尾
-        for(auto it = m_layer_stack.end(); it != m_layer_stack.begin(); )
-        {
-            --it;
-            if(event.is_handled()) break;
-            (*it)->on_event(event);
+            case EventType::WindowClose:
+            {
+                event.set_handled(on_window_close());
+                break;
+            }
+            default:
+            {
+                for(auto it = m_layer_stack.end(); it != m_layer_stack.begin(); )
+                {
+                    --it;
+                    if(event.is_handled()) break;       // 对于已解决的事件，进行阻断传播
+                    (*it)->on_event(event);
+                }
+            }
         }
     }
 
-    bool Application::on_window_close(WindowCloseEvent& event)
+    bool Application::on_window_close()
     {
         m_running = false;
         return true;
-    }
-
-    bool Application::on_window_resize(WindowResizeEvent& event)
-    {
-        RenderCommand::set_viewport(0, 0, event.get_width(), event.get_height());
-        return false;   // 让 Layer 也能处理
     }
 } // namespace ID

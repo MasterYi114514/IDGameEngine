@@ -1,0 +1,29 @@
+#pragma once
+
+#include "IDpch.hpp"
+#include "Renderer/Material/Material.hpp"
+
+namespace ID
+{
+    class ID_API MaterialLibrary
+    {
+    public:
+        MaterialLibrary() = delete;
+        ~MaterialLibrary() = delete;
+
+        static Material* add(ShaderID shader, const std::string& name = "Material");
+
+        // 按名称查询，不存在返回 nullptr
+        static Material* get(const std::string& name);
+        static bool      contains(const std::string& name);
+
+        // 移除材质
+        static void      remove(const std::string& name);
+        static void      clear();
+
+        // 返回当前注册的材质数量
+        static size_t    size();
+    private:
+        static std::vector<std::unique_ptr<Material>>& storage();
+    };
+} // namespace ID

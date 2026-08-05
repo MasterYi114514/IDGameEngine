@@ -1,5 +1,5 @@
-#include "Scene/Component.hpp"
-#include "Scene/TransformComponent.hpp"
+#include "Scene/Component/Component.hpp"
+#include "Scene/Component/TransformComponent.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/Scene.hpp"
 

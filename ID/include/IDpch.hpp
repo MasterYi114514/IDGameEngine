@@ -17,7 +17,12 @@
 
 // IDCore
 #include "Core/IDCore.hpp"
+#include "Core/IDArray.hpp"
+#include "Core/BasicID.hpp"
+
 #include "Application/Timestep.hpp"
+
+#include "Events/EventDispatcher.hpp"
 
 // IDMath
 #include "IDMath.hpp"

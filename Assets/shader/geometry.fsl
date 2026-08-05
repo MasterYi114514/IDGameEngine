@@ -1,22 +1,54 @@
 #version 440 core
+
 out vec4 FragColor;
 
-in vec2 uv;
-in vec3 normal;
+in vec2 v_uv;
+in vec3 v_world_pos;
+in vec3 v_normal;
 
 uniform sampler2D texture_sampler;
 
-// 输入端保证了光线方向是单位向量
-uniform vec3 light_dir;
-uniform vec3 light_color;
+uniform vec3  u_color;           // 材质颜色调制
+uniform vec3  u_camera_pos;      // 相机位置（高光用）
+uniform vec3  u_ambient;
+
+uniform int   u_light_count;
+uniform vec3  u_light_dirs[8];
+uniform vec3  u_light_positions[8];
+uniform vec3  u_light_colors[8];
 
 void main()
 {
-    vec3 object_color = texture(texture_sampler, uv).rgb;
+    vec4 tex_color = texture(texture_sampler, v_uv);
+    vec3 base_color = tex_color.rgb * u_color;
+    vec3 N = normalize(v_normal);
 
-    // 漫反射相关数据
-    float diffuse = clamp(dot(normal, -light_dir), 0.0, 1.0);
-    vec3 diffuse_color = diffuse * light_color * object_color;
+    // 环境光
+    vec3 result = u_ambient * base_color;
 
-    FragColor = vec4(diffuse_color, 1.0);
+    for (int i = 0; i < u_light_count; ++i)
+    {
+        // 平行光使用方向，点/聚光灯用位置推算方向
+        vec3 L;
+        if (u_light_dirs[i] != vec3(0.0))
+        {
+            L = normalize(-u_light_dirs[i]);
+        }
+        else
+        {
+            L = normalize(u_light_positions[i] - v_world_pos);
+        }
+
+        // 漫反射
+        float diff = max(dot(N, L), 0.0);
+        result += u_light_colors[i] * diff * base_color;
+
+        // 简单 Blinn-Phong 高光
+        vec3 V = normalize(u_camera_pos - v_world_pos);
+        vec3 H = normalize(L + V);
+        float spec = pow(max(dot(N, H), 0.0), 32.0);
+        result += u_light_colors[i] * spec * 0.3;
+    }
+
+    FragColor = vec4(result, 1.0);
 }

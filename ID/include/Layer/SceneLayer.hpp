@@ -5,8 +5,8 @@
 #include "Layer/Layer.hpp"
 #include "Layer/LayerStack.hpp"
 
-#include "Scene/Component.hpp"
-#include "Scene/TransformComponent.hpp"
+#include "Scene/Component/Component.hpp"
+#include "Scene/Component/TransformComponent.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"

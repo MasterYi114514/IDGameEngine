@@ -2,7 +2,7 @@
 
 #include "IDMath.hpp"
 
-#include "Scene/Component.hpp"
+#include "Scene/Component/Component.hpp"
 #include "Renderer/Pose.hpp"
 
 namespace ID

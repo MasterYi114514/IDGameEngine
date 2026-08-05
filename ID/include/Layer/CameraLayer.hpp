@@ -31,6 +31,7 @@ namespace ID
             if (m_camera_controller) m_camera_controller->on_update(ts);
         }
     public:
+        const Camera& get_camera() const { return m_camera; }
         const Mat4& get_view_matrix() const { return m_camera.get_view_matrix(); }
         const Mat4& get_projection_matrix() const { return m_camera.get_projection_matrix(); }
         

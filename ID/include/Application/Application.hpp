@@ -42,8 +42,10 @@ namespace ID
 
     private:
         void on_event(Event& event);
-        bool on_window_close(WindowCloseEvent& event);
-        bool on_window_resize(WindowResizeEvent& event);
+        bool on_window_close();
+
+        // window resize 更改视口大小的操作已移至 RenderLayer 中处理
+        // bool on_window_resize(WindowResizeEvent& event);
 
     private:
         WindowID                m_window_id;

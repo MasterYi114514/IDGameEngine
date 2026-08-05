@@ -4,6 +4,8 @@
 
 #include "Log/Log.hpp"
 
+#include "BasicPool.hpp"
+
 namespace
 {
     std::map<std::string, std::unique_ptr<ID::Scene>> g_ScenePool;

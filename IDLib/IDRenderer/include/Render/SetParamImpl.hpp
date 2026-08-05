@@ -77,6 +77,8 @@ namespace ID::RenderCommand
     requires ParamConcept::CanSetParam<Args...>
     void set_param(const PipelineID pipeline, const std::string& param_name, const Args&... args)
     {
+        bind_pipeline(pipeline);
+
         if constexpr (ParamConcept::AllFloat<Args...>)
         {
             set_param_impl(pipeline, param_name, static_cast<float>(args)...);
@@ -95,6 +97,8 @@ namespace ID::RenderCommand
     requires ParamConcept::CanSetParam<Args...>
     void set_param(const ShaderID shader, const std::string& param_name, const Args&... args)
     {
+        bind_shader(shader);
+
         if constexpr (ParamConcept::AllFloat<Args...>)
         {
             set_param_impl(shader, param_name, static_cast<float>(args)...);
@@ -113,6 +117,8 @@ namespace ID::RenderCommand
     requires ParamConcept::IsVec<IDVec>
     void set_param(const PipelineID pipeline, const std::string& param_name, const IDVec& vec)
     {
+        bind_pipeline(pipeline);
+
         if constexpr (std::same_as<IDVec, Vec2>)
         {
             set_param_impl(pipeline, param_name, vec[0], vec[1]);
@@ -131,6 +137,8 @@ namespace ID::RenderCommand
     requires ParamConcept::IsVec<IDVec>
     void set_param(const ShaderID shader, const std::string& param_name, const IDVec& vec)
     {
+        bind_shader(shader);
+
         if constexpr (std::same_as<IDVec, Vec2>)
         {
             set_param_impl(shader, param_name, vec[0], vec[1]);
@@ -149,6 +157,7 @@ namespace ID::RenderCommand
     requires ParamConcept::IsMat<IDMat>
     void set_param(const PipelineID pipeline, const std::string& param_name, const IDMat& mat)
     {
+        bind_pipeline(pipeline);
         set_param_impl(pipeline, param_name, mat);
     }
 
@@ -156,6 +165,7 @@ namespace ID::RenderCommand
     requires ParamConcept::IsMat<IDMat>
     void set_param(const ShaderID shader, const std::string& param_name, const IDMat& mat)
     {
+        bind_shader(shader);
         set_param_impl(shader, param_name, mat);
     }
 } // namespace ID::RenderCommand

@@ -38,7 +38,7 @@ namespace ID
         }
 
     protected:
-        GameObject* m_owner = nullptr;          // 组件所属的 GameObject
+        GameObject* m_owner = nullptr;              // 组件所属的 GameObject
         static inline TypeID s_next_type_id = 0;    // 为每种组件类型分配一个唯一的 ID
     };
 } // namespace ID

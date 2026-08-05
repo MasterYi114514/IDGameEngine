@@ -4,20 +4,18 @@ layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec2 aUV;
 layout(location = 2) in vec3 aNormal;
 
-out vec2 uv;
-out vec3 normal;
-out vec3 world_pos;
+out vec2 v_uv;
+out vec3 v_world_pos;
+out vec3 v_normal;
 
-uniform mat4 MVP;
-uniform mat4 model;
-uniform mat4 view;
+uniform mat4 u_mvp;
+uniform mat4 u_model;
 
 void main()
 {
-    vec4 local_pos = vec4(aPos, 1.0);
-    world_pos = (MVP * local_pos).xyz;
-
-    uv = aUV;
-    normal = aNormal;
-    gl_Position = MVP * vec4(aPos, 1.0);
+    v_uv        = aUV;
+    vec4 world  = u_model * vec4(aPos, 1.0);
+    v_world_pos = world.xyz / world.w;
+    v_normal    = normalize(mat3(u_model) * aNormal);
+    gl_Position = u_mvp * vec4(aPos, 1.0);
 }

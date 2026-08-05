@@ -10,6 +10,7 @@
 
 // Events
 #include "Events/Event.hpp"
+#include "Events/EventDispatcher.hpp"
 #include "Events/KeyEvent.hpp"
 #include "Events/MouseEvent.hpp"
 #include "Events/WindowEvent.hpp"
@@ -28,6 +29,7 @@
 
 #include "Layer/CameraLayer.hpp"
 #include "Layer/SceneLayer.hpp"
+#include "Layer/RenderLayer.hpp"
 
 // Application
 #include "Application/Application.hpp"
@@ -39,20 +41,40 @@
 
 // Renderer
 #include "Renderer/IDRCore.hpp"
-
-// Renderer/Geometry
-#include "Renderer/Geometry/Geometry.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/RenderGraph.hpp"
 
 // Renderer/Light
 #include "Renderer/Light/Light.hpp"
 #include "Renderer/Light/LightUniforms.hpp"
 
+// Renderer/Material
+#include "Renderer/Material/Material.hpp"
+#include "Renderer/Material/MaterialParam.hpp"
+#include "Renderer/Material/MaterialInstance.hpp"
+#include "Renderer/Material/MaterialLibrary.hpp"
+
+// Renderer/Mesh
+#include "Renderer/Mesh/Mesh.hpp"
+#include "Renderer/Mesh/MeshData.hpp"
+#include "Renderer/Mesh/MeshFactory.hpp"
+#include "Renderer/Mesh/Model.hpp"
+
+// Renderer/RenderPass
+#include "Renderer/RenderPass/RenderPass.hpp"
+#include "Renderer/RenderPass/RenderPassContext.hpp"
+#include "Renderer/RenderPass/ForwardPass.hpp"
+
 // Scene
 #include "Scene/Scene.hpp"
-#include "Scene/Component.hpp"
-#include "Scene/TransformComponent.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/SceneManager.hpp"
+
+// Scene/Component
+#include "Scene/Component/Component.hpp"
+#include "Scene/Component/TransformComponent.hpp"
+#include "Scene/Component/LightComponent.hpp"
+#include "Scene/Component/MeshRendererComponent.hpp"
 
 // EntryPoint 入口（包含 main()，必须最后）
 #include "Application/EntryPoint.hpp"

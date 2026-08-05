@@ -77,6 +77,48 @@ namespace
         apply_blend_state(state);
         apply_cull_state(state);
     }
+
+    /**
+     *  因为每个 pipeline 一定有自己的 Shader
+     *  但是却无法从 Shader 获取对于的 pipeline
+     *  因此 Cache 中缓存当前 pipeline 绑定的 Shader
+     */
+    struct OpenGLCache
+    {
+        ID::ShaderID    current_shader = ID::ShaderID::invalid_id();
+        GLuint          current_program = 0;
+
+        ID::PipelineID  current_pipeline = ID::PipelineID::invalid_id();
+        ID::ShaderID    current_pipeline_shader = ID::ShaderID::invalid_id();
+
+        bool bind_pipeline(const ID::PipelineID pipeline)
+        {
+            if(current_pipeline != pipeline)
+            {
+                current_pipeline = pipeline;
+                current_pipeline_shader = IDR_ResPipeline(pipeline)->get_shader_id();
+                bind_shader(current_pipeline_shader);
+                return false;
+            }
+            else if(current_pipeline_shader != current_shader)
+            {
+                bind_shader(current_pipeline_shader);
+            }
+
+            return true;
+        }
+
+        void bind_shader(const ID::ShaderID shader)
+        {
+            GLuint program = IDR_ResShader(shader)->get_program_id();
+            if(current_shader != shader || current_program != program)
+            {
+                glUseProgram(program);
+                current_shader = shader;
+                current_program = program;
+            }
+        }
+    } g_GLCache;
 } // 匿名命名空间
 
 namespace ID::RenderCommand
@@ -119,20 +161,34 @@ namespace ID::RenderCommand
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     }
 
+    void bind_default_framebuffer()
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    void bind_pipeline(const PipelineID pipeline)
+    {
+        if(!g_GLCache.bind_pipeline(pipeline))
+        {
+            apply_pipeline_state(pipeline);
+        }  
+    }
+
+    void bind_shader(const ID::ShaderID shader)
+    {
+        g_GLCache.bind_shader(shader);
+    }
+
     // draw_indexed
     void draw_indexed(const PipelineID pipeline, const VertexBufferID vb, const IndexBufferID ib)
     {
-        Pipeline* PipelinePtr = IDR_ResPipeline(pipeline);
+        bind_pipeline(pipeline);
+
         VertexBuffer* VBPtr = IDR_ResVB(vb);
         IndexBuffer* IBPtr = IDR_ResIB(ib);
 
-        GLuint program = IDR_ResShader(PipelinePtr->get_shader_id())->get_program_id();
-        glUseProgram(program);
-
-        GLuint vao = PipelinePtr->get_vao(VBPtr->get_vbo());
+        GLuint vao = IDR_ResPipeline(pipeline)->get_vao(VBPtr->get_vbo());
         glBindVertexArray(vao);
-
-        apply_pipeline_state(pipeline);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBPtr->get_ibo());
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(IBPtr->get_index_count()), GL_UNSIGNED_INT, nullptr);
@@ -148,16 +204,12 @@ namespace ID::RenderCommand
     void draw_arrays(const PipelineID pipeline, const VertexBufferID vb, 
         uint32_t first_vertex, uint32_t vertex_count)
     {
-        Pipeline* PipelinePtr = IDR_ResPipeline(pipeline);
+        bind_pipeline(pipeline);
+
         VertexBuffer* VBPtr = IDR_ResVB(vb);
 
-        GLuint program = IDR_ResShader(PipelinePtr->get_shader_id())->get_program_id();
-        glUseProgram(program);
-
-        GLuint vao = PipelinePtr->get_vao(VBPtr->get_vbo());
+        GLuint vao = IDR_ResPipeline(pipeline)->get_vao(VBPtr->get_vbo());
         glBindVertexArray(vao);
-
-        apply_pipeline_state(pipeline);
 
         glDrawArrays(GL_TRIANGLES, static_cast<GLint>(first_vertex), static_cast<GLsizei>(vertex_count));
     }
