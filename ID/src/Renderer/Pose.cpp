@@ -1,4 +1,5 @@
 #include "Renderer/Pose.hpp"
+#include "Log/Log.hpp"
 
 namespace ID
 {
@@ -6,6 +7,26 @@ namespace ID
     {
         // T * R：平移 * 旋转，不包含缩放
         return Math::get_translation(position) * orientation.to_mat4();
+    }
+
+    Json Pose<OrientationDescType::Quaternion>::serialize(ArenaID arena_id) const
+    {
+        Json json = Json::create_object(arena_id);
+        json.insert("position", JSON::create(position, arena_id));
+        json.insert("ori(Quat)", JSON::create(orientation, arena_id));
+        return json;
+    }
+
+    void Pose<OrientationDescType::Quaternion>::deserialize(const Json& json)
+    {
+        if(!json.is_object())
+        {
+            ID_WARN("Pose<Quat>::deserialize: 尝试把非对象 JSON 解析为 Pose<Quat>");
+            return;
+        }
+
+        position = JSON::parse<Pos3>(json["position"]);
+        orientation = JSON::parse<Quat>(json["ori(Quat)"]);
     }
 
     Mat4 Pose<OrientationDescType::FrontUp>::get_transform_matrix() const
@@ -23,5 +44,27 @@ namespace ID
 
         // T * R
         return Math::get_translation(position) * rot;
+    }
+
+    Json Pose<OrientationDescType::FrontUp>::serialize(ArenaID arena_id) const
+    {
+        Json json = Json::create_object(arena_id);
+        json.insert("position", JSON::create(position, arena_id));
+        json.insert("front", JSON::create(front, arena_id));
+        json.insert("up", JSON::create(up, arena_id));
+        return json;
+    }
+
+    void Pose<OrientationDescType::FrontUp>::deserialize(const Json& json)
+    {
+        if(!json.is_object())
+        {
+            ID_WARN("Pose<FrontUp>::deserialize: 尝试把非对象 JSON 解析为 Pose<FrontUp>");
+            return;
+        }
+
+        position = JSON::parse<Pos3>(json["position"]);
+        front = JSON::parse<Vec3>(json["front"]);
+        up = JSON::parse<Vec3>(json["up"]);
     }
 }

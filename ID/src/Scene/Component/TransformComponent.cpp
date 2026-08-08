@@ -3,6 +3,10 @@
 #include "Scene/GameObject.hpp"
 #include "Scene/Scene.hpp"
 
+#include "Scene/Component/ComponentFactory.hpp"
+
+#include "IDJson.hpp"
+
 namespace ID
 {
     TransformComponent::TransformComponent() : m_pose(), m_scale(1.0f, 1.0f, 1.0f), m_dirty(true) { }
@@ -34,7 +38,7 @@ namespace ID
         GameObject* owner = get_owner();
         if (!owner || !owner->get_scene()) return;
 
-        for (GameObject::ID child_id : owner->get_children())
+        for(GameObject::ID child_id : owner->get_children())
         {
             GameObject& child = owner->get_scene()->get_game_object(child_id);
             child.get_transform().propagate_world_dirty();
@@ -72,6 +76,7 @@ namespace ID
         clear_dirty();
         return m_model;
     }
+
     const Mat4& TransformComponent::get_world_matrix() const
     {
         if (!m_world_dirty) return m_world_cache;
@@ -92,4 +97,25 @@ namespace ID
         m_world_dirty = false;
         return m_world_cache;
     }
+
+    Json TransformComponent::serialize(ArenaID arena) const
+    {
+        Json obj = Json::create_object(arena);
+        obj.insert("type", Json::create_string(get_component_type_name(), arena));
+        obj.insert("m_pose", m_pose.serialize(arena));
+        obj.insert("m_scale", JSON::create(m_scale, arena));
+        return obj;
+    }
+
+    void TransformComponent::deserialize(const Json& json)
+    {
+        if (!json.is_object()) return;
+
+        m_pose.deserialize(json["m_pose"]);
+        m_scale = JSON::parse<Vec3>(json["m_scale"]);
+        
+        make_dirty();
+    }
+
+    ID_REGISTER_COMPONENT(TransformComponent, "TransformComponent");
 } // namespace ID

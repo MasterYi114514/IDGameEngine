@@ -92,24 +92,10 @@ namespace ID
         is_projection_dirty = true;
     }
 
-    // =====================================================================
-    //  更新
-    // =====================================================================
-
-    void Camera::update()
+    void Camera::update_view_matrix() const
     {
-        if (is_view_dirty)
-            update_view_matrix();
+        if(!is_view_dirty) return;
 
-        if (is_projection_dirty)
-            update_projection_matrix();
-
-        if (is_view_dirty || is_projection_dirty)
-            update_frustum();
-    }
-
-    void Camera::update_view_matrix()
-    {
         m_view_matrix = Math::get_look_at(
             m_pose.position,
             m_pose.position + m_pose.front,
@@ -118,8 +104,10 @@ namespace ID
         is_view_dirty = false;
     }
 
-    void Camera::update_projection_matrix()
+    void Camera::update_projection_matrix() const
     {
+        if(!is_projection_dirty) return;
+
         switch (m_projection.type)
         {
         case ProjectionType::Perspective:
@@ -145,8 +133,14 @@ namespace ID
         is_projection_dirty = false;
     }
 
-    void Camera::update_frustum()
+    void Camera::update_frustum() const
     {
+        if(is_view_dirty || is_projection_dirty)
+        {
+            update_view_matrix();
+            update_projection_matrix();
+        }
+
         // VP = projection * view
         Mat4 vp = m_projection_matrix * m_view_matrix;
 

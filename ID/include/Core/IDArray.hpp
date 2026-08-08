@@ -7,7 +7,7 @@
 namespace ID
 {
     /**
-     *  自定义 Array 类，存储固定大小的 float 数组
+     *  自定义 Array 类，存储固定大小的数组
      *  确保运行零开销
      */
     template<typename T, size_t SIZE>

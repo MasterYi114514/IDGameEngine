@@ -1,0 +1,80 @@
+#version 440 core
+
+// ============================================================================
+//  PostProcessPass 片段着色器
+//  单个 shader 通过 u_mode 分派多个后处理子步骤：
+//    u_mode = 0  EXTRACT   亮部提取（Bloom 第一步）
+//    u_mode = 1  BLUR_H    水平 5-tap 高斯模糊
+//    u_mode = 2  BLUR_V    垂直 5-tap 高斯模糊
+//    u_mode = 3  COMPOSITE 合成：HDR + Bloom →（可选 ACES Tonemapping）→（可选 Gamma）
+// ============================================================================
+
+in vec2 v_uv;
+out vec4 FragColor;
+
+uniform sampler2D u_input;          // 输入纹理（场景 HDR 或 bloom 中间缓冲）
+uniform sampler2D u_bloom;          // composite 时的 bloom 图
+uniform int       u_has_bloom;      // composite 时是否有 bloom 输入
+uniform int       u_mode;           // 0=extract 1=blur_h 2=blur_v 3=composite
+uniform vec2      u_texel_size;     // 1 / 纹理宽高（模糊步长）
+uniform float     u_threshold;      // 亮部提取阈值
+uniform float     u_bloom_strength; // 泛光叠加强度
+uniform int       u_tone_mapping;   // 是否 ACES Tonemapping
+uniform int       u_gamma;          // 是否 Gamma 校正
+
+// 5-tap 高斯权重（两两偏移合并采样）
+vec3 gaussian_blur(sampler2D tex, vec2 uv, vec2 dir)
+{
+    vec3 result = texture(tex, uv).rgb * 0.227027;
+    result += texture(tex, uv + dir * 1.384615).rgb * 0.316216;
+    result += texture(tex, uv - dir * 1.384615).rgb * 0.316216;
+    result += texture(tex, uv + dir * 3.230769).rgb * 0.070270;
+    result += texture(tex, uv - dir * 3.230769).rgb * 0.070270;
+    return result;
+}
+
+// ACES Filmic Tonemapping（近似）
+vec3 aces_filmic(vec3 x)
+{
+    return clamp((x * (2.51 * x + 0.03)) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0);
+}
+
+void main()
+{
+    if (u_mode == 0)        // ── 亮部提取 ──
+    {
+        vec3 c = texture(u_input, v_uv).rgb;
+        float luma = dot(c, vec3(0.299, 0.587, 0.114));
+        // 阈值附近平滑过渡，避免硬切
+        float k = smoothstep(u_threshold, u_threshold * 1.5, luma);
+        FragColor = vec4(c * k, 1.0);
+    }
+    else if (u_mode == 1)   // ── 水平模糊 ──
+    {
+        FragColor = vec4(gaussian_blur(u_input, v_uv, vec2(u_texel_size.x, 0.0)), 1.0);
+    }
+    else if (u_mode == 2)   // ── 垂直模糊 ──
+    {
+        FragColor = vec4(gaussian_blur(u_input, v_uv, vec2(0.0, u_texel_size.y)), 1.0);
+    }
+    else                    // ── 合成 ──
+    {
+        vec3 hdr = texture(u_input, v_uv).rgb;
+        if (u_has_bloom == 1)
+        {
+            hdr += texture(u_bloom, v_uv).rgb * u_bloom_strength;
+        }
+
+        if (u_tone_mapping == 1)
+        {
+            hdr = aces_filmic(hdr);
+        }
+
+        if (u_gamma == 1)
+        {
+            hdr = pow(hdr, vec3(1.0 / 2.2));
+        }
+
+        FragColor = vec4(hdr, 1.0);
+    }
+}

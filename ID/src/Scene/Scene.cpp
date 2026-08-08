@@ -1,6 +1,29 @@
 #include "Scene/Scene.hpp"
 #include "Log/Log.hpp"
 
+namespace
+{
+    using namespace ID;
+    GameObject::ID deserialize_tree(const Json& json, GameObject::ID parent_id, ID::Scene* scene)
+    {
+        GameObject::ID id = scene->create_game_object(json["name"].as_cstr());
+        GameObject& go = scene->get_game_object(id);
+        go.deserialize(json);
+        go.set_parent(parent_id);
+
+        const Json& children = json["children"];
+        if (children.is_array())
+        {
+            for (size_t i = 0; i < children.size(); ++i)
+            {
+                deserialize_tree(children[i], id, scene);
+            }
+        }
+
+        return id;
+    }
+} // 匿名命名空间
+
 namespace ID
 {
     Scene::Scene(const std::string& name) 
@@ -77,6 +100,41 @@ namespace ID
             if (game_object_ptr && game_object_ptr->is_active())
             {
                 game_object_ptr->on_event(event);
+            }
+        }
+    }
+
+    Json Scene::serialize(ArenaID arena) const
+    {
+        Json result = Json::create_object(arena);
+        result.insert("name", Json::create_string(m_name, arena));
+
+        Json roots = Json::create_array(arena);
+        for(const auto& go : m_game_objects)
+        {
+            if(go && go->get_parent_id() == GameObject::INVALID_ID)
+            {
+                roots.push_back(go->serialize(arena));
+            }
+        }
+        result.insert("game_objects", roots);
+
+        return result;
+    }
+
+    void Scene::deserialize(const Json& json)
+    {
+        m_name = json["name"].as_cstr();
+        m_game_objects.clear();
+        m_freed_ids.clear();
+
+        const Json& roots = json["game_objects"];
+
+        if(roots.is_array())
+        {
+            for(size_t i = 0; i < roots.size(); ++i)
+            {
+                deserialize_tree(roots[i], GameObject::INVALID_ID, this);
             }
         }
     }

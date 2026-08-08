@@ -6,7 +6,7 @@
 
 namespace ID
 {
-    class ID_API Scene
+    class ID_API Scene : public SerializableBase
     {
     private:
         // 设置构造函数为 private，确保只能通过 SceneManager 创建和管理 Scene 实例
@@ -70,6 +70,10 @@ namespace ID
     public:
         void on_update(Timestep ts);
         void on_event(Event& event);
+
+    public:
+        Json serialize(ArenaID arena) const override;
+        void deserialize(const Json& json) override;
 
     private:
         std::string m_name;

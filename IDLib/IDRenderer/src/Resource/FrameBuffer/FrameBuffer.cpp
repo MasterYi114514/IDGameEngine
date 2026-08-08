@@ -15,13 +15,15 @@ namespace ID
         glGenTextures(1, &m_color_tex);
         glBindTexture(GL_TEXTURE_2D, m_color_tex);
 
+        bool hdr = (create_info.color_format == TextureFormat::RGBA16F);
+
         if (create_info.samples > 1)
         {
             glTexImage2DMultisample
             (
                 GL_TEXTURE_2D_MULTISAMPLE,
                 static_cast<int>(create_info.samples), 
-                GL_RGBA8,
+                hdr ? GL_RGBA16F : GL_RGBA8,
                 static_cast<int>(m_width), 
                 static_cast<int>(m_height),
                 GL_TRUE
@@ -32,9 +34,9 @@ namespace ID
         }
         else
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+            glTexImage2D(GL_TEXTURE_2D, 0, hdr ? GL_RGBA16F : GL_RGBA8,
                 static_cast<int>(m_width), static_cast<int>(m_height),
-                0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+                0, GL_RGBA, hdr ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -51,6 +53,10 @@ namespace ID
             glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_width, m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            float border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depth_tex, 0);
         }
 

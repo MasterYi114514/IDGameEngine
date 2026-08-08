@@ -22,6 +22,13 @@ namespace ID::RenderCommand
     void IDR_API bind_framebuffer(const FrameBufferID framebuffer);
     void IDR_API bind_default_framebuffer();
 
+    // 绑定 FB 颜色附件为采样纹理
+    void IDR_API bind_framebuffer_color(const FrameBufferID framebuffer, 
+        uint32_t attachment, uint32_t slot);
+    
+    // 绑定 FB 深度附件为采样纹理
+    void IDR_API bind_framebuffer_depth(const FrameBufferID framebuffer, uint32_t slot);
+
     // 绑定管线
     void IDR_API bind_pipeline(const PipelineID pipeline);
     void IDR_API bind_shader(const ShaderID shader);

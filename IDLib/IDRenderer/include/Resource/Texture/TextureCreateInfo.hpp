@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/IDRpch.hpp"
-#include "Resource/Texture/TextureLoader.hpp"
+// #include "Resource/Texture/TextureLoader.hpp"
 
 namespace ID
 {
@@ -31,9 +31,9 @@ namespace ID
         TextureCreateInfo() = delete;
         TextureCreateInfo(uint32_t w, uint32_t h, const void* data = nullptr, TextureFormat fmt  = TextureFormat::RGBA8) : width(w), height(h), format(fmt), pixel_data(data) { }
 
-        TextureCreateInfo(const TextureData& texture_data, TextureFormat fmt = TextureFormat::RGBA8)
-            : width(texture_data.width), height(texture_data.height),
-              format(fmt), pixel_data(texture_data.data) { }
+        // TextureCreateInfo(const TextureData& texture_data, TextureFormat fmt = TextureFormat::RGBA8)
+        //     : width(texture_data.width), height(texture_data.height),
+        //       format(fmt), pixel_data(texture_data.data) { }
 
         uint32_t      width      = 0;
         uint32_t      height     = 0;

@@ -1,0 +1,18 @@
+#version 440 core
+
+// ============================================================================
+//  ShadowPass 深度渲染顶点着色器
+//  只关心投影位置（写入深度缓冲），不输出任何 varying
+// ============================================================================
+
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec2 aUV;
+layout(location = 2) in vec3 aNormal;
+
+uniform mat4 u_light_view_proj;     // 光源视角 VP 矩阵（正交）
+uniform mat4 u_model;               // 物体世界矩阵
+
+void main()
+{
+    gl_Position = u_light_view_proj * u_model * vec4(aPos, 1.0);
+}

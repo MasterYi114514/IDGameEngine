@@ -2,6 +2,8 @@
 #include "Scene/Scene.hpp"
 #include "Log/Log.hpp"
 
+#include "Scene/Component/ComponentFactory.hpp"
+
 #include "IDWindow.hpp"
 
 namespace ID
@@ -92,5 +94,85 @@ namespace ID
                 component->on_event(event);
             }
         }
+    }
+
+    Json GameObject::serialize(ArenaID arena_id) const
+    {
+        Json result = Json::create_object(arena_id);
+        result.insert("name", Json::create_string(m_name, arena_id));
+        result.insert("is_active", Json(m_is_active));
+
+        // 序列化 TransformComponent
+        result.insert("transform", m_transform.serialize(arena_id));
+
+        // 序列化 Components
+        Json components_array = Json::create_array(arena_id);
+        for (const auto& component : m_components)
+        {
+            if (component)
+            {
+                components_array.push_back(component->serialize(arena_id));
+            }
+        }
+        result.insert("components", components_array);
+
+        // 序列化子节点
+        Json children_array = Json::create_array(arena_id);
+        for (const auto& child_id : m_children)
+        {
+            const auto& child = m_scene->get_game_object(child_id);
+            children_array.push_back(child.serialize(arena_id));
+        }
+
+        result.insert("children", children_array);
+
+        return result;
+    }
+
+    void GameObject::deserialize(const Json& json)
+    {
+        m_name = json["name"].as_cstr();
+        m_is_active = json["is_active"].as_bool();
+
+        // 反序列化 TransformComponent
+        m_transform.deserialize(json["transform"]);
+
+        // 清空旧的组件（防御性，确保反序列化可重复调用）
+        m_components.clear();
+        m_component_index.clear();
+
+        // 反序列化 Components
+        const Json& components_array = json["components"];
+        if (components_array.is_array())
+        {
+            for (size_t i = 0; i < components_array.size(); ++i)
+            {
+                const Json& component_json = components_array[i];
+                std::string type_name = component_json["type"].as_cstr();
+
+                auto component = ComponentFactory::create(type_name);
+                if (component)
+                {
+                    component->deserialize(component_json);
+                    component->on_attach(this);
+
+                    // 索引表：该类型尚无记录时写入，保证 get_component O(1)
+                    Component::TypeID type_id = component->get_type_id();
+                    if (m_component_index.find(type_id) == m_component_index.end())
+                    {
+                        m_component_index[type_id] = component.get();
+                    }
+
+                    m_components.push_back(std::move(component));
+                }
+                else
+                {
+                    ID_ERROR("无法创建组件类型: {}", type_name);
+                }
+            }
+        }
+
+        // children 的递归创建由 Scene::deserialize / deserialize_tree 负责
+        // GameObject::deserialize 只反序列化自身字段，不做递归
     }
 } // namespace ID

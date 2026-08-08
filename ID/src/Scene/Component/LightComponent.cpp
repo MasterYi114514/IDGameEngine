@@ -2,6 +2,10 @@
 #include "Scene/Component/TransformComponent.hpp"
 #include "Scene/GameObject.hpp"
 
+#include "Scene/Component/ComponentFactory.hpp"
+
+#include "IDJson.hpp"
+
 namespace ID
 {
     void LightComponent::sync_from_transform()
@@ -35,4 +39,20 @@ namespace ID
                 break;
         }
     }
+
+    Json LightComponent::serialize(ArenaID arena_id) const
+    {
+        Json obj = Json::create_object(arena_id);
+        obj.insert("type", Json::create_string(get_component_type_name(), arena_id));
+        obj.insert("m_light", m_light.serialize(arena_id));
+
+        return obj;
+    }
+
+    void LightComponent::deserialize(const Json& json)
+    {
+        m_light.deserialize(json["m_light"]);
+    }
+
+    ID_REGISTER_COMPONENT(LightComponent, "LightComponent");
 }

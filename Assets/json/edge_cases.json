@@ -1,0 +1,52 @@
+{
+    "description": "Edge cases and boundary values for JSON parser testing",
+    "empty_object": {},
+    "empty_array": [],
+    "empty_string": "",
+    "nested_empty": {
+        "a": {},
+        "b": [],
+        "c": [[], [], []]
+    },
+    "deep_nesting": {
+        "l1": {
+            "l2": {
+                "l3": {
+                    "l4": {
+                        "l5": {
+                            "l6": {
+                                "l7": {
+                                    "l8": {
+                                        "l9": {
+                                            "l10": {
+                                                "value": "deep!"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "numbers_edge": {
+        "max_int32": 2147483647,
+        "min_int32": -2147483648,
+        "very_small_float": 1e-308,
+        "very_large_float": 1e308,
+        "sub_unity": 0.0000001,
+        "negative_zero": -0.0
+    },
+    "strings_edge": {
+        "seven_chars": "1234567",
+        "eight_chars": "12345678",
+        "unicode_escape": "\u0048\u0065\u006c\u006c\u006f",
+        "slash": "forward/slash",
+        "only_backslash": "\\",
+        "tab_newline": "\t\n"
+    },
+    "trailing_comma_array": [1, 2, 3, ],
+    "trailing_comma_object": {"a": 1, "b": 2, }
+}

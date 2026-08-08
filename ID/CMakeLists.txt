@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 # 选项
 set(USE_IMGUI ON)          # 是否使用 ImGui
 set(ID_SHARED_LIB ON)      # 是否编译为动态库（ON: 动态库 / OFF: 静态库）
-set(USE_ID_IMPL ON)        # 是否使用 ID 库的实现（ON: 使用 / OFF: 不使用，需自行实现）
+set(USE_ID_IMPL OFF)        # 是否使用 ID 库的实现（ON: 使用 / OFF: 不使用，需自行实现）
 
 set(ID_RENDERER "OpenGL" CACHE STRING "渲染后端: OpenGL, Vulkan, DirectX")
 
@@ -62,6 +62,8 @@ target_include_directories(ID
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${IDLIB_DIR}/IDLog/include
         ${IDLIB_DIR}/IDMath/include
+        ${IDLIB_DIR}/IDJson/include
+        ${IDLIB_DIR}/IDAsset/include
         ${VENDOR_DIR}/glfw/include
         ${VENDOR_DIR}/glad/include
 )
@@ -78,10 +80,12 @@ if(ID_RENDERER STREQUAL "OpenGL")
         PRIVATE
             glfw
             glad
+            IDJson
             IDMath
             IDLog
             IDWindow
             IDRenderer
+            IDAsset
     )
 
 elseif(ID_RENDERER STREQUAL "Vulkan")

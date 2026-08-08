@@ -1,4 +1,8 @@
 #include "Renderer/Material/MaterialLibrary.hpp"
+#include "Renderer/Resource/TextureManager.hpp"
+#include "Renderer/Resource/ShaderManager.hpp"
+#include "Log/Log.hpp"
+
 
 #define MLib ::ID::MaterialLibrary::storage()
 
@@ -62,5 +66,41 @@ namespace ID
     size_t MaterialLibrary::size()
     {
         return MLib.size();
+    }
+
+    Json MaterialLibrary::serialize(const std::string& name, ArenaID arena_id)
+    {
+        Material* material = get(name);
+        if (!material)
+        {
+            ID_ERROR("MaterialLibrary::serialize: 尝试给不存在的材质 {} 序列化", name);
+            return JSON::null;
+        }
+        
+        Json result = Json::create_object(arena_id);
+        result.insert("name", Json::create_string(name, arena_id));
+        result.insert("info", material->serialize(arena_id));
+
+        return result;
+    }
+
+    Material* MaterialLibrary::deserialize(const Json& json)
+    {
+        if (!json.is_object())
+        {
+            ID_ERROR("MaterialLibrary::deserialize: json 不是对象类型，无法反序列化材质");
+            return nullptr;
+        }
+
+        std::string name = json["name"].as_cstr();
+        const Json& info = json["info"];
+
+        Material* material = get(name);
+        if (!material)
+        {
+            material = add(ShaderID::invalid_id(), name);
+        }
+        material->deserialize(info);
+        return material;
     }
 } // namespace ID

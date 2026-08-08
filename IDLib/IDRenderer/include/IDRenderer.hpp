@@ -30,7 +30,6 @@ using UBManager         = ID::ResourceManager<ID::UniformBufferUINT,    ID::Reso
 #include "Resource/Shader/ShaderCreateInfo.hpp"
 
 // Resource/Texture
-#include "Resource/Texture/TextureLoader.hpp"
 #include "Resource/Texture/TextureCreateInfo.hpp"
 
 // Resource/Pipeline

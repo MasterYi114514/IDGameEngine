@@ -6,13 +6,19 @@
 
 namespace ID
 {
-    struct TextureBindingDesc
+    struct ID_API TextureBindingDesc : SerializableBase
     {
+        TextureBindingDesc() = default;
+        TextureBindingDesc(TextureID texture, uint32_t slot) : texture(texture), slot(slot) { }
+        
         TextureID   texture = TextureID::invalid_id();
         uint32_t    slot = 0;
+
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
     };
 
-    class ID_API Material
+    class ID_API Material : public SerializableBase
     {
     public:
         Material() = delete;
@@ -64,6 +70,12 @@ namespace ID
         void apply() const;
 
         static void apply_param(ShaderID shader, const std::string& name, const MaterialParam& param);
+
+    private:
+        // 序列化与反序列化，只允许友元 MaterialLibrary 调用
+        friend class MaterialLibrary;
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
 
     private:
         ShaderID        m_shader;

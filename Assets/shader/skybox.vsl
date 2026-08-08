@@ -1,0 +1,26 @@
+#version 440 core
+
+// ============================================================================
+//  SkyboxPass 顶点着色器
+//  技巧：
+//    - gl_Position = proj * mat4(mat3(view)) * pos → 天空盒跟随相机旋转但不平移
+//    - 取 .xyww → 深度恒为 1.0（最远），配合 LessEqual 深度测试只填充背景
+//    - v_dir = aPos（立方体顶点在 ±1，物体空间方向即视线方向）
+// ============================================================================
+
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec2 aUV;
+layout(location = 2) in vec3 aNormal;
+
+out vec3 v_dir;
+
+uniform mat4 u_projection;
+uniform mat4 u_view;
+
+void main()
+{
+    // 只取 view 的旋转部分（去掉平移）
+    vec4 pos = u_projection * mat4(mat3(u_view)) * vec4(aPos, 1.0);
+    gl_Position = pos.xyww;         // z = w → NDC 深度 = 1.0
+    v_dir = aPos;
+}

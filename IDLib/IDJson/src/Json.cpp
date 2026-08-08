@@ -127,12 +127,24 @@ namespace ID
 
     int32_t Json::as_int() const
     {
+        // 兼容 Float：JSON 中 "1.0" 等带小数写法读整型时安全截断
+        if (m_type == JSON::Type::Float)
+        {
+            return static_cast<int32_t>(as_float());
+        }
+
         assert(m_type == JSON::Type::Int);
         return static_cast<int32_t>(reinterpret_cast<intptr_t>(m_ptr));
     }
 
     double Json::as_float() const
     {
+        // 兼容 Int：旧文件可能把整数值浮点写成 "1"（JsonParser 解析为 Int）
+        if (m_type == JSON::Type::Int)
+        {
+            return static_cast<double>(as_int());
+        }
+
         assert(m_type == JSON::Type::Float);
         double d;
         std::memcpy(&d, &m_ptr, sizeof(d));
@@ -153,8 +165,16 @@ namespace ID
 
     const std::string& Json::as_string() const
     {
-        assert(m_type == JSON::Type::String);
-        return *static_cast<const std::string*>(m_ptr);
+        assert(m_type == JSON::Type::String || m_type == JSON::Type::ShortString);
+        if(m_type == JSON::Type::ShortString)
+        {
+            return *reinterpret_cast<const std::string*>(&m_ptr);
+        }
+        else
+        {
+            return *static_cast<const std::string*>(m_ptr);
+        }
+        
     }
 
     // ═══════════════════════════════════════════
@@ -203,6 +223,26 @@ namespace ID
         assert(m_type == JSON::Type::Object);
         // insert_or_assign: 存在则更新，不存在则插入
         static_cast<ObjectImpl*>(m_ptr)->insert_or_assign(key, value);
+    }
+
+    bool Json::contains(const std::string& key) const
+    {
+        if (m_type != JSON::Type::Object)
+        {
+            return false;
+        }
+        const auto& obj = *static_cast<const ObjectImpl*>(m_ptr);
+        return obj.find(key) != obj.end();
+    }
+
+    std::vector<std::string> Json::get_keys() const
+    {
+        assert(m_type == JSON::Type::Object);
+        std::vector<std::string> keys;
+        const auto& obj = *static_cast<const ObjectImpl*>(m_ptr);
+        for (const auto& [k, v] : obj)
+            keys.push_back(k);
+        return keys;
     }
 
     // ═══════════════════════════════════════════

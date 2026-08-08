@@ -56,29 +56,27 @@ namespace ID
         void set_viewport_size(float width, float height);
 
         // 矩阵查询操作
-        const Mat4& get_view_matrix() const { return m_view_matrix; }
-        const Mat4& get_projection_matrix() const { return m_projection_matrix; }
-        const Frustum& get_frustum() const { return m_frustum; }
+        const Mat4& get_view_matrix() const { update_view_matrix(); return m_view_matrix; }
+        const Mat4& get_projection_matrix() const {  update_projection_matrix(); return m_projection_matrix; }
+        const Frustum& get_frustum() const { update_frustum(); return m_frustum; }
 
         // 视锥体裁剪操作
         // TODO
 
-        // 更新操作
-        void update();
 
     private:
         CameraPose          m_pose;
         ProjectionParams    m_projection;
 
-        Mat4                m_view_matrix;
-        Mat4                m_projection_matrix;
-        Frustum             m_frustum;
+        mutable Mat4        m_view_matrix;
+        mutable Mat4        m_projection_matrix;
+        mutable Frustum     m_frustum;
 
-        bool                is_view_dirty = true;
-        bool                is_projection_dirty = true;
+        mutable bool                is_view_dirty = true;
+        mutable bool                is_projection_dirty = true;
 
-        void update_view_matrix();
-        void update_projection_matrix();
-        void update_frustum();
+        void update_view_matrix() const;
+        void update_projection_matrix() const;
+        void update_frustum() const;
     };
 } // namespace ID

@@ -14,11 +14,14 @@
 #include <set>
 #include <unordered_set>
 #include <cstring>
+#include <cassert>
+#include <utility>
 
 // IDCore
 #include "Core/IDCore.hpp"
 #include "Core/IDArray.hpp"
 #include "Core/BasicID.hpp"
+#include "Core/SerializableBase.hpp"
 
 #include "Application/Timestep.hpp"
 

@@ -7,6 +7,9 @@
 
 // Core
 #include "Core/IDCore.hpp"
+#include "Core/BasicID.hpp"
+#include "Core/IDArray.hpp"
+#include "Core/SerializableBase.hpp"
 
 // Events
 #include "Events/Event.hpp"
@@ -38,15 +41,35 @@
 // Camera
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Camera/CameraController.hpp"
+#include "Renderer/Camera/ProjectionParams.hpp"
 
 // Renderer
 #include "Renderer/IDRCore.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/RenderGraph.hpp"
+#include "Renderer/Pose.hpp"
+
+// Renderer/Render
+#include "Renderer/Render/Renderer.hpp"
+#include "Renderer/Render/RenderGraph.hpp"
+#include "Renderer/Render/RenderContext.hpp"
+#include "Renderer/Render/FullscreenQuad.hpp"
+
+// Renderer/Render/RenderPass
+#include "Renderer/Render/RenderPass/RenderPass.hpp"
+#include "Renderer/Render/RenderPass/ForwardPass.hpp"
+#include "Renderer/Render/RenderPass/ShadowPass.hpp"
+#include "Renderer/Render/RenderPass/SkyboxPass.hpp"
+#include "Renderer/Render/RenderPass/TransparentPass.hpp"
+#include "Renderer/Render/RenderPass/PostProcessPass.hpp"
 
 // Renderer/Light
 #include "Renderer/Light/Light.hpp"
 #include "Renderer/Light/LightUniforms.hpp"
+
+// Renderer/Shadow
+#include "Renderer/Shadow/ShadowConfig.hpp"
+#include "Renderer/Shadow/ShadowCamera.hpp"
+#include "Renderer/Shadow/ShadowMap.hpp"
+#include "Renderer/Shadow/ShadowManager.hpp"
 
 // Renderer/Material
 #include "Renderer/Material/Material.hpp"
@@ -60,10 +83,9 @@
 #include "Renderer/Mesh/MeshFactory.hpp"
 #include "Renderer/Mesh/Model.hpp"
 
-// Renderer/RenderPass
-#include "Renderer/RenderPass/RenderPass.hpp"
-#include "Renderer/RenderPass/RenderPassContext.hpp"
-#include "Renderer/RenderPass/ForwardPass.hpp"
+// Renderer/Resource
+#include "Renderer/Resource/ShaderManager.hpp"
+#include "Renderer/Resource/TextureManager.hpp"
 
 // Scene
 #include "Scene/Scene.hpp"
@@ -72,6 +94,7 @@
 
 // Scene/Component
 #include "Scene/Component/Component.hpp"
+#include "Scene/Component/ComponentFactory.hpp"
 #include "Scene/Component/TransformComponent.hpp"
 #include "Scene/Component/LightComponent.hpp"
 #include "Scene/Component/MeshRendererComponent.hpp"

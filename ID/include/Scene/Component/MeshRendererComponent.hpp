@@ -11,6 +11,7 @@ namespace ID
     class ID_API MeshRendererComponent : public Component
     {
     public:
+        MeshRendererComponent() = default;
         explicit MeshRendererComponent(const Model& model);
         virtual ~MeshRendererComponent() override = default;
 
@@ -28,6 +29,12 @@ namespace ID
             return get_static_type_id<MeshRendererComponent>();
         }
 
+    public:
+        // 序列化与反序列化
+        Json serialize(ArenaID arena) const override;
+        void deserialize(const Json& json) override;
+        std::string get_component_type_name() const override { return "MeshRendererComponent"; }
+        
     private:
         Model m_model;
     };

@@ -43,6 +43,10 @@ namespace ID
         {
             return get_static_type_id<TestComponentA>();
         }
+
+        Json serialize(ArenaID /*arena*/) const override { return {}; }
+        void deserialize(const Json& /*json*/) override {}
+        std::string get_component_type_name() const override { return "TestComponentA"; }
     };
 
     class TestComponentB : public Component
@@ -55,6 +59,10 @@ namespace ID
         {
             return get_static_type_id<TestComponentB>();
         }
+
+        Json serialize(ArenaID /*arena*/) const override { return {}; }
+        void deserialize(const Json& /*json*/) override {}
+        std::string get_component_type_name() const override { return "TestComponentB"; }
     };
 
     // =====================================================================
@@ -69,10 +77,14 @@ namespace ID
 
         void on_attach() override
         {
+            ID_TRACE("[SceneLayer] on_attach() 开始，创建场景...");
             m_scene = &SceneManager::create_scene("StressTestScene");
+            ID_TRACE("[SceneLayer] 场景创建完成，加载场景...");
             SceneManager::load_scene(*m_scene);
+            ID_TRACE("[SceneLayer] 场景加载完成，运行压力测试...");
 
             run_all_tests();
+            ID_TRACE("[SceneLayer] on_attach() 完成");
         }
 
         void on_detach() override

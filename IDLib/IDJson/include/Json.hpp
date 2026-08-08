@@ -62,6 +62,20 @@ namespace ID
 
         void insert(const std::string& key, const Json& value);
 
+        /**
+         *  获取 Object 的所有键，返回一个 std::vector<std::string>
+         *  如果 Json 不是 Object 类型，则返回空向量
+         */
+        std::vector<std::string> get_keys() const;
+
+        /**
+         *  判断 Object 中是否存在指定键（反序列化防御用）
+         *  如果 Json 不是 Object 类型，返回 false
+         */
+        bool contains(const std::string& key) const;
+
+        const void* get_ptr() const { return m_ptr; }
+
     private:
         void*       m_ptr = nullptr;
         JSON::Type  m_type = JSON::Type::Null;

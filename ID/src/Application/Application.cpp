@@ -5,6 +5,7 @@
 #include <Events/WindowEvent.hpp>
 
 #include <chrono>
+#include <thread>
 
 namespace ID
 {
@@ -49,6 +50,7 @@ namespace ID
     {
         using clock = std::chrono::high_resolution_clock;
 
+        ID_TRACE("[Application] run() 开始，进入主循环...");
         auto last_time = clock::now();
 
         while(m_running)
@@ -64,7 +66,19 @@ namespace ID
             // 更新所有 Layer
             for(Layer* layer : m_layer_stack)
             {
+                ID_TRACE("[Application] 更新 Layer: {}", layer->get_name());
                 layer->on_update(timestep);
+            }
+
+            // 控制帧率为 60 FPS
+            float delay_time = 1.0f / 60.0f - delta;
+            if(delay_time > 0.0f)
+            {
+                std::this_thread::sleep_for(std::chrono::duration<float>(delay_time));
+            }
+            else
+            {
+                ID_TRACE("[Application] 帧率低于 60 FPS，当前帧时间: {:.3f} ms", delta * 1000.0f);
             }
         }
     }

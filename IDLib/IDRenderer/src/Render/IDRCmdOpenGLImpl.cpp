@@ -166,6 +166,21 @@ namespace ID::RenderCommand
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
+    // bind_framebuffer_color
+    void bind_framebuffer_color(const FrameBufferID framebuffer, 
+        uint32_t attachment, uint32_t slot)
+    {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, IDR_ResFB(framebuffer)->get_color_attachment(attachment));
+    }
+
+    // bind_framebuffer_depth
+    void bind_framebuffer_depth(const FrameBufferID framebuffer, uint32_t slot)
+    {
+        glActiveTexture(GL_TEXTURE0 + slot);
+        glBindTexture(GL_TEXTURE_2D, IDR_ResFB(framebuffer)->get_depth_attachment());
+    }
+
     void bind_pipeline(const PipelineID pipeline)
     {
         if(!g_GLCache.bind_pipeline(pipeline))

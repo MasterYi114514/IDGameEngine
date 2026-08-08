@@ -11,6 +11,7 @@ namespace ID
         MaterialLibrary() = delete;
         ~MaterialLibrary() = delete;
 
+    public:
         static Material* add(ShaderID shader, const std::string& name = "Material");
 
         // 按名称查询，不存在返回 nullptr
@@ -23,6 +24,9 @@ namespace ID
 
         // 返回当前注册的材质数量
         static size_t    size();
+
+        static Json         serialize(const std::string& name, ArenaID arena_id);
+        static Material*    deserialize(const Json& json);
     private:
         static std::vector<std::unique_ptr<Material>>& storage();
     };

@@ -22,7 +22,7 @@ namespace ID
         || std::same_as<T, Vec2> || std::same_as<T, Vec3> || std::same_as<T, Vec4>
         || std::same_as<T, Mat3> || std::same_as<T, Mat4>;
 
-    struct MaterialParam
+    struct ID_API MaterialParam : public SerializableBase
     {
         MaterialParam() = default;
         MaterialParamType type = MaterialParamType::None;
@@ -76,6 +76,9 @@ namespace ID
         }
 
         bool is_valid() const { return type != MaterialParamType::None; }
+
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
     };
     
 } // namespace ID

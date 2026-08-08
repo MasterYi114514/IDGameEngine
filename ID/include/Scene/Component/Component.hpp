@@ -1,13 +1,14 @@
 #pragma once
 
 #include "IDpch.hpp"
+#include "IDJson.hpp"
 
 namespace ID
 {
     class GameObject;
     class Event;
 
-    class ID_API Component
+    class ID_API Component : public SerializableBase
     {
     public:
         using TypeID = uint32_t;
@@ -36,6 +37,10 @@ namespace ID
             static TypeID type_id = s_next_type_id++;
             return type_id;
         }
+
+    public:
+        // 获取组件的名称，必须与 ComponentFactory 中注册的名称一致
+        virtual std::string get_component_type_name() const = 0;
 
     protected:
         GameObject* m_owner = nullptr;              // 组件所属的 GameObject

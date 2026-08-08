@@ -1,5 +1,6 @@
 #include "Resource/Shader/Shader.hpp"
 #include "Log/Log.hpp"
+#include <filesystem>
 
 #ifdef IDRENDERER_USE_OPENGL
 

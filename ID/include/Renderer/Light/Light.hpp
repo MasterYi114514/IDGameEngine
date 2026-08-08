@@ -12,9 +12,9 @@ namespace ID
         Spot,                       // 聚光灯
     };
 
-    struct Light
+    struct ID_API Light : public SerializableBase
     {
-        LightType type = LightType::Directional;   // 光源类型
+        LightType type = LightType::Directional;    // 光源类型
 
         Vec3  color = Vec3(1.0f, 1.0f, 1.0f);       // 光源颜色
         float intensity = 1.0f;                     // 光源强度
@@ -31,5 +31,9 @@ namespace ID
 
         bool enabled = true;                    // 光源是否启用
         uint8_t  _pad[3] = { 0 };               // std140 对齐填充
+
+        // 序列化
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
     };
 } // namespace ID

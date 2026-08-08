@@ -98,6 +98,13 @@ namespace ID
         std::vector<ID> m_children;                     // 子 GameObject ID 列表
 
         static GameObject default_game_object;          // 默认的 GameObject，用于返回引用，避免返回空指针
+
+    public:
+        // 将 GameObject 序列化为 Json 树
+        Json serialize(ArenaID arena) const;
+
+        // 从 Json 树反序列化 GameObject 数据
+        void deserialize(const Json& json);
     };
 
     // GameObject 的模版函数实现 ------------------------------------------------------------------------------

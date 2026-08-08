@@ -28,6 +28,12 @@ namespace ID
         {
             return get_static_type_id<LightComponent>();
         }
+    
+    public:
+        // 序列化与反序列化
+        Json        serialize(ArenaID arena_id) const override;
+        void        deserialize(const Json& json) override;
+        std::string get_component_type_name() const override { return "LightComponent"; }
 
     private:
         Light m_light;

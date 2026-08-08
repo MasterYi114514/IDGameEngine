@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/SerializableBase.hpp"
 #include "IDMath.hpp"
 
 namespace ID
@@ -18,18 +19,22 @@ namespace ID
 
     // 特化：使用四元数描述朝向
     template<>
-    struct ID_API Pose<OrientationDescType::Quaternion>
+    struct ID_API Pose<OrientationDescType::Quaternion> : public SerializableBase
     {
         Pos3 position = Pos3(0.0f, 0.0f, 0.0f);   // 位置
         Quat orientation = Quat(1.0f, 0.0f, 0.0f, 0.0f); // 朝向（四元数）
 
         // 获取变换矩阵（4x4），这里的变换为 平移 * 旋转，不包括缩放
         Mat4 get_transform_matrix() const;
+
+        // 序列化与反序列化
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
     };
 
     // 特化：使用前向向量 + 上向量描述朝向
     template<>
-    struct ID_API Pose<OrientationDescType::FrontUp>
+    struct ID_API Pose<OrientationDescType::FrontUp> : public SerializableBase
     {
         Pos3 position   = Pos3(0.0f, 0.0f, 0.0f);       // 位置
         Vec3 front      = Vec3(0.0f, 0.0f, -1.0f);      // 前向向量（单位化）
@@ -40,5 +45,9 @@ namespace ID
 
         // 获取变换矩阵（4x4），这里的变换为 平移 * 旋转，不包括缩放
         Mat4 get_transform_matrix() const;
+
+        // 序列化与反序列化
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
     };
 };

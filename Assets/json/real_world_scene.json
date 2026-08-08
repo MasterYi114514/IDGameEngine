@@ -1,0 +1,137 @@
+{
+    "format": "idscene",
+    "version": 1,
+    "name": "Phase3DemoScene",
+    "game_objects": [
+        {
+            "id": 0,
+            "name": "MainCamera",
+            "parent": -1,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [0.0, 5.0, 10.0],
+                    "rotation_euler": [-26.565, 0.0, 0.0],
+                    "scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "type": "Camera",
+                    "fov_y": 60.0,
+                    "near_z": 0.1,
+                    "far_z": 1000.0
+                }
+            ]
+        },
+        {
+            "id": 1,
+            "name": "DirectionalLight",
+            "parent": -1,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [0.0, 20.0, 0.0],
+                    "rotation_euler": [45.0, -30.0, 0.0],
+                    "scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "type": "Light",
+                    "light_type": "Directional",
+                    "color": [1.0, 0.98, 0.92],
+                    "intensity": 1.5
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Player",
+            "parent": -1,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [0.0, 0.0, 0.0],
+                    "rotation_euler": [0.0, 0.0, 0.0],
+                    "scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "type": "MeshRenderer",
+                    "mesh_path": "Assets/mesh/player.gltf",
+                    "material_path": "Assets/material/player.mat"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Ground",
+            "parent": -1,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [0.0, -0.5, 0.0],
+                    "rotation_euler": [0.0, 0.0, 0.0],
+                    "scale": [50.0, 1.0, 50.0]
+                },
+                {
+                    "type": "MeshRenderer",
+                    "mesh_path": "Assets/mesh/plane.obj",
+                    "material_path": "Assets/material/ground.mat"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "EnemySpawner_01",
+            "parent": -1,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [15.0, 0.0, 8.0],
+                    "rotation_euler": [0.0, 0.0, 0.0],
+                    "scale": [1.0, 1.0, 1.0]
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "name": "Enemy_01",
+            "parent": 4,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [0.0, 0.0, 0.0],
+                    "rotation_euler": [0.0, 0.0, 0.0],
+                    "scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "type": "MeshRenderer",
+                    "mesh_path": "Assets/mesh/goblin.gltf",
+                    "material_path": "Assets/material/goblin.mat"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "name": "Pickup_Sword",
+            "parent": -1,
+            "active": true,
+            "components": [
+                {
+                    "type": "Transform",
+                    "position": [3.0, 1.0, -2.0],
+                    "rotation_euler": [0.0, 45.0, 0.0],
+                    "scale": [1.0, 1.0, 1.0]
+                },
+                {
+                    "type": "MeshRenderer",
+                    "mesh_path": "Assets/mesh/sword.obj",
+                    "material_path": "Assets/material/sword.mat"
+                }
+            ]
+        }
+    ]
+}

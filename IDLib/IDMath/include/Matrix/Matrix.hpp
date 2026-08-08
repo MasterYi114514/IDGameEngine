@@ -42,7 +42,7 @@ namespace ID
         template<std::size_t RowStride>
         struct AbstractRow
         {
-            std::size_t m_row_index;
+            mutable std::size_t m_row_index;
             T*          m_array;
 
             T& operator[](std::size_t col_index)
@@ -133,7 +133,7 @@ namespace ID
         template<std::size_t RowStride>
         struct AbstractRow
         {
-            std::size_t m_row_index;
+            mutable std::size_t m_row_index;
             T*          m_array;
 
             T& operator[](std::size_t col_index)

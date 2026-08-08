@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Resource/Texture/TextureCreateInfo.hpp"
+
 namespace ID
 {
     struct IDR_API FrameBufferCreateInfo
@@ -11,5 +13,6 @@ namespace ID
         uint32_t        height;                             // 帧缓冲高度
         bool            has_depth_attachment = true;        // 是否有深度附件
         uint32_t        samples = 1;                        // 多重采样数量
+        TextureFormat   color_format = TextureFormat::RGBA8; // 颜色附件格式
     };
 } // namespace ID

@@ -45,6 +45,12 @@ namespace ID
             return get_static_type_id<TransformComponent>();
         }
 
+    public:
+        // 序列化与反序列化
+        Json serialize(ArenaID arena) const override;
+        void deserialize(const Json& json) override;
+        std::string get_component_type_name() const override { return "TransformComponent"; }
+
     private:
         ComponentPose m_pose;
         Vec3 m_scale = Vec3(1.0f, 1.0f, 1.0f);

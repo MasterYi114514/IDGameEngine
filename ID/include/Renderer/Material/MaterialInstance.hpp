@@ -9,7 +9,7 @@ namespace ID
      *  实例材质（MaterialInstance），内部有父级材质（Material）的指针，允许对父级材质的参数进行局部覆盖
      * 
      */
-    class ID_API MaterialInstance
+    class ID_API MaterialInstance : public SerializableBase
     {
     public:
         MaterialInstance() = delete;
@@ -43,8 +43,21 @@ namespace ID
         ShaderID get_shader() const { return m_parent ? m_parent->get_shader() : ShaderID::invalid_id(); }
         bool     is_transparent() const { return m_parent && m_parent->is_transparent(); }
 
+        // 序列化支持：暴露覆盖表
+        const std::map<std::string, MaterialParam>& get_param_overrides() const { return m_overrides; }
+        const std::map<std::string, TextureBindingDesc>& get_texture_overrides() const { return m_texture_overrides; }
+
+        void set_param_value(const std::string& name, const MaterialParam& param)
+        {
+            m_overrides[name] = param;
+        }
+
         // 合并父级默认值 + 覆盖，写入 shader
         void apply() const;
+
+    public:
+        Json serialize(ArenaID arena_id) const override;
+        void deserialize(const Json& json) override;
 
     private:
         const Material* m_parent = nullptr;

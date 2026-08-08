@@ -7,6 +7,7 @@
 
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Camera/CameraController.hpp"
+#include "Log/Log.hpp"
 
 namespace ID
 {
@@ -20,9 +21,13 @@ namespace ID
 
         void on_attach() override
         {
+            ID_TRACE("[CameraLayer] on_attach() 开始...");
             m_camera = Camera();
+            ID_TRACE("[CameraLayer] Camera 构造完成，设置位置...");
             m_camera.set_position(Pos3(0.0f, 0.0f, 5.0f));
+            ID_TRACE("[CameraLayer] 准备创建 FreeLookCameraController...");
             m_camera_controller = new FreeLookCameraController(m_camera);
+            ID_TRACE("[CameraLayer] on_attach() 完成");
         }
 
         void on_update(Timestep ts) override
