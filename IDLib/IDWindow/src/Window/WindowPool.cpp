@@ -170,6 +170,12 @@ namespace ID
         return g_CurrentWindow;
     }
 
+    void* WindowPool::get_native_handle()
+    {
+        if(!g_CurrentWindow) return nullptr;
+        return g_CurrentWindow->get_native_handle();
+    }
+
     void WindowPool::set_event_callback(const WindowID& id, const EventCallbackFn& callback)
     {
         WindowIDType target = id.get_id();

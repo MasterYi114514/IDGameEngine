@@ -45,6 +45,9 @@ namespace ID
             return get_static_type_id<TransformComponent>();
         }
 
+        // 控制一个 GO 只有一个 TransformComponent
+        bool allow_multiple() const override { return false; }
+
     public:
         // 序列化与反序列化
         Json serialize(ArenaID arena) const override;

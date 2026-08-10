@@ -4,5 +4,6 @@
 #include "Asset/AssetPtr.hpp"
 #include "Asset/AssetLibrary.hpp"
 
-#include "Loader/TextureLoader.hpp"
 #include "Loader/IAssetLoader.hpp"
+#include "Loader/MaterialLoader.hpp"
+#include "Loader/TextureLoader.hpp"

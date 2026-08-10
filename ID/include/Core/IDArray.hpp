@@ -9,6 +9,7 @@ namespace ID
     /**
      *  自定义 Array 类，存储固定大小的数组
      *  确保运行零开销
+     *  - 其中的拷贝构造函数和赋值运算符使用 std::memcpy 进行内存拷贝，但是需要确保 T 类型是 trivially copyable 的
      */
     template<typename T, size_t SIZE>
     struct Array

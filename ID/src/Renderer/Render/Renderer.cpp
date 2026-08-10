@@ -208,7 +208,16 @@ namespace ID::Renderer
                 MeshRendererComponent* mrc = go.get_component<MeshRendererComponent>();
                 if (mrc != nullptr)
                 {
-                    submit(mrc->get_model(), go.get_world_matrix());
+                    auto transform_comp = go.get_component<TransformComponent>();
+                    if(transform_comp != nullptr)
+                    {
+                        submit(mrc->get_model(), transform_comp->get_world_matrix());
+                    }
+                    else
+                    {
+                        ID_WARN("GameObject '{}' (ID={}) 缺少 TransformComponent，无法获取世界矩阵，MeshRendererComponent 将被忽略",
+                            go.get_name(), go.get_id());
+                    }
                 }
             }
 

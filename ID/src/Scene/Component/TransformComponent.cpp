@@ -7,8 +7,12 @@
 
 #include "IDJson.hpp"
 
+#include "Log/Log.hpp"
+
 namespace ID
-{
+{   
+    ID_REGISTER_COMPONENT(TransformComponent, "TransformComponent");
+
     TransformComponent::TransformComponent() : m_pose(), m_scale(1.0f, 1.0f, 1.0f), m_dirty(true) { }
 
     void TransformComponent::translate(const Vec3& delta)
@@ -41,7 +45,15 @@ namespace ID
         for(GameObject::ID child_id : owner->get_children())
         {
             GameObject& child = owner->get_scene()->get_game_object(child_id);
-            child.get_transform().propagate_world_dirty();
+            TransformComponent* child_transform = child.get_component<TransformComponent>();
+            if (child_transform)
+            {
+                child_transform->propagate_world_dirty();
+            }
+            else
+            {
+                ID_ERROR("TransformComponent::make_dirty: 子 GameObject 没有 TransformComponent");
+            }
         }
     }
 
@@ -55,7 +67,15 @@ namespace ID
         for (GameObject::ID child_id : owner->get_children())
         {
             GameObject& child = owner->get_scene()->get_game_object(child_id);
-            child.get_transform().propagate_world_dirty();
+            TransformComponent* child_transform = child.get_component<TransformComponent>();
+            if (child_transform)
+            {
+                child_transform->propagate_world_dirty();
+            }
+            else
+            {
+                ID_ERROR("TransformComponent::propagate_world_dirty: 子 GameObject 没有 TransformComponent");
+            }
         }
     }
 
@@ -86,8 +106,19 @@ namespace ID
         GameObject* owner = get_owner();
         if (owner && owner->get_parent_id() != GameObject::INVALID_ID)
         {
-            const GameObject& parent = owner->get_scene()->get_game_object(owner->get_parent_id());
-            m_world_cache = parent.get_transform().get_world_matrix() * local;
+            // ★ 必须在父 GameObject 上查找 TransformComponent，而不是在自身查找
+            //   （自身查找会拿到自己的 Transform 导致 get_world_matrix 无限递归 → 栈溢出）
+            GameObject& parent = owner->get_scene()->get_game_object(owner->get_parent_id());
+            TransformComponent* parent_transform = parent.get_component<TransformComponent>();
+            if (parent_transform)
+            {
+                m_world_cache = parent_transform->get_world_matrix() * local;
+            }
+            else
+            {
+                ID_ERROR("TransformComponent::get_world_matrix: 父 GameObject '{}' (ID={}) 没有 TransformComponent",
+                    parent.get_name(), parent.get_id());
+            }
         }
         else
         {
@@ -116,6 +147,4 @@ namespace ID
         
         make_dirty();
     }
-
-    ID_REGISTER_COMPONENT(TransformComponent, "TransformComponent");
 } // namespace ID

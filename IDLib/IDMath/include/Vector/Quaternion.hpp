@@ -76,6 +76,8 @@ public:
     glm::qua<float, glm::defaultp>&       get_glm_quat()       { return m_quat; }
     const glm::qua<float, glm::defaultp>& get_glm_quat() const { return m_quat; }
 
+    static Quaternion identity() { return Quaternion(1.0f, 0.0f, 0.0f, 0.0f); }
+
 private:
     glm::qua<float, glm::defaultp> m_quat{1.0f, 0.0f, 0.0f, 0.0f};
 

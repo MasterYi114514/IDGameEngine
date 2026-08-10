@@ -8,6 +8,31 @@ namespace ID
     class GameObject;
     class Event;
 
+    // ── 组件类型注册表 ──────────────────────────────────────────────
+    // 新增组件类型时：1) 在此前向声明  2) 把类型追加到 get_static_type_id 的类型列表尾部
+    class TransformComponent;
+    class MeshRendererComponent;
+    class LightComponent;
+
+    namespace detail
+    {
+        /**
+         *  @brief 编译期计算类型 T 在类型列表中的位置（从 1 开始）
+         *  @return 位置索引；0 表示 T 不在列表中（未登记）
+         *
+         *  纯编译期计算、无任何运行时状态：同一类型在任何编译单元 / DLL / EXE
+         *  中都得到相同的 type_id，彻底避免跨模块计数器分叉导致的 TypeID 串台。
+         */
+        template<typename T, typename... Ts>
+        consteval std::size_t type_index()
+        {
+            std::size_t idx = 0;
+            std::size_t i   = 0;
+            ((++i, (std::is_same_v<T, Ts> ? (idx = i) : 0)), ...);
+            return idx;
+        }
+    } // namespace detail
+
     class ID_API Component : public SerializableBase
     {
     public:
@@ -26,16 +51,31 @@ namespace ID
 
         GameObject* get_owner() const { return m_owner; }
 
+        bool            is_tail() const { return m_next == nullptr; }
+        Component*      get_next() const { return m_next; }
+        void            set_next(Component* next) { m_next = next; }
+
+        virtual bool    allow_multiple() const { return true; }
+
     public:
         // static type id 的设计
         virtual TypeID get_type_id() const = 0;
 
+        /**
+         *  @brief 获取组件类型的全局唯一 TypeID（编译期确定，跨 DLL 稳定）
+         *
+         *  type_id = 组件类型在下方类型列表中的位置（从 1 开始递增），
+         *  由 consteval 在编译期计算，不依赖任何运行时状态。
+         */
         template<typename ComponentType>
-        static TypeID get_static_type_id()
+        static constexpr TypeID get_static_type_id()
         {
             static_assert(std::is_base_of<Component, ComponentType>::value, "传入的类型必须是 Component 的子类");
-            static TypeID type_id = s_next_type_id++;
-            return type_id;
+            constexpr std::size_t idx = detail::type_index<ComponentType,
+                TransformComponent, MeshRendererComponent, LightComponent>();
+            static_assert(idx != 0,
+                "组件类型未登记：请在前向声明区添加该类声明，并追加到类型列表中");
+            return static_cast<TypeID>(idx);
         }
 
     public:
@@ -44,6 +84,7 @@ namespace ID
 
     protected:
         GameObject* m_owner = nullptr;              // 组件所属的 GameObject
-        static inline TypeID s_next_type_id = 0;    // 为每种组件类型分配一个唯一的 ID
+
+        Component* m_next = nullptr;                // 用于 Component 链表的指针
     };
 } // namespace ID

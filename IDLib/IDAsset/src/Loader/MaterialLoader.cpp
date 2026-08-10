@@ -23,9 +23,19 @@ namespace ID
         std::string json_str = oss.str();
         file.close();
 
-        // 解析 Json 文件
+        // 解析 Json 文件（损坏的 JSON 会抛异常，需捕获并置为失败）
         auto arana_id = ArenaManager::create_arena();
-        Json root = JSON::parse(json_str, arana_id);
+        Json root;
+        try
+        {
+            root = JSON::parse(json_str, arana_id);
+        }
+        catch(const std::exception& e)
+        {
+            IDASSET_ERROR("MaterialLoader::load：解析 Json 文件失败: {} ({})", path, e.what());
+            ArenaManager::destroy_arena(arana_id);
+            return result;
+        }
 
         if(!root.is_object())
         {
@@ -104,6 +114,41 @@ namespace ID
 
         ArenaManager::destroy_arena(arana_id);
         return result;
+    }
+
+    Asset<MaterialData> IAssetLoader<MaterialData>::load(const std::string& path)
+    {
+        MaterialData data = MaterialLoader::load(path);
+        if(data.is_valid())
+        {
+            return Asset<MaterialData>{AssetState::Loaded, std::move(data), path};
+        }
+        else
+        {
+            return Asset<MaterialData>{AssetState::Failed, MaterialData{}, path};
+        }
+    }
+
+    void IAssetLoader<MaterialData>::reload(Asset<MaterialData>& asset)
+    {
+        if(asset.path.empty())
+        {
+            IDASSET_ERROR("MaterialLoader::reload：资源路径为空");
+            asset.set_failed();
+            return;
+        }
+
+        asset.reset();
+        MaterialData data = MaterialLoader::load(asset.path);
+        if(data.is_valid())
+        {
+            asset.data = std::move(data);
+            asset.set_loaded();
+        }
+        else
+        {
+            asset.set_failed();
+        }
     }
 
     // 保存到 .mat 文件

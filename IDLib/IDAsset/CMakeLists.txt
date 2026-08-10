@@ -32,7 +32,6 @@ target_link_libraries(IDAsset
     PRIVATE
         IDLog
         IDJson
-    PUBLIC
         IDRenderer
 )
 

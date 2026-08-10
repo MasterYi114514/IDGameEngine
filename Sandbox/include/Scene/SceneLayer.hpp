@@ -40,6 +40,7 @@ public:
 
         GameObject::ID man = m_scene->create_game_object("Man");
         m_man = &(m_scene->get_game_object(man));
+        m_man->add_component<TransformComponent>().set_position(Vec3(0.0f, 0.0f, 0.0f));
 
         GameObject::ID man_head = m_scene->create_game_object("head");
         GameObject::ID man_body = m_scene->create_game_object("body");
@@ -55,11 +56,11 @@ public:
         m_scene->get_game_object(man_left_leg).set_parent(man);
         m_scene->get_game_object(man_right_leg).set_parent(man);
 
-        // 统一给各部位设置位置 + 挂载 MeshRendererComponent
+        // 统一给各部位设置位置 + 挂载 TransformComponent + MeshRendererComponent
         auto add_part = [this](GameObject::ID id, const Pos3& pos, MeshID mesh, const MaterialInstance& material)
         {
             GameObject& go = m_scene->get_game_object(id);
-            go.get_transform().set_position(pos);
+            go.add_component<TransformComponent>().set_position(pos);
             go.add_component<MeshRendererComponent>(Model(mesh, material));
         };
 
@@ -75,6 +76,7 @@ public:
         m_scene->get_game_object(ground).add_component<MeshRendererComponent>(
             Model(MeshFactory::create_cuboid(20.0f, 0.1f, 20.0f), skin_mat)
         );
+        m_scene->get_game_object(ground).add_component<TransformComponent>().set_position(Vec3(0.0f, 0.0f, 0.0f));
 
         // 设置方向光（模拟太阳）
         GameObject::ID light = m_scene->create_game_object("Light");
@@ -107,19 +109,19 @@ private:
     {
         if(Input::is_key_pressed(KeyCodes::W))
         {
-            m_man->get_transform().translate(Vec3(0.0f, 0.0f, -1.0f) * ts.get_seconds());
+            m_man->get_component<TransformComponent>()->translate(Vec3(0.0f, 0.0f, -1.0f) * ts.get_seconds());
         }
         if(Input::is_key_pressed(KeyCodes::S))
         {
-            m_man->get_transform().translate(Vec3(0.0f, 0.0f, 1.0f) * ts.get_seconds());
+            m_man->get_component<TransformComponent>()->translate(Vec3(0.0f, 0.0f, 1.0f) * ts.get_seconds());
         }
         if(Input::is_key_pressed(KeyCodes::A))
         {
-            m_man->get_transform().translate(Vec3(-1.0f, 0.0f, 0.0f) * ts.get_seconds());
+            m_man->get_component<TransformComponent>()->translate(Vec3(-1.0f, 0.0f, 0.0f) * ts.get_seconds());
         }
         if(Input::is_key_pressed(KeyCodes::D))
         {
-            m_man->get_transform().translate(Vec3(1.0f, 0.0f, 0.0f) * ts.get_seconds());
+            m_man->get_component<TransformComponent>()->translate(Vec3(1.0f, 0.0f, 0.0f) * ts.get_seconds());
         }
     }
 

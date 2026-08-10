@@ -13,6 +13,7 @@ namespace ID
     public:
         MeshRendererComponent() = default;
         explicit MeshRendererComponent(const Model& model);
+        explicit MeshRendererComponent(const Model&& model) : m_model(std::move(model)) { }
         virtual ~MeshRendererComponent() override = default;
 
     public:

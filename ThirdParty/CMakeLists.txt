@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 4.1.0)
 
 project(ThirdParty)
 
+# glad + glfw — 始终静态链接
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(glad)
 add_subdirectory(glfw)
 
@@ -24,4 +26,42 @@ set(ASSIMP_LIBRARY_OUTPUT_DIRECTORY ${BIN_DIR})
 set(ASSIMP_ARCHIVE_OUTPUT_DIRECTORY ${BIN_DIR})
 
 add_subdirectory(assimp)
+
+# Bullet3 — 物理引擎（静态库）
+set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET3 OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
+set(USE_GRAPHICAL_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(BULLET2_MULTITHREADING OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(bullet3)
+
+# OpenAL-Soft — 静态库（音频后端）
+set(BUILD_SHARED_LIBS OFF)
+set(LIBTYPE STATIC CACHE STRING "" FORCE)
+set(ALSOFT_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ALSOFT_TESTS OFF CACHE BOOL "" FORCE)
+set(ALSOFT_UTILS OFF CACHE BOOL "" FORCE)
+set(ALSOFT_NO_CONFIG_UTIL OFF CACHE BOOL "" FORCE)
+add_subdirectory(openal)
+
+# Dear ImGui — 调试 UI 库（静态库）
+add_library(imgui STATIC
+    imgui/imgui.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_widgets.cpp
+    imgui/imgui_tables.cpp
+    imgui/backends/imgui_impl_glfw.cpp
+    imgui/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui
+    PUBLIC
+        imgui
+        imgui/backends
+)
+target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
+target_link_libraries(imgui PUBLIC glfw glad)
 

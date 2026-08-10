@@ -175,6 +175,20 @@ namespace ID
         return *this;
     }
 
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
+    bool Vector<T, Dim>::operator==(const Vector& other) const requires Math::IsDecimal<T>
+    {
+        return m_vector == other.m_vector;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
+    bool Vector<T, Dim>::operator!=(const Vector& other) const requires Math::IsDecimal<T>
+    {
+        return m_vector != other.m_vector;
+    }
+
 #else 
     // 低维向量 → 高维向量构造
     template<typename T, std::size_t Dim>
@@ -449,6 +463,25 @@ namespace ID
             m_array[i] *= other.m_array[i];
         }
         return *this;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
+    bool Vector<T, Dim>::operator==(const Vector& other) const requires Math::IsDecimal<T>
+    {
+        for (std::size_t i = 0; i < s_dimension; ++i)
+        {
+            if (m_array[i] != other.m_array[i])
+                return false;
+        }
+        return true;
+    }
+
+    template<typename T, std::size_t Dim>
+    requires Math::CanBeVector<T, Dim>
+    bool Vector<T, Dim>::operator!=(const Vector& other) const requires Math::IsDecimal<T>
+    {
+        return !(*this == other);
     }
 
 #endif

@@ -23,10 +23,7 @@ namespace ID
     }
 
     GameObject::GameObject(Scene* scene, ID id, const std::string& name)
-        : m_scene(scene), m_id(id), m_name(name), m_is_active(true), m_transform()
-    {
-        m_transform.on_attach(this);
-    }
+        : m_scene(scene), m_id(id), m_name(name), m_is_active(true) { }
 
     void GameObject::set_parent(ID parent_id)
     {
@@ -46,11 +43,6 @@ namespace ID
             GameObject& new_parent = m_scene->get_game_object(m_parent_id);
             new_parent.get_children().push_back(m_id);
         }
-    }
-
-    Mat4 GameObject::get_world_matrix() const
-    {
-        return m_transform.get_world_matrix();
     }
 
     GameObject& GameObject::get_parent() const
@@ -102,9 +94,6 @@ namespace ID
         result.insert("name", Json::create_string(m_name, arena_id));
         result.insert("is_active", Json(m_is_active));
 
-        // 序列化 TransformComponent
-        result.insert("transform", m_transform.serialize(arena_id));
-
         // 序列化 Components
         Json components_array = Json::create_array(arena_id);
         for (const auto& component : m_components)
@@ -133,9 +122,6 @@ namespace ID
     {
         m_name = json["name"].as_cstr();
         m_is_active = json["is_active"].as_bool();
-
-        // 反序列化 TransformComponent
-        m_transform.deserialize(json["transform"]);
 
         // 清空旧的组件（防御性，确保反序列化可重复调用）
         m_components.clear();

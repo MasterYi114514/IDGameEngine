@@ -65,6 +65,12 @@ namespace ID
         Window* IDWINDOW_API get_current();
 
         /*
+        *   获取当前窗口的原生句柄（GLFW: GLFWwindow* / Win32: HWND）。
+        *   @return 无当前窗口返回 nullptr
+        */
+        void* IDWINDOW_API get_native_handle();
+
+        /*
         *   为指定窗口注册事件回调。
         *   @param id 目标 WindowID
         *   @param callback 事件回调函数

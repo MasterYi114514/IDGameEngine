@@ -1,4 +1,5 @@
 #include "Vector/Quaternion.hpp"
+#include "Vector/VectorImpl.hpp"
 
 #ifdef IDMATH_USE_GLM
     #include <glm/gtc/quaternion.hpp>

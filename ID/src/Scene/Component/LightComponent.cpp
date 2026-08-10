@@ -5,6 +5,7 @@
 #include "Scene/Component/ComponentFactory.hpp"
 
 #include "IDJson.hpp"
+#include "Log/Log.hpp"
 
 namespace ID
 {
@@ -15,15 +16,21 @@ namespace ID
             return;
         }
 
-        const TransformComponent& transform = m_owner->get_transform();
-        const Pos3& position = transform.get_position();
+        const TransformComponent* transform = m_owner->get_component<TransformComponent>();
+        if(transform == nullptr)
+        {
+            ID_ERROR("LightComponent::sync_from_transform: 一个拥有 LightComponent 的 GameObject 必须拥有 TransformComponent");
+            return;
+        }
+
+        const Pos3& position = transform->get_position();
 
         switch (m_light.type)
         {
             case LightType::Directional:
             {
                 // 平行光方向：取变换的 -Z 前方向（未经缩放）
-                const Quat& q = transform.get_orientation();
+                const Quat& q = transform->get_orientation();
                 Vec3 front = q * Vec3(0.0f, 0.0f, -1.0f);
                 front.normalize();
                 m_light.drop.direction = front;

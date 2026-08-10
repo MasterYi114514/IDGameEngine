@@ -41,12 +41,8 @@ namespace ID
 
         Scene*                      get_scene() const { return m_scene; }
 
-        TransformComponent&         get_transform() { return m_transform; }
-        const TransformComponent&   get_transform() const { return m_transform; }
-
     public:
         // 父子层级处理
-        Mat4                        get_world_matrix() const;       // 委托给 TransformComponent 获取世界矩阵
         void                        set_parent(ID parent_id);       // 设置父 GameObject
         GameObject&                 get_parent() const;
         ID                          get_parent_id() const { return m_parent_id; }
@@ -88,8 +84,6 @@ namespace ID
         std::string m_name;
         bool        m_is_active = true;         // 是否激活（参与更新和渲染）
 
-        TransformComponent        m_transform;          // 每个 GameObject 都有一个 TransformComponent
-
         using ComponentPtr = std::unique_ptr<Component>;
         std::vector<ComponentPtr> m_components;
         std::unordered_map<Component::TypeID, Component*> m_component_index;  // O(1) 组件快速查找
@@ -114,15 +108,21 @@ namespace ID
         static_assert(std::is_base_of<Component, ComponentType>::value, "传入的类型必须是 Component 的子类");
 
         auto component = std::make_unique<ComponentType>(std::forward<Args>(args)...);
+
+        // 单例组件检查：若该类型不允许挂载多个且已存在，则断言拦截
+        Component::TypeID type_id = Component::get_static_type_id<ComponentType>();
+        if (!component->allow_multiple())
+        {
+            assert(m_component_index.find(type_id) == m_component_index.end()
+                && "该组件类型只允许挂载一个!");
+        }
+
         component->on_attach(this);
         ComponentType& ref = *component;
 
-        // 索引表：该类型尚无记录时写入，保证 get_component O(1)
-        Component::TypeID type_id = Component::get_static_type_id<ComponentType>();
-        if (m_component_index.find(type_id) == m_component_index.end())
-        {
-            m_component_index[type_id] = component.get();
-        }
+        // 链表头插：新组件 next 指向旧头，然后成为新头
+        component->set_next(m_component_index[type_id]);
+        m_component_index[type_id] = component.get();
 
         m_components.push_back(std::move(component));
         return ref;
@@ -172,35 +172,28 @@ namespace ID
 
         Component::TypeID target_type = Component::get_static_type_id<ComponentType>();
 
-        // 找到第一个该类型的组件（索引始终指向第一个同类型组件）
-        auto it = std::find_if(m_components.begin(), m_components.end(),
-            [target_type](const std::unique_ptr<Component>& comp)
+        // O(1) 拿到链表头
+        auto index_it = m_component_index.find(target_type);
+        if (index_it == m_component_index.end()) return;
+
+        Component* head = index_it->second;
+
+        // 链表头出链
+        Component* next = head->get_next();
+        if (next)
+            m_component_index[target_type] = next;
+        else
+            m_component_index.erase(target_type);
+
+        // 从 m_components 中定位并删除
+        auto comp_it = std::find_if(m_components.begin(), m_components.end(),
+            [head](const ComponentPtr& comp)
             {
-                return comp->get_type_id() == target_type;
+                return comp.get() == head;
             });
 
-        if (it == m_components.end()) return;   // 没有该类型组件
-
-        // 如果删除的是索引指向的组件，把索引更新到下一个同类型组件
-        auto index_it = m_component_index.find(target_type);
-        if (index_it != m_component_index.end() && index_it->second == it->get())
-        {
-            Component* next = nullptr;
-            for (auto next_it = std::next(it); next_it != m_components.end(); ++next_it)
-            {
-                if ((*next_it)->get_type_id() == target_type)
-                {
-                    next = next_it->get();
-                    break;
-                }
-            }
-            if (next)
-                m_component_index[target_type] = next;
-            else
-                m_component_index.erase(target_type);
-        }
-
-        m_components.erase(it);
+        if (comp_it != m_components.end())
+            m_components.erase(comp_it);
     }
 
 } // namespace ID

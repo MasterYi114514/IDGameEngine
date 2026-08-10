@@ -2,6 +2,7 @@
 
 #include "IDAssetCore.hpp"
 #include "Asset/Asset.hpp"
+#include "Loader/IAssetLoader.hpp"
 
 #include <string>
 #include <vector>
@@ -62,5 +63,14 @@ namespace ID
 
         // 将 MaterialData 保存为 .mat 文件
         static void save(const MaterialData& data, const std::string& path);
+    };
+
+    // 特化：使 MaterialLoader 遵循 IAssetLoader<T> 统一接口
+    template<>
+    class IDASSET_API IAssetLoader<MaterialData>
+    {
+    public:
+        static Asset<MaterialData> load(const std::string& path);
+        static void reload(Asset<MaterialData>& asset);
     };
 } // namespace ID

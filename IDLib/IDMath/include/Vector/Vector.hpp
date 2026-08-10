@@ -87,6 +87,9 @@ namespace ID
         Vector& operator/=(float scalar)                                requires Math::IsDecimal<T>;
         Vector& operator*=(const Vector& other)                         requires Math::IsDecimal<T>;
 
+        bool    operator==(const Vector& other)                 const   requires Math::IsDecimal<T>;
+        bool    operator!=(const Vector& other)                 const   requires Math::IsDecimal<T>;
+
     public:
         // 迭代器的实现
         struct Iterator
@@ -194,6 +197,9 @@ namespace ID
         Vector& operator*=(float scalar)                                requires Math::IsDecimal<T>;
         Vector& operator/=(float scalar)                                requires Math::IsDecimal<T>;
         Vector& operator*=(const Vector& other)                         requires Math::IsDecimal<T>;
+
+        bool    operator==(const Vector& other)                 const   requires Math::IsDecimal<T>;
+        bool    operator!=(const Vector& other)                 const   requires Math::IsDecimal<T>;
 
     public:
         // 迭代器的实现
