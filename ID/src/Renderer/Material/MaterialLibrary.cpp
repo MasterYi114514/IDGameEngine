@@ -114,4 +114,30 @@ namespace ID
         material->deserialize(info);
         return material;
     }
+
+    Json MaterialLibrary::serialize_all(ArenaID arena_id)
+    {
+        Json result = Json::create_array(arena_id);
+        for (const auto& material : MLib)
+        {
+            Json item = Json::create_object(arena_id);
+            item.insert("name", Json::create_string(material->get_name(), arena_id));
+            item.insert("info", material->serialize(arena_id));
+            result.push_back(item);
+        }
+        return result;
+    }
+
+    void MaterialLibrary::deserialize_all(const Json& json)
+    {
+        if (!json.is_array())
+        {
+            // 旧场景文件没有 materials 字段，静默跳过（保持向后兼容）
+            return;
+        }
+        for (size_t i = 0; i < json.size(); ++i)
+        {
+            deserialize(json[i]);
+        }
+    }
 } // namespace ID

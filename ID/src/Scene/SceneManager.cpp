@@ -3,30 +3,33 @@
 #include "Scene/SceneManager.hpp"
 
 #include "Log/Log.hpp"
+#include "IDJson.hpp"
 
 #include "BasicPool.hpp"
 
+#include <fstream>
+
 namespace
 {
-    std::map<std::string, std::unique_ptr<ID::Scene>> g_ScenePool;
+    // 场景池以 SceneID 为键（名字只是名字，可重复/可修改，不承担身份）
+    std::unordered_map<ID::SceneID, std::unique_ptr<ID::Scene>, ID::SceneID::Hash> g_ScenePool;
+    ID::SceneID g_NextID{ 1 };      // default_scene 固定占用 0
     ID::Scene* g_CurrentScene = nullptr;
 } // 匿名命名空间
 
 namespace ID
 {
-    Scene SceneManager::default_scene{"Default Scene"};
+    Scene SceneManager::default_scene{"Default Scene", SceneID{0}};
 
     Scene& SceneManager::create_scene(const std::string& name)
     {
-        if (g_ScenePool.find(name) != g_ScenePool.end())
-        {
-            ID_WARN("名叫 '{}' 的场景已经存在，create_scene 方法已返回该场景", name);
-            return *g_ScenePool[name];
-        }
+        // 每次创建分配新的 SceneID，同名也互不覆盖（名字不承担身份）
+        SceneID new_id = g_NextID;
+        ++g_NextID.id;
 
-        auto scene = std::unique_ptr<Scene>(new Scene(name));
+        auto scene = std::unique_ptr<Scene>(new Scene(name, new_id));
         Scene& scene_ref = *scene;
-        g_ScenePool[name] = std::move(scene);
+        g_ScenePool[new_id] = std::move(scene);
 
         return scene_ref;
     }
@@ -71,6 +74,16 @@ namespace ID
         return *g_CurrentScene;
     }
 
+    Scene* SceneManager::find_scene(SceneID scene_id)
+    {
+        auto it = g_ScenePool.find(scene_id);
+        if(it != g_ScenePool.end())
+        {
+            return it->second.get();
+        }
+        return nullptr;
+    }
+
     void SceneManager::on_update(Timestep ts)
     {
         if (g_CurrentScene) g_CurrentScene->on_update(ts);
@@ -81,5 +94,46 @@ namespace ID
     {
         if (g_CurrentScene) g_CurrentScene->on_event(event);
         else load_scene(default_scene);
+    }
+
+    void SceneManager::save(Scene& scene, const std::string& filepath)
+    {
+        // 确保目标目录存在（如 Assets/scene/）
+        std::filesystem::create_directories(std::filesystem::path(filepath).parent_path());
+
+        ArenaID arena = ArenaManager::create_arena();
+        const Json json = scene.serialize(arena);
+        JSON::write_to_file(filepath, json);
+        ArenaManager::destroy_arena(arena);
+
+        ID_INFO("SceneManager::save：场景 '{}' 已保存到 {}", scene.get_name(), filepath);
+    }
+
+    Scene& SceneManager::load(const std::string& filepath)
+    {
+        std::ifstream file(filepath, std::ios::binary);
+        if(!file.good())
+        {
+            ID_ERROR("SceneManager::load：找不到文件 {}", filepath);
+            return default_scene;
+        }
+
+        const std::string content(
+            (std::istreambuf_iterator<char>(file)),
+            std::istreambuf_iterator<char>());
+
+        ArenaID arena = ArenaManager::create_arena();
+        const Json json = JSON::parse(content, arena);
+
+        // 以文件名（去扩展名）作为场景名；每次加载创建新的场景实例（新 SceneID），
+        // 同名文件重复加载互不覆盖，旧实例保留在池中暂停运行
+        const std::string name = std::filesystem::path(filepath).stem().string();
+        Scene& scene = create_scene(name);
+        scene.deserialize(json);
+        ArenaManager::destroy_arena(arena);
+
+        ID_INFO("SceneManager::load：已从 {} 加载场景 '{}' ({} 个 GameObject)",
+            filepath, scene.get_name(), scene.get_game_object_count());
+        return scene;
     }
 } // namespace ID

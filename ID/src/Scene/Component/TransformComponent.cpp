@@ -133,6 +133,7 @@ namespace ID
     {
         Json obj = Json::create_object(arena);
         obj.insert("type", Json::create_string(get_component_type_name(), arena));
+        obj.insert("is_active", Json(m_is_active));
         obj.insert("m_pose", m_pose.serialize(arena));
         obj.insert("m_scale", JSON::create(m_scale, arena));
         return obj;
@@ -144,7 +145,13 @@ namespace ID
 
         m_pose.deserialize(json["m_pose"]);
         m_scale = JSON::parse<Vec3>(json["m_scale"]);
-        
+
+        // 恢复激活状态（Transform 无外部资源依赖，直接激活）
+        if (json.contains("is_active") && json["is_active"].as_bool())
+        {
+            make_active();
+        }
+
         make_dirty();
     }
 } // namespace ID

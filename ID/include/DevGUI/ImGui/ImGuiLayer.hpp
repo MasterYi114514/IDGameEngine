@@ -51,6 +51,9 @@ namespace ID
         void handle_mouse_event(Event& event);
         void handle_window_resize(const WindowResizeEvent& event);
 
+        // 鼠标是否悬停在「不参与鼠标捕获」的面板（如 Viewport）上
+        bool is_mouse_over_capture_exempt_panel() const;
+
         // 每帧绘制
         void begin_frame();
         void end_frame();

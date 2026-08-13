@@ -30,10 +30,6 @@
 #include "Layer/Layer.hpp"
 #include "Layer/LayerStack.hpp"
 
-#include "Layer/CameraLayer.hpp"
-#include "Layer/SceneLayer.hpp"
-#include "Layer/RenderLayer.hpp"
-
 // Application
 #include "Application/Application.hpp"
 #include "Application/Timestep.hpp"
@@ -89,8 +85,14 @@
 
 // Scene
 #include "Scene/Scene.hpp"
+#include "Scene/SceneID.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/AssetManager.hpp"
+
+// Scene/Audio
+#include "Scene/Audio/AudioID.hpp"
+#include "Scene/Audio/AudioManager.hpp"
 
 // Scene/Component
 #include "Scene/Component/Component.hpp"

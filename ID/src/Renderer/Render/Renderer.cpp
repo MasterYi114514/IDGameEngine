@@ -258,19 +258,23 @@ namespace ID::Renderer
                     continue;
                 }
                 MeshRendererComponent* mrc = go.get_component<MeshRendererComponent>();
-                if (mrc != nullptr)
+                // 未激活的 MeshRendererComponent 不参与渲染
+                if (mrc == nullptr || !mrc->is_active())
                 {
-                    auto transform_comp = go.get_component<TransformComponent>();
-                    if(transform_comp != nullptr)
-                    {
-                        submit(mrc->get_model(), transform_comp->get_world_matrix());
-                    }
-                    else
-                    {
-                        ID_WARN("GameObject '{}' (ID={}) 缺少 TransformComponent，无法获取世界矩阵，MeshRendererComponent 将被忽略",
-                            go.get_name(), go.get_id());
-                    }
+                    continue;
                 }
+
+                auto transform_comp = go.get_component<TransformComponent>();
+                if(transform_comp == nullptr)
+                {
+                    ID_WARN("GameObject '{}' (ID={}) 缺少 TransformComponent，无法获取世界矩阵，MeshRendererComponent 将被忽略",
+                        go.get_name(), go.get_id());
+                }
+                else if(transform_comp->is_active())
+                {
+                    submit(mrc->get_model(), transform_comp->get_world_matrix());
+                }
+                // else：TransformComponent 未激活，跳过渲染（静默，属于正常状态）
             }
 
             for(GameObject::ID id : scene->find_game_objects_with_component<LightComponent>())
@@ -281,7 +285,8 @@ namespace ID::Renderer
                     continue;
                 }
                 LightComponent* lc = go.get_component<LightComponent>();
-                if (lc != nullptr && lc->get_light().enabled)
+                // 未激活的 LightComponent 不参与渲染
+                if (lc != nullptr && lc->is_active() && lc->get_light().enabled)
                 {
                     submit(lc->get_light());
                 }

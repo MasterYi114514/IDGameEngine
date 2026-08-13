@@ -22,6 +22,10 @@ namespace ID
         ViewportPanel();
         void on_imgui_render() override;
 
+        // 视口是游戏画面而非 UI：悬停其上时鼠标事件不阻断，
+        // 继续传播给底层 Layer（相机旋转等视口操作）
+        bool captures_mouse() const override { return false; }
+
     private:
         // 计算保持宽高比的显示区域（返回实际绘制尺寸）
         ImVec2 compute_display_size(uint32_t fb_width, uint32_t fb_height) const;

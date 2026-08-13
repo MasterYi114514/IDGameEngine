@@ -1,0 +1,917 @@
+{
+    "game_objects": [
+        {
+            "children": [
+                {
+                    "children": [],
+                    "components": [
+                        {
+                            "m_scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "m_pose": {
+                                "ori(Quat)": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "position": [
+                                    0.0,
+                                    0.77499997615814209,
+                                    0.0
+                                ]
+                            },
+                            "is_active": true,
+                            "type": "TransformComponent"
+                        },
+                        {
+                            "model": {
+                                "local_transform": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "material": {
+                                    "param_overrides": {
+                                        "u_color": {
+                                            "value": [
+                                                0.85000002384185791,
+                                                0.69999998807907104,
+                                                0.60000002384185791
+                                            ],
+                                            "type": "Vec3"
+                                        }
+                                    },
+                                    "texture_overrides": {},
+                                    "parent_name": "ManMaterial"
+                                },
+                                "mesh": {
+                                    "info": {
+                                        "latitude_segments": 16,
+                                        "longitude_segments": 32,
+                                        "radius": 0.20000000298023224,
+                                        "primitive_type": "Sphere"
+                                    },
+                                    "source_type": "Primitive"
+                                }
+                            },
+                            "is_active": true,
+                            "type": "MeshRendererComponent"
+                        }
+                    ],
+                    "is_active": true,
+                    "name": "head"
+                },
+                {
+                    "children": [],
+                    "components": [
+                        {
+                            "m_scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "m_pose": {
+                                "ori(Quat)": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "position": [
+                                    0.0,
+                                    0.22499999403953552,
+                                    0.0
+                                ]
+                            },
+                            "is_active": true,
+                            "type": "TransformComponent"
+                        },
+                        {
+                            "model": {
+                                "local_transform": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "material": {
+                                    "param_overrides": {
+                                        "u_color": {
+                                            "value": [
+                                                0.25,
+                                                0.44999998807907104,
+                                                0.85000002384185791
+                                            ],
+                                            "type": "Vec3"
+                                        }
+                                    },
+                                    "texture_overrides": {},
+                                    "parent_name": "ManMaterial"
+                                },
+                                "mesh": {
+                                    "info": {
+                                        "depth": 0.34999999403953552,
+                                        "height": 0.69999998807907104,
+                                        "width": 0.69999998807907104,
+                                        "primitive_type": "Cuboid"
+                                    },
+                                    "source_type": "Primitive"
+                                }
+                            },
+                            "is_active": true,
+                            "type": "MeshRendererComponent"
+                        }
+                    ],
+                    "is_active": true,
+                    "name": "body"
+                },
+                {
+                    "children": [],
+                    "components": [
+                        {
+                            "m_scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "m_pose": {
+                                "ori(Quat)": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "position": [
+                                    -0.4699999988079071,
+                                    0.27500000596046448,
+                                    0.0
+                                ]
+                            },
+                            "is_active": true,
+                            "type": "TransformComponent"
+                        },
+                        {
+                            "model": {
+                                "local_transform": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "material": {
+                                    "param_overrides": {
+                                        "u_color": {
+                                            "value": [
+                                                0.25,
+                                                0.44999998807907104,
+                                                0.85000002384185791
+                                            ],
+                                            "type": "Vec3"
+                                        }
+                                    },
+                                    "texture_overrides": {},
+                                    "parent_name": "ManMaterial"
+                                },
+                                "mesh": {
+                                    "info": {
+                                        "depth": 0.18000000715255737,
+                                        "height": 0.60000002384185791,
+                                        "width": 0.18000000715255737,
+                                        "primitive_type": "Cuboid"
+                                    },
+                                    "source_type": "Primitive"
+                                }
+                            },
+                            "is_active": true,
+                            "type": "MeshRendererComponent"
+                        }
+                    ],
+                    "is_active": true,
+                    "name": "left_arm"
+                },
+                {
+                    "children": [],
+                    "components": [
+                        {
+                            "m_scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "m_pose": {
+                                "ori(Quat)": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "position": [
+                                    0.4699999988079071,
+                                    0.27500000596046448,
+                                    0.0
+                                ]
+                            },
+                            "is_active": true,
+                            "type": "TransformComponent"
+                        },
+                        {
+                            "model": {
+                                "local_transform": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "material": {
+                                    "param_overrides": {
+                                        "u_color": {
+                                            "value": [
+                                                0.25,
+                                                0.44999998807907104,
+                                                0.85000002384185791
+                                            ],
+                                            "type": "Vec3"
+                                        }
+                                    },
+                                    "texture_overrides": {},
+                                    "parent_name": "ManMaterial"
+                                },
+                                "mesh": {
+                                    "info": {
+                                        "depth": 0.18000000715255737,
+                                        "height": 0.60000002384185791,
+                                        "width": 0.18000000715255737,
+                                        "primitive_type": "Cuboid"
+                                    },
+                                    "source_type": "Primitive"
+                                }
+                            },
+                            "is_active": true,
+                            "type": "MeshRendererComponent"
+                        }
+                    ],
+                    "is_active": true,
+                    "name": "right_arm"
+                },
+                {
+                    "children": [],
+                    "components": [
+                        {
+                            "m_scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "m_pose": {
+                                "ori(Quat)": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "position": [
+                                    -0.15000000596046448,
+                                    -0.55000001192092896,
+                                    0.0
+                                ]
+                            },
+                            "is_active": true,
+                            "type": "TransformComponent"
+                        },
+                        {
+                            "model": {
+                                "local_transform": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "material": {
+                                    "param_overrides": {
+                                        "u_color": {
+                                            "value": [
+                                                0.20000000298023224,
+                                                0.25,
+                                                0.34999999403953552
+                                            ],
+                                            "type": "Vec3"
+                                        }
+                                    },
+                                    "texture_overrides": {},
+                                    "parent_name": "ManMaterial"
+                                },
+                                "mesh": {
+                                    "info": {
+                                        "depth": 0.23999999463558197,
+                                        "height": 0.85000002384185791,
+                                        "width": 0.23999999463558197,
+                                        "primitive_type": "Cuboid"
+                                    },
+                                    "source_type": "Primitive"
+                                }
+                            },
+                            "is_active": true,
+                            "type": "MeshRendererComponent"
+                        }
+                    ],
+                    "is_active": true,
+                    "name": "left_leg"
+                },
+                {
+                    "children": [],
+                    "components": [
+                        {
+                            "m_scale": [
+                                1.0,
+                                1.0,
+                                1.0
+                            ],
+                            "m_pose": {
+                                "ori(Quat)": [
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "position": [
+                                    0.15000000596046448,
+                                    -0.55000001192092896,
+                                    0.0
+                                ]
+                            },
+                            "is_active": true,
+                            "type": "TransformComponent"
+                        },
+                        {
+                            "model": {
+                                "local_transform": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "material": {
+                                    "param_overrides": {
+                                        "u_color": {
+                                            "value": [
+                                                0.20000000298023224,
+                                                0.25,
+                                                0.34999999403953552
+                                            ],
+                                            "type": "Vec3"
+                                        }
+                                    },
+                                    "texture_overrides": {},
+                                    "parent_name": "ManMaterial"
+                                },
+                                "mesh": {
+                                    "info": {
+                                        "depth": 0.23999999463558197,
+                                        "height": 0.85000002384185791,
+                                        "width": 0.23999999463558197,
+                                        "primitive_type": "Cuboid"
+                                    },
+                                    "source_type": "Primitive"
+                                }
+                            },
+                            "is_active": true,
+                            "type": "MeshRendererComponent"
+                        }
+                    ],
+                    "is_active": true,
+                    "name": "right_leg"
+                }
+            ],
+            "components": [
+                {
+                    "m_scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "position": [
+                            0.0,
+                            1.0249998569488525,
+                            0.0
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.0,
+                        "friction": 0.5
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "height": 1.25,
+                        "radius": 0.34999999403953552,
+                        "type": 2
+                    },
+                    "mass": 1.0,
+                    "rigid_body_type": 1,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "Man"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {
+                                "u_color": {
+                                    "value": [
+                                        0.85000002384185791,
+                                        0.69999998807907104,
+                                        0.60000002384185791
+                                    ],
+                                    "type": "Vec3"
+                                }
+                            },
+                            "texture_overrides": {},
+                            "parent_name": "ManMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "depth": 20.0,
+                                "height": 0.10000000149011612,
+                                "width": 20.0,
+                                "primitive_type": "Cuboid"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.5,
+                        "friction": 0.60000002384185791
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "half_extents": [
+                            10.0,
+                            0.05000000074505806,
+                            10.0
+                        ],
+                        "type": 0
+                    },
+                    "mass": 0.0,
+                    "rigid_body_type": 0,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "Ground"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            -1.8877559238017483e-11,
+                            2.0283784374353075e-10,
+                            6.4671080508560408e-06,
+                            1.0
+                        ],
+                        "position": [
+                            -3.0000040531158447,
+                            0.25,
+                            -4.7172256017802283e-05
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {
+                                "u_color": {
+                                    "value": [
+                                        0.89999997615814209,
+                                        0.25,
+                                        0.25
+                                    ],
+                                    "type": "Vec3"
+                                }
+                            },
+                            "texture_overrides": {},
+                            "parent_name": "ManMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "latitude_segments": 16,
+                                "longitude_segments": 32,
+                                "radius": 0.20000000298023224,
+                                "primitive_type": "Sphere"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.0,
+                        "friction": 0.5
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "radius": 0.20000000298023224,
+                        "type": 1
+                    },
+                    "mass": 1.0,
+                    "rigid_body_type": 1,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
+                }
+            ],
+            "is_active": false,
+            "name": "Ball"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            -4.5898316614403911e-13,
+                            1.6064817878747029e-11,
+                            0.00030072996742092073,
+                            0.99999994039535522
+                        ],
+                        "position": [
+                            -1.0001200437545776,
+                            0.25,
+                            1.4859483599138912e-05
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {
+                                "u_color": {
+                                    "value": [
+                                        0.25,
+                                        0.85000002384185791,
+                                        0.34999999403953552
+                                    ],
+                                    "type": "Vec3"
+                                }
+                            },
+                            "texture_overrides": {},
+                            "parent_name": "ManMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "latitude_segments": 16,
+                                "longitude_segments": 32,
+                                "radius": 0.20000000298023224,
+                                "primitive_type": "Sphere"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.0,
+                        "friction": 0.5
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "radius": 0.20000000298023224,
+                        "type": 1
+                    },
+                    "mass": 1.0,
+                    "rigid_body_type": 1,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
+                }
+            ],
+            "is_active": false,
+            "name": "Ball"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            -3.9995040612694766e-10,
+                            2.8619887015857159e-10,
+                            2.0624176613637246e-05,
+                            1.0
+                        ],
+                        "position": [
+                            0.99999195337295532,
+                            0.25,
+                            -0.00017981143901124597
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {
+                                "u_color": {
+                                    "value": [
+                                        0.25,
+                                        0.44999998807907104,
+                                        0.94999998807907104
+                                    ],
+                                    "type": "Vec3"
+                                }
+                            },
+                            "texture_overrides": {},
+                            "parent_name": "ManMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "latitude_segments": 16,
+                                "longitude_segments": 32,
+                                "radius": 0.20000000298023224,
+                                "primitive_type": "Sphere"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.80000001192092896,
+                        "friction": 0.5
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "radius": 0.20000000298023224,
+                        "type": 1
+                    },
+                    "mass": 1.0,
+                    "rigid_body_type": 1,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
+                }
+            ],
+            "is_active": false,
+            "name": "Ball"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_light": {
+                        "drop": [
+                            0.5,
+                            -0.80000001192092896,
+                            -0.30000001192092896
+                        ],
+                        "outer_cone_angle": 30.0,
+                        "inner_cone_angle": 15.0,
+                        "intensity": 1.2000000476837158,
+                        "color": [
+                            1.0,
+                            0.94999998807907104,
+                            0.85000002384185791
+                        ],
+                        "type": "Directional"
+                    },
+                    "is_active": true,
+                    "type": "LightComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "Light"
+        }
+    ],
+    "name": "SandboxScene"
+}

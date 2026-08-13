@@ -200,6 +200,7 @@ namespace ID
                 }
             }
         };
+        glfwSetKeyCallback(m_native_window, key_callback);
 
         // 设置 Mouse Button Callback
         auto mouse_button_callback = [](GLFWwindow* window, int button, int action, int mods)

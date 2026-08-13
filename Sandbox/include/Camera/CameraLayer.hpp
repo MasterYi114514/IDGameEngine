@@ -19,6 +19,12 @@ public:
         m_controller.on_update(ts);
     }
 
+    // ★ 新增：把事件转发给控制器
+    void on_event(Event& event) override
+    {
+        m_controller.on_event(event);
+    }
+
 public:
     const Mat4& get_view_matrix() const { return m_camera.get_view_matrix(); }
     const Camera& get_camera() const { return m_camera; }

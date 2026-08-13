@@ -19,7 +19,7 @@ namespace ID
 
         TypeID get_type_id() const override { return get_static_type_id<RigidBodyComponent>(); }
         std::string get_component_type_name() const override { return "RigidBodyComponent"; }
-        bool allow_multiple() const override { return false; }  // 每个 GO 只允许一个刚体组件
+        static constexpr bool s_allow_multiple = false;  // 每个 GO 只允许一个刚体组件
 
     public:
         // 物理属性

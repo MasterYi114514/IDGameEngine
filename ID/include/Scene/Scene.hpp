@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IDpch.hpp"
+#include "Scene/SceneID.hpp"
 #include "Scene/Component/Component.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/System/PhysicsSystem.hpp"
@@ -12,7 +13,7 @@ namespace ID
     private:
         // 设置构造函数为 private，确保只能通过 SceneManager 创建和管理 Scene 实例
         friend class SceneManager;
-        explicit Scene(const std::string& name = "Untitled Scene");
+        explicit Scene(const std::string& name = "Untitled Scene", SceneID id = SceneID{});
         
     public:
         ~Scene() = default;
@@ -26,6 +27,8 @@ namespace ID
         Scene& operator=(Scene&&) = default;
 
     public:
+        // 运行时唯一标识（SceneManager 分配，不随改名/序列化变化）
+        SceneID get_id() const { return m_id; }
         /**
          *  @brief 创建一个新的 GameObject
          *  @param name GameObject 的名称
@@ -100,6 +103,7 @@ namespace ID
         PhysicsSystem& get_physics_system() { return m_physics_system; }
 
     private:
+        SceneID m_id;                       // 运行时唯一标识
         std::string m_name;
         bool m_is_running = false;
         std::vector<std::unique_ptr<GameObject>>    m_game_objects;

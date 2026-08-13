@@ -20,9 +20,6 @@ namespace ID
         void set_enabled(bool enabled) { m_light.enabled = enabled; }
         bool is_enabled()        const { return m_light.enabled; }
 
-        // 从 TransformComponent 同步光源位置/方向
-        void sync_from_transform();
-
     public:
         Component::TypeID get_type_id() const override
         {

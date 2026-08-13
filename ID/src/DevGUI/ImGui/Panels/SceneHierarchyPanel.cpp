@@ -224,7 +224,7 @@ namespace ID
 
     void SceneHierarchyPanel::render_create_buttons()
     {
-        if(ImGui::Button("+ Create Empty"))
+        if(ImGui::Button("+ Empty"))
         {
             const GameObject::ID id = m_context->create_game_object("Empty Object");
             m_imgui_layer->set_selected_object(id);
@@ -234,7 +234,7 @@ namespace ID
         if(ImGui::Button("+ Light"))
         {
             const GameObject::ID id = m_context->create_game_object("Light");
-            m_context->get_game_object(id).add_component<LightComponent>();
+            m_context->get_game_object(id).add_component<LightComponent>().make_active();
             m_imgui_layer->set_selected_object(id);
         }
 
@@ -243,7 +243,7 @@ namespace ID
         {
             const GameObject::ID id = m_context->create_game_object("Cube");
             m_context->get_game_object(id).add_component<MeshRendererComponent>(
-                Model(MeshFactory::create_cube(1.0f), default_material_instance));
+                Model(MeshFactory::create_cube(1.0f), default_material_instance)).make_active();
             m_imgui_layer->set_selected_object(id);
         }
 
@@ -251,7 +251,7 @@ namespace ID
         {
             const GameObject::ID id = m_context->create_game_object("Sphere");
             m_context->get_game_object(id).add_component<MeshRendererComponent>(
-                Model(MeshFactory::create_sphere(0.5f), default_material_instance));
+                Model(MeshFactory::create_sphere(0.5f), default_material_instance)).make_active();
             m_imgui_layer->set_selected_object(id);
         }
     }

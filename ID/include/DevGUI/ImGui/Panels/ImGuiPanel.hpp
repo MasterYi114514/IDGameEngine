@@ -25,6 +25,13 @@ namespace ID
         void  set_open(bool open) { m_open = open; }
         void  toggle_open()       { m_open = !m_open; }
 
+        /*
+        *   是否参与 ImGui 鼠标捕获阻断（默认 true）。
+        *   返回 false 的面板（如 Viewport 视口）鼠标悬停其上时，
+        *   ImGuiLayer 不将其鼠标事件标记为 handled，事件可继续传播给底层 Layer。
+        */
+        virtual bool captures_mouse() const { return true; }
+
     protected:
         std::string m_title;
         bool        m_open;

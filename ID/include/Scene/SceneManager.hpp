@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IDpch.hpp"
+#include "Scene/SceneID.hpp"
 
 namespace ID
 {
@@ -29,6 +30,9 @@ namespace ID
 
         // 获取当前激活的 Scene
         static Scene& get_current_scene();
+
+        // 按 SceneID 查询场景；不存在（已销毁/从未创建）返回 nullptr
+        static Scene* find_scene(SceneID scene_id);
 
         // 更新当前激活的 Scene
         static void on_update(Timestep ts);

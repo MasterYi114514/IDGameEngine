@@ -64,7 +64,8 @@ namespace ID
 
         for (auto& component : m_components)
         {
-            if (component)
+            // 未激活的组件不参与更新
+            if (component && component->is_active())
             {
                 component->on_update(ts);
             }
@@ -81,7 +82,8 @@ namespace ID
         for (auto& component : m_components)
         {
             if(event.is_handled()) break;       // 如果事件已经被处理，则不再传递给其他组件
-            if (component)
+            // 未激活的组件不接收事件
+            if (component && component->is_active())
             {
                 component->on_event(event);
             }

@@ -46,7 +46,7 @@ namespace ID
         }
 
         // 控制一个 GO 只有一个 TransformComponent
-        bool allow_multiple() const override { return false; }
+        static constexpr bool s_allow_multiple = false;
 
     public:
         // 序列化与反序列化

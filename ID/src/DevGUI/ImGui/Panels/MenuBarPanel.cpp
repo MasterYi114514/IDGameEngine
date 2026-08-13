@@ -47,7 +47,7 @@ namespace ID
 
         if(ImGui::MenuItem("New Scene"))
         {
-            // 创建新场景并立即切换（重名时 SceneManager 会返回已有场景）
+            // 创建新场景并立即切换（每个场景有唯一 SceneID，重名互不影响）
             Scene& scene = SceneManager::create_scene("New Scene");
             SceneManager::load_scene(scene);
             ID_INFO("[MenuBar] 已创建并切换到新场景 '{}'", scene.get_name());

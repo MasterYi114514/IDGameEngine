@@ -58,7 +58,20 @@ namespace ID
         Component*      get_next() const { return m_next; }
         void            set_next(Component* next) { m_next = next; }
 
-        virtual bool    allow_multiple() const { return true; }
+        bool is_active() const { return m_is_active; }
+        void make_inactive() { m_is_active = false; }
+
+        /**
+         *  @brief 尝试激活组件
+         *
+         *  基类实现无条件激活；需要外部资源的组件（如 MeshRendererComponent
+         *  依赖有效的 Mesh/Material、AudioSourceComponent 依赖 AudioEngine 音源句柄）
+         *  应重载此函数：资源无效时拒绝激活（保持 inactive 并记日志）。
+         *  调用方可通过 is_active() 确认激活是否成功。
+         */
+        virtual void make_active() { m_is_active = true; }
+
+        static constexpr bool s_allow_multiple = true;   // 组件默认允许在同一 GameObject 上挂载多个实例
 
     public:
         // static type id 的设计
@@ -90,5 +103,7 @@ namespace ID
         GameObject* m_owner = nullptr;              // 组件所属的 GameObject
 
         Component* m_next = nullptr;                // 用于 Component 链表的指针
+
+        bool m_is_active = false;                    // 组件是否激活，新组件默认不激活
     };
 } // namespace ID

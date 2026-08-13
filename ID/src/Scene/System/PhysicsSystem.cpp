@@ -77,8 +77,11 @@ namespace ID
                 RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
                 if (comp && comp->m_rigid_body == rigid_body)
                 {
+                    // 未激活的组件不参与物理同步
+                    if (!comp->is_active()) break;
+
                     TransformComponent* transform = go.get_component<TransformComponent>();
-                    if (transform)
+                    if (transform && transform->is_active())
                     {
                         body.set_transform(transform->get_position(), transform->get_orientation());
                     }
@@ -96,8 +99,11 @@ namespace ID
                 RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
                 if (comp && comp->m_rigid_body == rigid_body)
                 {
+                    // 未激活的组件不参与物理同步
+                    if (!comp->is_active()) break;
+
                     TransformComponent* transform = go.get_component<TransformComponent>();
-                    if (transform)
+                    if (transform && transform->is_active())
                     {
                         transform->set_position(body.get_position());
                         transform->set_orientation(body.get_rotation());
@@ -119,12 +125,25 @@ namespace ID
             RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
             if (!comp) continue;
 
+            // 未激活：不参与物理模拟，移除已存在的刚体（若刚被停用）
+            if (!comp->is_active())
+            {
+                if (comp->m_rigid_body.is_valid())
+                {
+                    m_physics_world.remove_rigid_body(comp->m_rigid_body);
+                    comp->m_rigid_body = RigidBodyID{ RigidBodyID::INVALID };
+                    comp->m_world       = nullptr;
+                    comp->m_need_sync   = true;   // 重新激活后需要重建刚体
+                }
+                continue;
+            }
+
             // 首次创建：刚体尚未在 PhysicsWorld 中
             if (!comp->m_rigid_body.is_valid())
             {
                 // 从 TransformComponent 获取初始位姿
                 TransformComponent* transform = go.get_component<TransformComponent>();
-                if (transform)
+                if (transform && transform->is_active())
                 {
                     comp->m_info.initial_position = transform->get_position();
                     comp->m_info.initial_rotation = transform->get_orientation();
@@ -180,6 +199,7 @@ namespace ID
             GameObject& go = m_scene->get_game_object(go_id);
             RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
             if (!comp || !comp->m_rigid_body.is_valid()) continue;
+            if (!comp->is_active()) continue;      // 未激活：不推送
 
             RigidBody& body = m_physics_world.get_rigid_body(comp->m_rigid_body);
 
@@ -188,7 +208,7 @@ namespace ID
             if (body.is_kinematic())
             {
                 TransformComponent* transform = go.get_component<TransformComponent>();
-                if (transform)
+                if (transform && transform->is_active())
                 {
                     body.set_transform(transform->get_position(), transform->get_orientation());
                 }
@@ -204,6 +224,7 @@ namespace ID
             GameObject& go = m_scene->get_game_object(go_id);
             RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
             if (!comp || !comp->m_rigid_body.is_valid()) continue;
+            if (!comp->is_active()) continue;      // 未激活：不拉取
 
             RigidBody& body = m_physics_world.get_rigid_body(comp->m_rigid_body);
 
@@ -211,7 +232,7 @@ namespace ID
             if (body.is_dynamic())
             {
                 TransformComponent* transform = go.get_component<TransformComponent>();
-                if (transform)
+                if (transform && transform->is_active())
                 {
                     Vec3 phys_pos = body.get_position();
 

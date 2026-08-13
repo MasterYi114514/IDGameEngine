@@ -19,10 +19,14 @@ namespace ID
     public:
         Model&       get_model() { return m_model; }
         const Model& get_model() const { return m_model; }
-        void         set_model(const Model& model) { m_model = model; }
+        void         set_model(const Model& model);
 
-        void set_mesh(const MeshID mesh) { m_model.set_mesh(mesh); }
-        void set_material(const MaterialInstance& material) { m_model.set_material(material); }
+        void set_mesh(const MeshID mesh);
+        void set_material(const MaterialInstance& material);
+
+    public:
+        // 资源（Mesh + Material）有效才能激活，否则保持 inactive
+        void make_active() override;
 
     public:
         Component::TypeID get_type_id() const override

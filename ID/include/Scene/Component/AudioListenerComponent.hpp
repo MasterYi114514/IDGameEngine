@@ -26,7 +26,7 @@ namespace ID
 
         TypeID      get_type_id() const override { return get_static_type_id<AudioListenerComponent>(); }
         std::string get_component_type_name() const override { return "AudioListenerComponent"; }
-        bool        allow_multiple() const override { return false; }  // 全局唯一监听器
+        static constexpr bool s_allow_multiple = false;  // 全局唯一监听器
 
         // ========== 序列化 ==========
 

@@ -9,11 +9,16 @@
 
 #include "Scene/SceneManager.hpp"
 #include "Log/Log.hpp"
+#include "Application/Application.hpp"
+#include "Events/KeyEvent.hpp"
 
 #include "IDWindow.hpp"
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+
+// 访问 ImGuiContext::HoveredWindow，用于视口鼠标豁免判定
+#include "imgui_internal.h"
 
 #include <GLFW/glfw3.h>
 
@@ -194,6 +199,13 @@ namespace ID
             ImGuiIO& io = ImGui::GetIO();
             io.AddInputCharacter(codepoint);
         }
+
+        /*
+        *   输入焦点状态（全局）：
+        *   true  = 焦点在 ImGuiLayer 上，ImGui 捕获的输入事件全部阻断，不向下传播；
+        *   false = 焦点在 Viewport 上（点击了视口类面板），所有事件放行给底层 Layer。
+        */
+        bool g_focus_on_ImguiLayer = true;
     } // 匿名命名空间
 
     // =====================================================================
@@ -309,6 +321,16 @@ namespace ID
         dispatcher.dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& e)
         {
             handle_mouse_event(e);
+            // 焦点更新：点击视口类面板（如 Viewport）→ 焦点交给底层（放行所有事件）；
+            // 点击其他 ImGui UI → 焦点回到 ImGuiLayer（ImGui 捕获的输入全部阻断）
+            const bool new_focus = !is_mouse_over_capture_exempt_panel();
+            if(new_focus != g_focus_on_ImguiLayer)
+            {
+                ID_TRACE("[ImGuiLayer] 焦点切换: {} -> {}",
+                    g_focus_on_ImguiLayer ? "ImGuiLayer" : "Viewport",
+                    new_focus           ? "ImGuiLayer" : "Viewport");
+            }
+            g_focus_on_ImguiLayer = new_focus;
             return false;
         });
         dispatcher.dispatch<MouseButtonReleasedEvent>([this](MouseButtonReleasedEvent& e)
@@ -322,7 +344,10 @@ namespace ID
             return false;
         });
 
-        // ---- WantCapture 阻断：ImGui 需要输入时，事件不再向下传播 ----
+        // ---- WantCapture 阻断：焦点在 ImGuiLayer 上时，ImGui 需要的输入全部拦截，
+        //      事件不再向下传播；焦点在 Viewport 上时，所有事件一律放行 ----
+        if(!g_focus_on_ImguiLayer) return;
+
         ImGuiIO& io = ImGui::GetIO();
         const auto category = static_cast<uint8_t>(event.get_category());
         const auto keyboard = static_cast<uint8_t>(EventCategory::Keyboard);
@@ -330,8 +355,31 @@ namespace ID
 
         if(io.WantCaptureKeyboard && (category & keyboard) != 0)
             event.set_handled(true);
+
         if(io.WantCaptureMouse && (category & mouse) != 0)
             event.set_handled(true);
+    }
+
+    bool ImGuiLayer::is_mouse_over_capture_exempt_panel() const
+    {
+        ImGuiContext* ctx = ImGui::GetCurrentContext();
+        if(!ctx || !ctx->MouseViewport) return false;   // 首帧 NewFrame 前尚未初始化，安全返回
+
+        for(const auto& panel : m_panels)
+        {
+            if(panel->captures_mouse() || !panel->is_open()) continue;
+
+            // 用 io.MousePos（事件转发即时更新）+ 窗口矩形判定，
+            // 避免 g.HoveredWindow 的一帧滞后（点击瞬间判定尤其重要）
+            // 注意：clip 必须为 false（事件回调不在 Begin/End 内，CurrentWindow 为 NULL）
+            ImGuiWindow* window = ImGui::FindWindowByName(panel->get_title().c_str());
+            if(!window) continue;
+
+            const ImVec2 r_max(window->Pos.x + window->Size.x, window->Pos.y + window->Size.y);
+            if(ImGui::IsMouseHoveringRect(window->Pos, r_max, false))
+                return true;
+        }
+        return false;
     }
 
     // =====================================================================

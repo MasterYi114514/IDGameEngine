@@ -242,6 +242,7 @@ namespace ID
     {
         Json obj = Json::create_object(arena);
         obj.insert("type", Json::create_string(get_component_type_name(), arena));
+        obj.insert("is_active", Json(m_is_active));
 
         // RigidBodyType → int
         obj.insert("rigid_body_type", Json(static_cast<int32_t>(m_info.type)));
@@ -351,5 +352,11 @@ namespace ID
         }
 
         m_need_sync = true;
+
+        // 恢复激活状态（刚体由 PhysicsSystem 在下一帧同步时创建，此处直接激活）
+        if (json.contains("is_active") && json["is_active"].as_bool())
+        {
+            make_active();
+        }
     }
 } // namespace ID

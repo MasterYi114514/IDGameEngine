@@ -30,6 +30,12 @@ namespace ID
 
         static Json         serialize(const std::string& name, ArenaID arena_id);
         static Material*    deserialize(const Json& json);
+
+        // 全量序列化材质库（场景序列化用：使场景文件自包含材质，加载后材质不丢失）
+        static Json serialize_all(ArenaID arena_id);
+
+        // 全量反序列化材质库（场景反序列化用：先恢复材质库，再恢复 GameObject）
+        static void deserialize_all(const Json& json);
     private:
         static std::vector<std::unique_ptr<Material>>& storage();
     };

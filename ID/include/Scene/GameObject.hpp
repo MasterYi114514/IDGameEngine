@@ -109,12 +109,49 @@ namespace ID
 
         auto component = std::make_unique<ComponentType>(std::forward<Args>(args)...);
 
-        // 单例组件检查：若该类型不允许挂载多个且已存在，则断言拦截
+        // 单例组件检查：若该类型不允许挂载多个且已存在，则直接返回已有组件的引用
         Component::TypeID type_id = Component::get_static_type_id<ComponentType>();
-        if (!component->allow_multiple())
+        if constexpr (!ComponentType::s_allow_multiple)
         {
-            assert(m_component_index.find(type_id) == m_component_index.end()
-                && "该组件类型只允许挂载一个!");
+            auto it = m_component_index.find(type_id);
+            if (it != m_component_index.end())
+            {
+                return *static_cast<ComponentType*>(it->second);
+            }
+        } 
+
+        // 前置组件检查：若该 GO 没有前置组件，则自动添加
+        // （TransformComponent 无资源依赖，自动添加后直接激活）
+        if constexpr (std::same_as<ComponentType, RigidBodyComponent>)
+        {
+            if(!has_component<TransformComponent>())
+            {
+                add_component<TransformComponent>().make_active();
+            }
+        }
+
+        if constexpr (std::same_as<ComponentType, AudioSourceComponent>)
+        {
+            if(!has_component<TransformComponent>())
+            {
+                add_component<TransformComponent>().make_active();
+            }
+        }
+
+        if constexpr (std::same_as<ComponentType, AudioListenerComponent>)
+        {
+            if(!has_component<TransformComponent>())
+            {
+                add_component<TransformComponent>().make_active();
+            }
+        }
+
+        if constexpr (std::same_as<ComponentType, MeshRendererComponent>)
+        {
+            if(!has_component<TransformComponent>())
+            {
+                add_component<TransformComponent>().make_active();
+            }
         }
 
         component->on_attach(this);

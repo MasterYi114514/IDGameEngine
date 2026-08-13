@@ -518,7 +518,7 @@ namespace ID
             return JSON::null;
         }
 
-        Json result;
+        Json result = Json::create_object(arena);
         switch(desc->source_type)
         {
             case MeshSourceType::File:

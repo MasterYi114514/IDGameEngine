@@ -8,6 +8,8 @@
 #include "Scene/Component/RigidBodyComponent.hpp"
 #include "Scene/Component/AudioSourceComponent.hpp"
 #include "Scene/Component/AudioListenerComponent.hpp"
+#include "Scene/AssetManager.hpp"
+#include "Scene/Audio/AudioManager.hpp"
 #include "Renderer/Mesh/MeshFactory.hpp"
 #include "Renderer/Material/MaterialLibrary.hpp"
 #include "Log/Log.hpp"
@@ -38,6 +40,19 @@ namespace
         { "Plane",    create_plane_mesh },
         { "Cylinder", create_cylinder_mesh },
     };
+
+    // 组件 Active 开关：勾选时调用 make_active()（可能因资源检查失败而保持未勾选）
+    // 调用方需先用 PushID 隔离 ID 域，避免多个组件的 "Active" 复选框冲突
+    template<typename ComponentType>
+    void render_component_active_checkbox(ComponentType& component)
+    {
+        bool active = component.is_active();
+        if(ImGui::Checkbox("Active", &active))
+        {
+            if(active) { component.make_active(); }
+            else      { component.make_inactive(); }
+        }
+    }
 } // 匿名命名空间
 
 namespace ID
@@ -129,10 +144,14 @@ namespace ID
 
     void InspectorPanel::render_transform_editor(TransformComponent& transform)
     {
+        ImGui::PushID("transform");
         if(!ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
+            ImGui::PopID();
             return;
         }
+
+        render_component_active_checkbox(transform);
 
         // Position
         const Pos3& position = transform.get_position();
@@ -161,6 +180,7 @@ namespace ID
                 std::max(sca[2], 0.001f));
             transform.set_scale(clamped);
         }
+        ImGui::PopID();
     }
 
     // =====================================================================
@@ -169,10 +189,14 @@ namespace ID
 
     void InspectorPanel::render_mesh_renderer_editor(MeshRendererComponent& mesh)
     {
+        ImGui::PushID("mesh_renderer");
         if(!ImGui::CollapsingHeader("Mesh Renderer"))
         {
+            ImGui::PopID();
             return;
         }
+
+        render_component_active_checkbox(mesh);
 
         Model& model = mesh.get_model();
 
@@ -227,8 +251,54 @@ namespace ID
             ImGui::EndCombo();
         }
 
+        // ---- Material 区拖拽接收（从 Asset Browser 拖入 shader / 纹理）----
+        ImGui::TextDisabled("拖拽 shader / 纹理 到此处选择资源");
+        if(ImGui::BeginDragDropTarget())
+        {
+            if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_SHADER"))
+            {
+                const std::string name = static_cast<const char*>(payload->Data);
+                ShaderID shader_id = AssetManager::load_shader(name);
+                if(shader_id.is_valid())
+                {
+                    // 用新 shader 重建材质并绑定到模型
+                    Material* mat = MaterialLibrary::add(shader_id, name);
+                    model.set_material(MaterialInstance(*mat));
+                    ID_INFO("[Inspector] 已用 shader '{}' 重建材质", name);
+                }
+                else
+                {
+                    ID_ERROR("[Inspector] shader 加载失败: {}", name);
+                }
+            }
+            if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_TEXTURE"))
+            {
+                const std::string name = static_cast<const char*>(payload->Data);
+                TextureID texture_id = AssetManager::load_texture(name);
+                if(texture_id.is_valid())
+                {
+                    MaterialInstance& instance = model.get_material();
+                    // binding 名：优先取材质现有第一个 texture binding，否则用约定名（geometry.fsl 的 sampler）
+                    std::string binding = "texture_sampler";
+                    if(instance.get_parent())
+                    {
+                        const auto& defaults = instance.get_parent()->get_texture_defaults();
+                        if(!defaults.empty()) binding = defaults.begin()->first;
+                    }
+                    instance.set_texture(binding, texture_id, 0);
+                    ID_INFO("[Inspector] 已绑定纹理 '{}' 到材质 binding '{}'", name, binding);
+                }
+                else
+                {
+                    ID_ERROR("[Inspector] 纹理加载失败: {}", name);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
         // 引擎当前未提供 per-object 阴影开关，Cast Shadows 暂不展示
         ImGui::TextDisabled("Cast Shadows: 引擎暂未提供 per-object 阴影开关");
+        ImGui::PopID();
     }
 
     // =====================================================================
@@ -237,10 +307,14 @@ namespace ID
 
     void InspectorPanel::render_light_editor(LightComponent& light)
     {
+        ImGui::PushID("light");
         if(!ImGui::CollapsingHeader("Light"))
         {
+            ImGui::PopID();
             return;
         }
+
+        render_component_active_checkbox(light);
 
         Light& l = light.get_light();
 
@@ -295,12 +369,7 @@ namespace ID
                 if(ImGui::DragFloat("Outer Cone", &l.outer_cone_angle, 0.5f, 0.0f, 90.0f)) { }
             }
         }
-
-        // 从 Transform 同步位置/方向
-        if(ImGui::Button("Sync From Transform"))
-        {
-            light.sync_from_transform();
-        }
+        ImGui::PopID();
     }
 
     // =====================================================================
@@ -309,10 +378,14 @@ namespace ID
 
     void InspectorPanel::render_rigid_body_editor(RigidBodyComponent& rigid_body)
     {
+        ImGui::PushID("rigid_body");
         if(!ImGui::CollapsingHeader("RigidBody"))
         {
+            ImGui::PopID();
             return;
         }
+
+        render_component_active_checkbox(rigid_body);
 
         // Type
         const char* type_names[] = { "Static", "Dynamic", "Kinematic" };
@@ -370,6 +443,7 @@ namespace ID
             new_mat.restitution = std::max(restitution, 0.0f);
             rigid_body.set_material(new_mat);
         }
+        ImGui::PopID();
     }
 
     // =====================================================================
@@ -378,14 +452,55 @@ namespace ID
 
     void InspectorPanel::render_audio_source_editor(AudioSourceComponent& audio)
     {
+        ImGui::PushID("audio_source");
         if(!ImGui::CollapsingHeader("Audio Source"))
         {
+            ImGui::PopID();
             return;
         }
 
-        // Clip 展示（引擎暂无音频资源浏览器，仅显示当前 Clip 有效性）
+        render_component_active_checkbox(audio);
+
+        // Clip 展示：优先显示加载路径，无法反查时显示"已关联"
         const AudioClipID clip_id = audio.get_clip();
-        ImGui::Text("Clip: %s", clip_id.is_valid() ? "已关联" : "(无)");
+        if(clip_id.is_valid())
+        {
+            const std::string clip_path = AudioManager::get_audio_path_by_clip(clip_id);
+            if(!clip_path.empty())
+            {
+                ImGui::Text("Clip: %s", clip_path.c_str());
+            }
+            else
+            {
+                ImGui::Text("Clip: 已关联");
+            }
+        }
+        else
+        {
+            ImGui::Text("Clip: (无)");
+        }
+
+        // 拖拽接收：从 Asset Browser 拖入音频文件选择 Clip
+        ImGui::TextDisabled("拖拽音频到此处选择 Clip");
+        if(ImGui::BeginDragDropTarget())
+        {
+            if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_AUDIO"))
+            {
+                const std::string name = static_cast<const char*>(payload->Data);
+                AudioID audio_id = AssetManager::load_audio(name);
+                if(audio_id.is_valid())
+                {
+                    audio.set_clip(AudioManager::get_clip(audio_id));
+                    audio.set_clip_path(std::string(AssetManager::AudioDir) + name);
+                    ID_INFO("[Inspector] AudioSource 已关联音频 '{}'", name);
+                }
+                else
+                {
+                    ID_ERROR("[Inspector] 音频加载失败: {}", name);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         // Volume
         float volume = audio.get_volume();
@@ -433,6 +548,7 @@ namespace ID
         {
             audio.stop();
         }
+        ImGui::PopID();
     }
 
     // =====================================================================
@@ -441,13 +557,18 @@ namespace ID
 
     void InspectorPanel::render_audio_listener_editor(AudioListenerComponent& listener)
     {
+        ImGui::PushID("audio_listener");
         if(!ImGui::CollapsingHeader("Audio Listener"))
         {
+            ImGui::PopID();
             return;
         }
 
+        render_component_active_checkbox(listener);
+
         ImGui::TextDisabled("监听器位置/朝向每帧从 TransformComponent 同步到 AudioEngine");
         ImGui::TextDisabled("(只读：全局唯一监听器)");
+        ImGui::PopID();
     }
 
     // =====================================================================
@@ -466,31 +587,37 @@ namespace ID
             return;
         }
 
-        // 已存在的组件类型置灰（allow_multiple=false 的类型只允许挂载一个）
+        // 已存在的组件类型置灰（s_allow_multiple=false 的类型只允许挂载一个）
+        const bool has_transform = go.has_component<TransformComponent>();
         const bool has_mesh     = go.has_component<MeshRendererComponent>();
         const bool has_light    = go.has_component<LightComponent>();
         const bool has_rigid    = go.has_component<RigidBodyComponent>();
         const bool has_listener = go.has_component<AudioListenerComponent>();
 
+        if(ImGui::MenuItem("Transform", nullptr, false, !has_transform))
+        {
+            go.add_component<TransformComponent>().make_active();
+        }
         if(ImGui::MenuItem("MeshRenderer", nullptr, false, !has_mesh))
         {
-            go.add_component<MeshRendererComponent>();
+            // 默认 Model 无效，make_active 会被拒绝；用户配置 Mesh/Material 后勾选 Active 即可
+            go.add_component<MeshRendererComponent>().make_active();
         }
         if(ImGui::MenuItem("Light", nullptr, false, !has_light))
         {
-            go.add_component<LightComponent>();
+            go.add_component<LightComponent>().make_active();
         }
         if(ImGui::MenuItem("RigidBody", nullptr, false, !has_rigid))
         {
-            go.add_component<RigidBodyComponent>();
+            go.add_component<RigidBodyComponent>().make_active();
         }
         if(ImGui::MenuItem("AudioSource", nullptr, false, true))  // 允许多个
         {
-            go.add_component<AudioSourceComponent>();
+            go.add_component<AudioSourceComponent>().make_active();
         }
         if(ImGui::MenuItem("AudioListener", nullptr, false, !has_listener))
         {
-            go.add_component<AudioListenerComponent>();
+            go.add_component<AudioListenerComponent>().make_active();
         }
 
         ImGui::EndPopup();

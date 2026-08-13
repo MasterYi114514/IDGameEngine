@@ -9,48 +9,11 @@
 
 namespace ID
 {
-    void LightComponent::sync_from_transform()
-    {
-        if (m_owner == nullptr)
-        {
-            return;
-        }
-
-        const TransformComponent* transform = m_owner->get_component<TransformComponent>();
-        if(transform == nullptr)
-        {
-            ID_ERROR("LightComponent::sync_from_transform: 一个拥有 LightComponent 的 GameObject 必须拥有 TransformComponent");
-            return;
-        }
-
-        const Pos3& position = transform->get_position();
-
-        switch (m_light.type)
-        {
-            case LightType::Directional:
-            {
-                // 平行光方向：取变换的 -Z 前方向（未经缩放）
-                const Quat& q = transform->get_orientation();
-                Vec3 front = q * Vec3(0.0f, 0.0f, -1.0f);
-                front.normalize();
-                m_light.drop.direction = front;
-                break;
-            }
-            case LightType::Point:
-            case LightType::Spot:
-            {
-                m_light.drop.position = position;
-                break;
-            }
-            default:
-                break;
-        }
-    }
-
     Json LightComponent::serialize(ArenaID arena_id) const
     {
         Json obj = Json::create_object(arena_id);
         obj.insert("type", Json::create_string(get_component_type_name(), arena_id));
+        obj.insert("is_active", Json(m_is_active));
         obj.insert("m_light", m_light.serialize(arena_id));
 
         return obj;
@@ -59,6 +22,12 @@ namespace ID
     void LightComponent::deserialize(const Json& json)
     {
         m_light.deserialize(json["m_light"]);
+
+        // 恢复激活状态（Light 无外部资源依赖，直接激活）
+        if (json.contains("is_active") && json["is_active"].as_bool())
+        {
+            make_active();
+        }
     }
 
     ID_REGISTER_COMPONENT(LightComponent, "LightComponent");

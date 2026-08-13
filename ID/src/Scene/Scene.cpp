@@ -26,12 +26,12 @@ namespace
 
 namespace ID
 {
-    Scene::Scene(const std::string& name) 
-        : m_name(name), m_is_running(false), m_game_objects(), m_freed_ids()
+    Scene::Scene(const std::string& name, SceneID id)
+        : m_id(id), m_name(name), m_is_running(false), m_game_objects(), m_freed_ids()
     {
-        ID_INFO("[Scene] 构造开始: '{}'", name);
+        ID_INFO("[Scene] 构造开始: '{}' (id={})", name, id.id);
         m_physics_system.on_attach(this);
-        ID_INFO("[Scene] 构造完成: '{}'", name);
+        ID_INFO("[Scene] 构造完成: '{}' (id={})", name, id.id);
     }
 
     GameObject::ID Scene::create_game_object(const std::string& name)

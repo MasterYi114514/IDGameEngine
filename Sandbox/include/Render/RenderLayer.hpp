@@ -4,11 +4,16 @@
 
 using namespace ID;
 
+/*
+*   RenderLayer — 渲染驱动层
+*
+*   每帧渲染 SceneManager 的当前激活场景（切换场景后视口自动跟随）。
+*/
 class RenderLayer : public Layer
 {
 public:
-    RenderLayer(CameraLayer* camera_layer, SceneLayer* scene_layer) 
-        : Layer("RenderLayer"), m_camera_layer(camera_layer), m_scene_layer(scene_layer) { }
+    RenderLayer(CameraLayer* camera_layer)
+        : Layer("RenderLayer"), m_camera_layer(camera_layer) { }
 
     void on_attach() override
     {
@@ -17,7 +22,8 @@ public:
 
     void on_update(Timestep ts) override
     {
-        Scene* scene = m_scene_layer->get_scene();
+        // 始终渲染当前激活场景（切换场景后视口跟随）
+        Scene* scene = &SceneManager::get_current_scene();
         const Camera& camera = m_camera_layer->get_camera();
 
         Renderer::render(camera, scene, m_window_width, m_window_height, ts.get_seconds());
@@ -40,7 +46,6 @@ public:
 
 private:
     CameraLayer* m_camera_layer = nullptr;
-    SceneLayer* m_scene_layer = nullptr;
     uint32_t m_window_width  = 1280;
     uint32_t m_window_height = 720;
 };

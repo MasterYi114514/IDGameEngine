@@ -1,6 +1,7 @@
 #include "Scene/Component/AudioSourceComponent.hpp"
 #include "Scene/Component/TransformComponent.hpp"
 #include "Scene/GameObject.hpp"
+#include "Scene/Audio/AudioManager.hpp"
 
 #include "Scene/Component/ComponentFactory.hpp"
 
@@ -30,11 +31,29 @@ namespace ID
         AudioSource& source = AudioEngine::get_source(m_source_id);
         source.set_spatial(m_spatial);
 
+        // 反序列化时记录的待激活状态：音源就绪后恢复激活
+        if (m_pending_activate)
+        {
+            m_pending_activate = false;
+            make_active();
+        }
+
         // 挂载时自动播放
         if (m_play_on_attach && m_clip_id.is_valid())
         {
             source.play(m_clip_id);
         }
+    }
+
+    void AudioSourceComponent::make_active()
+    {
+        // 资源检查：音源句柄必须已由 AudioEngine 成功创建
+        if (!m_source_id.is_valid())
+        {
+            ID_WARN("AudioSourceComponent::make_active：音源句柄无效（AudioEngine::create_source 未成功），拒绝激活");
+            return;
+        }
+        Component::make_active();
     }
 
     void AudioSourceComponent::on_detach()
@@ -58,6 +77,9 @@ namespace ID
             ID_ERROR("AudioSourceComponent::on_update：挂载此组件的 GameObject 必须有 TransformComponent");
             return;
         }
+
+        // TransformComponent 未激活：暂不同步位置
+        if (!transform->is_active()) return;
 
         AudioSource& source = AudioEngine::get_source(m_source_id);
         if (source.is_spatial())
@@ -196,12 +218,21 @@ namespace ID
     {
         Json obj = Json::create_object(arena);
         obj.insert("type", Json::create_string(get_component_type_name(), arena));
+        obj.insert("is_active", Json(m_is_active));
 
         obj.insert("spatial", Json(m_spatial));
         obj.insert("play_on_attach", Json(m_play_on_attach));
         obj.insert("volume", Json(static_cast<double>(get_volume())));
         obj.insert("pitch", Json(static_cast<double>(get_pitch())));
         obj.insert("loop", Json(get_loop()));
+
+        // 只记录 clip 的加载路径字符串；未记录时尝试经 AudioManager 反查
+        std::string clip_path = m_clip_path;
+        if(clip_path.empty())
+        {
+            clip_path = AudioManager::get_audio_path_by_clip(m_clip_id);
+        }
+        obj.insert("clip_path", Json::create_string(clip_path, arena));
 
         return obj;
     }
@@ -224,5 +255,32 @@ namespace ID
 
         if (json.contains("loop"))
             set_loop(json["loop"].as_bool());
+
+        // 恢复 clip：按路径重新加载（AudioManager 路径缓存命中语义）
+        if (json.contains("clip_path"))
+        {
+            m_clip_path = json["clip_path"].as_cstr();
+            if(!m_clip_path.empty())
+            {
+                AudioID audio_id = AudioManager::load(m_clip_path);
+                if(audio_id.is_valid())
+                {
+                    set_clip(AudioManager::get_clip(audio_id));
+                }
+                else
+                {
+                    ID_WARN("AudioSourceComponent::deserialize：音频重新加载失败: {}", m_clip_path);
+                    m_clip_path.clear();
+                }
+            }
+        }
+
+        // 恢复激活状态：音源句柄在 on_attach 时才创建，
+        // 此处仅记录待激活标志，由 on_attach 在音源就绪后真正激活
+        m_pending_activate = false;
+        if (json.contains("is_active") && json["is_active"].as_bool())
+        {
+            m_pending_activate = true;
+        }
     }
 } // namespace ID

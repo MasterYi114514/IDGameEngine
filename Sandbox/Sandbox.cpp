@@ -17,6 +17,7 @@
 #include "DevGUI/ImGui/Panels/RendererSettingsPanel.hpp"
 #include "DevGUI/ImGui/Panels/PhysicsSettingsPanel.hpp"
 #include "DevGUI/ImGui/Panels/AudioSettingsPanel.hpp"
+#include "DevGUI/ImGui/Panels/AssetPanel.hpp"
 #include "DevGUI/ImGui/Panels/ViewportPanel.hpp"
 
 #include <functional>
@@ -38,7 +39,7 @@ public:
         push_layer(m_scene_layer);
         ID_INFO("[Sandbox] SceneLayer 入栈完成");
 
-        m_render_layer = new ::RenderLayer(m_camera_layer, m_scene_layer);
+        m_render_layer = new ::RenderLayer(m_camera_layer);
         ID_INFO("[Sandbox] RenderLayer 创建完成");
         push_overlay(m_render_layer);
 
@@ -63,6 +64,7 @@ public:
         imgui_layer->add_panel<RendererSettingsPanel>();
         imgui_layer->add_panel<PhysicsSettingsPanel>();
         imgui_layer->add_panel<AudioSettingsPanel>();
+        imgui_layer->add_panel<AssetPanel>();
         imgui_layer->add_panel<ViewportPanel>();
 
         push_overlay(imgui_layer);

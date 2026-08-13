@@ -35,6 +35,9 @@ namespace ID
             return;
         }
 
+        // TransformComponent 未激活：暂不同步监听器
+        if (!transform->is_active()) return;
+
         // 从 TransformComponent 读取位置和朝向
         const Pos3& pos = transform->get_position();
         const Quat& rot = transform->get_orientation();
@@ -61,12 +64,16 @@ namespace ID
     {
         Json obj = Json::create_object(arena);
         obj.insert("type", Json::create_string(get_component_type_name(), arena));
+        obj.insert("is_active", Json(m_is_active));
         return obj;
     }
 
     void AudioListenerComponent::deserialize(const Json& json)
     {
-        // 监听器组件无额外数据需要反序列化
-        (void)json;
+        // 监听器组件无额外数据；仅恢复激活状态（无资源依赖，直接激活）
+        if (json.contains("is_active") && json["is_active"].as_bool())
+        {
+            make_active();
+        }
     }
 } // namespace ID
