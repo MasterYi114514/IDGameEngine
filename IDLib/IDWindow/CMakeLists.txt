@@ -59,4 +59,9 @@ if(IDWINDOW_USE_GLFW)
             glfw
             glad
     )
+
+    if(WIN32)
+        # ImmAssociateContext（禁用 IME 输入上下文）
+        target_link_libraries(IDWindow PRIVATE imm32)
+    endif()
 endif()

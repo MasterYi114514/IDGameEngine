@@ -20,7 +20,7 @@ message(STATUS "ID 渲染后端: ${ID_RENDERER}")
 
 # 常规宏定义
 
-add_definitions(-D_ID_DEBUG)
+# add_definitions(-D_ID_DEBUG)
 
 if(ID_SHARED_LIB)
     add_definitions(-D_ID_SHARED_LIB)
@@ -58,6 +58,8 @@ target_include_directories(ID
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${IDLIB_DIR}/IDWindow/include
         ${IDLIB_DIR}/IDRenderer/include
+        ${IDLIB_DIR}/IDPhysics/include
+        ${IDLIB_DIR}/IDAudio/include
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${IDLIB_DIR}/IDLog/include
@@ -66,6 +68,7 @@ target_include_directories(ID
         ${IDLIB_DIR}/IDAsset/include
         ${VENDOR_DIR}/glfw/include
         ${VENDOR_DIR}/glad/include
+        ${VENDOR_DIR}/imgui
 )
 
 
@@ -86,6 +89,9 @@ if(ID_RENDERER STREQUAL "OpenGL")
             IDWindow
             IDRenderer
             IDAsset
+            IDPhysics
+            IDAudio
+            imgui
     )
 
 elseif(ID_RENDERER STREQUAL "Vulkan")

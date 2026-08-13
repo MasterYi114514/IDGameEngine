@@ -30,8 +30,8 @@ namespace ID
     struct ShadowParam
     {
         ShadowQuality quality = ShadowQuality::High;    // 阴影质量
-        float         bias = 0.005f;                    // 阴影偏移（防止自阴影）
-        float         normal_bias = 0.02f;              // 法线偏移（防止自阴影）
+        float         bias = 0.0002f;                   // 阴影偏移（防止自阴影）
+        float         normal_bias = 0.02f;             // 法线偏移（防止自阴影）
     };
 
     template<LightType LType>

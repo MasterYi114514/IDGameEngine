@@ -2,5 +2,5 @@
 
 namespace ID
 {
-    std::shared_ptr<Logger> ID_Window_logger = Log::create_logger("ID Window", ID::Log::Level::Trace);
+    std::shared_ptr<Logger> ID_Window_logger = Log::create_logger("ID Window", ID::Log::Level::Info);
 } // namespace ID

@@ -85,10 +85,15 @@ namespace ID
 
         // HDR 渲染目标
         FrameBufferID              scene_fb = FrameBufferID::invalid_id();
+
+        // 最终显示目标（PostProcess 输出；无后处理时由 scene_fb 拷贝填充，供窗口 / ImGui Viewport 显示）
+        FrameBufferID              viewport_fb = FrameBufferID::invalid_id();
         
         // 阴影贴图渲染目标
         FrameBufferID              shadow_fb = FrameBufferID::invalid_id();
         bool                       shadow_enabled = false;      // 此帧是否启用阴影渲染
         Mat4                       light_view_proj = Math::get_identity_mat4();   // 光源视图投影矩阵
+        float                      shadow_bias = 0.0002f;       // 阴影深度偏移（防止自阴影）
+        int                        shadow_pcf_radius = 1;       // PCF 采样半径（0→1×1, 1→3×3, 2→5×5, 3→7×7）
     };
 } // namespace ID

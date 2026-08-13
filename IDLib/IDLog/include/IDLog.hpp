@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <functional>
 #include <string_view>
 #include <utility>
 #include <memory>
@@ -41,6 +42,14 @@ namespace ID
             想要彻底销毁该 Logger 实例，还需要在外部将指向该 Logger 的所有共享指针置空，以便触发析构函数
         */
         IDLOG_API void destroy_logger(const std::string& name);
+
+        /*
+            注册一个全局日志 sink 回调（如 DevGUI ConsolePanel）。
+            每次 write 时（所有 Logger 生效）都会调用该回调，不影响原有 spdlog 输出。
+            传入空回调可取消注册。
+        */
+        using LogSinkCallback = std::function<void(Level, const std::string&)>;
+        IDLOG_API void set_sink(LogSinkCallback callback);
 
     } // namespace Log
 

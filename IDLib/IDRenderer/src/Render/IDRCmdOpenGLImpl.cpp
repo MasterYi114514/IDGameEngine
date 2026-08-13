@@ -142,6 +142,14 @@ namespace ID::RenderCommand
     // clear
     void clear(bool clear_color, bool clear_depth)
     {
+        // 清深度前必须确保 depth mask 可写：
+        // 上一帧末尾的 Pass（如 Skybox/PostProcess）可能遗留 glDepthMask(GL_FALSE)，
+        // 否则 glClear(GL_DEPTH_BUFFER_BIT) 不会真正清除深度缓冲。
+        if (clear_depth)
+        {
+            glDepthMask(GL_TRUE);
+        }
+
         GLbitfield mask = 0;
         if (clear_color) mask |= GL_COLOR_BUFFER_BIT;
         if (clear_depth) mask |= GL_DEPTH_BUFFER_BIT;
@@ -179,6 +187,43 @@ namespace ID::RenderCommand
     {
         glActiveTexture(GL_TEXTURE0 + slot);
         glBindTexture(GL_TEXTURE_2D, IDR_ResFB(framebuffer)->get_depth_attachment());
+    }
+
+    // blit_framebuffer：src → dst（颜色附件，尺寸一致）
+    void blit_framebuffer(const FrameBufferID src, const FrameBufferID dst,
+        uint32_t width, uint32_t height)
+    {
+        if(!src.is_valid() || !dst.is_valid()) return;
+        if(width == 0 || height == 0) return;
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, IDR_ResFB(src)->get_FBO());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, IDR_ResFB(dst)->get_FBO());
+        glBlitFramebuffer(0, 0, static_cast<GLint>(width), static_cast<GLint>(height),
+            0, 0, static_cast<GLint>(width), static_cast<GLint>(height),
+            GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    // blit_framebuffer_to_default：src → 默认 framebuffer（窗口显示）
+    void blit_framebuffer_to_default(const FrameBufferID src,
+        uint32_t width, uint32_t height)
+    {
+        if(!src.is_valid()) return;
+        if(width == 0 || height == 0) return;
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, IDR_ResFB(src)->get_FBO());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, static_cast<GLint>(width), static_cast<GLint>(height),
+            0, 0, static_cast<GLint>(width), static_cast<GLint>(height),
+            GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    // get_framebuffer_color_texture：返回颜色附件的 GL 纹理句柄
+    uint32_t get_framebuffer_color_texture(const FrameBufferID framebuffer)
+    {
+        if(!framebuffer.is_valid()) return 0;
+        return static_cast<uint32_t>(IDR_ResFB(framebuffer)->get_color_attachment(0));
     }
 
     void bind_pipeline(const PipelineID pipeline)

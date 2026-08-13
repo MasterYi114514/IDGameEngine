@@ -17,6 +17,7 @@ namespace ID
     Application::Application(const std::string& title,
                              uint32_t width, uint32_t height)
     {
+        ID_INFO("[Application] 构造开始: '{}' {}x{}", title, width, height);
         if(s_instance)
         {
             ID_ERROR("Application 已有实例");
@@ -25,9 +26,11 @@ namespace ID
         s_instance = this;
 
         // 创建窗口并注册事件回调
+        ID_INFO("[Application] 准备创建窗口...");
         m_window_id = WindowPool::create_window(
             WindowProps{ title, width, height }
         );
+        ID_INFO("[Application] 窗口创建完成, id={}", static_cast<int>(m_window_id));
         WindowPool::set_current(m_window_id);
 
         WindowPool::set_event_callback(m_window_id, [this](Event& event)
@@ -68,17 +71,6 @@ namespace ID
             {
                 ID_TRACE("[Application] 更新 Layer: {}", layer->get_name());
                 layer->on_update(timestep);
-            }
-
-            // 控制帧率为 60 FPS
-            float delay_time = 1.0f / 60.0f - delta;
-            if(delay_time > 0.0f)
-            {
-                std::this_thread::sleep_for(std::chrono::duration<float>(delay_time));
-            }
-            else
-            {
-                ID_TRACE("[Application] 帧率低于 60 FPS，当前帧时间: {:.3f} ms", delta * 1000.0f);
             }
         }
     }

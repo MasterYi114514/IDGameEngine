@@ -35,9 +35,10 @@ struct PhysicsWorld::Impl
     {
         switch (shape.type)
         {
-            case ColliderShape::Type::Box:     return new btBoxShape(btVector3(shape.half_extents[0], shape.half_extents[1], shape.half_extents[2]));
-            case ColliderShape::Type::Sphere:  return new btSphereShape(shape.radius);
-            case ColliderShape::Type::Capsule: return new btCapsuleShape(shape.capsule_radius, shape.capsule_height);
+            case ColliderShape::Type::Box:     return new btBoxShape(btVector3(shape.m_data.half_extents[0], shape.m_data.half_extents[1], shape.m_data.half_extents[2]));
+            case ColliderShape::Type::Sphere:  return new btSphereShape(shape.m_data.radius);
+            case ColliderShape::Type::Capsule: return new btCapsuleShape(shape.m_data.capsule.radius, shape.m_data.capsule.height);
+            case ColliderShape::Type::Plane:   return new btStaticPlaneShape(btVector3(shape.m_data.plane.normal[0], shape.m_data.plane.normal[1], shape.m_data.plane.normal[2]), shape.m_data.plane.constant);
             default: IDPHYSICS_ERROR("Unknown collider shape type"); return new btBoxShape(btVector3(0.5f, 0.5f, 0.5f));
         }
     }

@@ -98,6 +98,17 @@
 #include "Scene/Component/TransformComponent.hpp"
 #include "Scene/Component/LightComponent.hpp"
 #include "Scene/Component/MeshRendererComponent.hpp"
+#include "Scene/Component/RigidBodyComponent.hpp"
+#include "Scene/Component/AudioSourceComponent.hpp"
+#include "Scene/Component/AudioListenerComponent.hpp"
+
+// Scene/System
+#include "Scene/System/System.hpp"
+#include "Scene/System/PhysicsSystem.hpp"
+
+// DevGUI/ImGui
+#include "DevGUI/ImGui/ImGuiLayer.hpp"
+#include "DevGUI/ImGui/Panels/ImGuiPanel.hpp"
 
 // EntryPoint 入口（包含 main()，必须最后）
 #include "Application/EntryPoint.hpp"

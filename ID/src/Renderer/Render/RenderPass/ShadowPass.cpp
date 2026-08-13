@@ -17,7 +17,12 @@ namespace ID
     FrameBufferID ShadowPass::get_shadow_fb() const
     {
         ShadowMap* map = ShadowManager::get_shadow_map(m_shadow_map_id);
-        return map ? map->get_fb() : FrameBufferID::invalid_id();
+        if(map == nullptr)
+        {
+            ID_WARN("ShadowPass::get_shadow_fb: 从 ShadowManager 获取 ShadowMap 失败");
+            return FrameBufferID::invalid_id();
+        }
+        return map->get_fb();
     }
 
     // ── 找主方向光 ──
@@ -42,9 +47,9 @@ namespace ID
         if (!m_depth_shader.is_valid())
         {
             std::string vs = ShaderSourceLoader::load_shader_source(
-                "../Assets/shader/shadow.vsl");
+                "../Assets/shader/depth.vsl");
             std::string fs = ShaderSourceLoader::load_shader_source(
-                "../Assets/shader/shadow.fsl");
+                "../Assets/shader/depth.fsl");
             m_depth_shader = ::ShaderManager::create(ShaderCreateInfo(vs, fs));
             if (!m_depth_shader.is_valid())
             {
@@ -53,7 +58,8 @@ namespace ID
         }
 
         // ShadowMap（通过 ShadowManager 池管理，分辨率不变时不重建）
-        ShadowMap* map = ShadowManager::get_shadow_map(m_shadow_map_id);
+        ShadowMap* map = m_shadow_map_id.is_valid() ? 
+            ShadowManager::get_shadow_map(m_shadow_map_id) : nullptr;
         if (!map || !map->is_valid())
         {
             if (m_shadow_map_id.is_valid())
@@ -75,6 +81,7 @@ namespace ID
     // ── Layout 哈希 ──
     uint64_t ShadowPass::hash_layout(const VertexBufferLayout& layout)
     {
+        ID_TRACE("[ShadowPass] 计算 Layout 哈希");
         uint64_t h = 1469598103934665603ull;
         auto mix = [&h](uint64_t v) { h ^= v; h *= 1099511628211ull; };
 
@@ -101,7 +108,7 @@ namespace ID
         PipelineState state;
         state.depth_test  = true;
         state.depth_write = true;
-        state.cull_mode   = CullMode::Front;    // 正面剔除缓解 acne
+        state.cull_mode   = CullMode::Back;     // 背面剔除：只渲染朝向光源的正面
         state.blend       = false;
 
         PipelineID pipeline = PipelineManager::create(
@@ -120,14 +127,12 @@ namespace ID
 
         IDRCmd::set_param(pipeline, "u_light_view_proj", m_light_view_proj);
         IDRCmd::set_param(pipeline, "u_model", entry.world_transform);
+        IDRCmd::set_param(pipeline, "u_normal_bias", m_shadow_camera.get_config().param.normal_bias);
         IDRCmd::draw_indexed(pipeline, mesh.get_vb(), mesh.get_ib());
 
         ID_RS_INC_DRAW_CALLS(ctx);
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    //  execute —— 阴影贴图渲染主入口
-    // ═══════════════════════════════════════════════════════════════
     void ShadowPass::execute(RenderContext& ctx)
     {
         // 复位
@@ -138,43 +143,53 @@ namespace ID
 
         if (!m_enabled) return;
 
-        // ① 找主方向光
+        // 找主方向光
         Light dir_light;
         if (!find_directional_light(ctx, dir_light))
             return;
 
-        // ② 更新 ShadowCamera 的光源方向，计算 view/proj
-        //    （DirectionalShadowCamera 需要补充 set_direction 接口）
+        // 同步场景光源方向到 ShadowCamera（否则一直用默认的 (0,-1,0)）
+        m_shadow_camera.set_direction(dir_light.drop.direction);
+
+        // 读取阴影配置
         auto& cfg = m_shadow_camera.get_config();
         uint32_t map_size = shadow_quality_to_map_size(cfg.param.quality);
 
-        // ③ 懒创建资源
+        // 懒创建资源
         ensure_resources(map_size);
         if (!m_depth_shader.is_valid())
+        {
+            ID_WARN("[ShadowPass] depth_shader 无效，无法渲染阴影");
             return;
+        }
 
         ShadowMap* map = ShadowManager::get_shadow_map(m_shadow_map_id);
         if (!map || !map->is_valid())
+        {
+            ID_WARN("[ShadowPass] ShadowMap 无效，无法渲染阴影");
             return;
+        }
 
-        // ④ ★ 用 ShadowCamera 计算光源 VP 矩阵
+        // 用 ShadowCamera 计算光源 VP 矩阵
         ShadowView sv = m_shadow_camera.compute_view(0, ctx.camera);
         m_light_view_proj = sv.view_proj;
 
-        // ⑤ 绑定阴影 FBO，清深度
+        // 绑定阴影 FBO，清深度
         IDRCmd::bind_framebuffer(map->get_fb());
         IDRCmd::set_viewport(0, 0, map_size, map_size);
         IDRCmd::clear(false, true);
 
-        // ⑥ 渲染不透明物体到深度贴图
+        // 渲染不透明物体到深度贴图
         for (const ModelSE& entry : ctx.opaque_batches)
         {
             draw_depth_batch(ctx, entry);
         }
 
-        // ⑦ 写回 ctx
-        ctx.shadow_fb       = map->get_fb();
-        ctx.light_view_proj = m_light_view_proj;
-        ctx.shadow_enabled  = true;
+        // 写回 ctx
+        ctx.shadow_fb         = map->get_fb();
+        ctx.light_view_proj   = m_light_view_proj;
+        ctx.shadow_bias       = cfg.param.bias;
+        ctx.shadow_pcf_radius = static_cast<int>(shadow_quality_to_pcf_kernel_size(cfg.param.quality));
+        ctx.shadow_enabled    = true;
     }
 } // namespace ID

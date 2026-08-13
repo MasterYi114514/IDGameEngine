@@ -22,6 +22,7 @@ public:
 public:
     const Mat4& get_view_matrix() const { return m_camera.get_view_matrix(); }
     const Camera& get_camera() const { return m_camera; }
+    Camera& get_camera() { return m_camera; }   // 供 DevGUI CameraPanel 编辑使用
     
 private:
     Camera                      m_camera = Camera(CameraPose(), ProjectionParams());

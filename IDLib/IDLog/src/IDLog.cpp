@@ -3,6 +3,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 namespace ID
@@ -14,6 +15,10 @@ namespace ID
     {
         // 存储所有 spdlog::logger 实例的静态成员变量，生命周期与程序相同
         std::unordered_map<std::string, std::unique_ptr<spdlog::logger>> spdloggers = {};
+
+        // 全局 sink 回调（DevGUI ConsolePanel 等），带互斥锁保证线程安全
+        std::mutex g_sink_mutex;
+        Log::LogSinkCallback g_sink_callback;
         
         /*
             获取名称为 name 的 spdlog::logger 实例
@@ -91,6 +96,15 @@ namespace ID
 
     void Logger::write(Log::Level level, const std::string& message)
     {
+        // 先通知全局 sink 回调（如 DevGUI ConsolePanel）
+        {
+            std::lock_guard<std::mutex> lock(g_sink_mutex);
+            if(g_sink_callback)
+            {
+                g_sink_callback(level, message);
+            }
+        }
+
         auto &logger_uptr = get_spdlogger(name);
         if(logger_uptr == nullptr)
         {
@@ -175,9 +189,7 @@ namespace ID
             {
                 default_logger->error("无法销毁默认 Logger 'ID Logger管理器'");
                 return;
-            }
-
-            // 从 loggers 中删除名为 name 的 Logger 记录
+            }            // 从 loggers 中删除名为 name 的 Logger 记录
             if(Logger::loggers.erase(name) == 0)
             {
                 default_logger->error("名叫 '{}' 的 Logger 不存在，无法销毁", name);
@@ -190,6 +202,12 @@ namespace ID
             }
 
             default_logger->info("成功销毁名叫 '{}' 的 Logger", name);
+        }
+
+        void set_sink(LogSinkCallback callback)
+        {
+            std::lock_guard<std::mutex> lock(g_sink_mutex);
+            g_sink_callback = std::move(callback);
         }
 
     } // namespace Log

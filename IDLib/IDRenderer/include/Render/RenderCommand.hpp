@@ -29,6 +29,17 @@ namespace ID::RenderCommand
     // 绑定 FB 深度附件为采样纹理
     void IDR_API bind_framebuffer_depth(const FrameBufferID framebuffer, uint32_t slot);
 
+    // 将 src 帧缓冲的颜色附件 blit 到 dst 帧缓冲（尺寸相同）
+    void IDR_API blit_framebuffer(const FrameBufferID src, const FrameBufferID dst,
+        uint32_t width, uint32_t height);
+
+    // 将帧缓冲的颜色附件 blit 到默认 framebuffer（窗口显示）
+    void IDR_API blit_framebuffer_to_default(const FrameBufferID src,
+        uint32_t width, uint32_t height);
+
+    // 获取帧缓冲颜色附件的原生纹理句柄（供 ImGui::Image 等外部系统采样显示）
+    uint32_t IDR_API get_framebuffer_color_texture(const FrameBufferID framebuffer);
+
     // 绑定管线
     void IDR_API bind_pipeline(const PipelineID pipeline);
     void IDR_API bind_shader(const ShaderID shader);

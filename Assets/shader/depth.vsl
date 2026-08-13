@@ -1,7 +1,7 @@
 #version 440 core
 
 // ============================================================================
-//  ShadowPass 深度渲染顶点着色器
+//  阴影深度预渲染顶点着色器（Depth-only Pass）
 //  只关心投影位置（写入深度缓冲），不输出任何 varying
 // ============================================================================
 
@@ -11,8 +11,12 @@ layout(location = 2) in vec3 aNormal;
 
 uniform mat4 u_light_view_proj;     // 光源视角 VP 矩阵（正交）
 uniform mat4 u_model;               // 物体世界矩阵
+uniform float u_normal_bias;        // 法线偏移（沿法线向光源靠近，缓解自阴影）
 
 void main()
 {
-    gl_Position = u_light_view_proj * u_model * vec4(aPos, 1.0);
+    vec3 world_pos    = (u_model * vec4(aPos, 1.0)).xyz;
+    vec3 world_normal = normalize(mat3(u_model) * aNormal);
+    world_pos += world_normal * u_normal_bias;      // 沿法线偏移，消除自阴影空缺
+    gl_Position = u_light_view_proj * vec4(world_pos, 1.0);
 }

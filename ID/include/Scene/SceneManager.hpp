@@ -36,6 +36,12 @@ namespace ID
         // 处理事件
         static void on_event(Event& event);
 
+        // 将 scene 序列化到指定文件路径
+        static void save(Scene& scene, const std::string& filepath);
+
+        // 从指定文件路径加载 scene
+        static Scene& load(const std::string& filepath);
+
     private:
         static Scene default_scene;      // 默认场景
     };

@@ -27,7 +27,12 @@ namespace
 namespace ID
 {
     Scene::Scene(const std::string& name) 
-        : m_name(name), m_is_running(false), m_game_objects(), m_freed_ids() { }
+        : m_name(name), m_is_running(false), m_game_objects(), m_freed_ids()
+    {
+        ID_INFO("[Scene] 构造开始: '{}'", name);
+        m_physics_system.on_attach(this);
+        ID_INFO("[Scene] 构造完成: '{}'", name);
+    }
 
     GameObject::ID Scene::create_game_object(const std::string& name)
     {
@@ -78,9 +83,17 @@ namespace ID
         m_freed_ids.insert(id);
     }
 
+    bool Scene::is_game_object_valid(GameObject::ID id) const
+    {
+        return id < m_game_objects.size() && m_game_objects[id] != nullptr;
+    }
+
     void Scene::on_update(Timestep ts)
     {
         if (!m_is_running) return;
+
+        // 物理系统先于 GameObject 更新（物理驱动 → 组件响应）
+        m_physics_system.on_update(ts);
 
         for (const auto& game_object_ptr : m_game_objects)
         {
@@ -112,6 +125,7 @@ namespace ID
         Json roots = Json::create_array(arena);
         for(const auto& go : m_game_objects)
         {
+            // 只序列化根节点，子节点由 GameObject::serialize 递归处理
             if(go && go->get_parent_id() == GameObject::INVALID_ID)
             {
                 roots.push_back(go->serialize(arena));

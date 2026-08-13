@@ -25,6 +25,9 @@ namespace ID
         // 返回当前注册的材质数量
         static size_t    size();
 
+        // 获取所有已注册材质（按注册顺序），供 Inspector 材质下拉框等使用
+        static std::vector<Material*> get_all();
+
         static Json         serialize(const std::string& name, ArenaID arena_id);
         static Material*    deserialize(const Json& json);
     private:

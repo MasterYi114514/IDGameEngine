@@ -104,9 +104,10 @@ namespace ID
         {
             IDRCmd::bind_framebuffer_depth(ctx.shadow_fb, 1);
             IDRCmd::set_param(shader, "u_shadow_enabled", 1);
-            // IDRCmd::set_param(shader, "u_shadow_enabled", 0);
             IDRCmd::set_param(shader, "u_shadow_map", 1);
             IDRCmd::set_param(shader, "u_light_space_mvp", ctx.light_view_proj);
+            IDRCmd::set_param(shader, "u_shadow_bias", ctx.shadow_bias);
+            IDRCmd::set_param(shader, "u_shadow_pcf_radius", ctx.shadow_pcf_radius);
         }
         else
         {

@@ -1,4 +1,5 @@
 #include "Renderer/Render/Renderer.hpp"
+#include "Renderer/IDRCore.hpp"
 #include "Log/Log.hpp"
 #include "Renderer/Render/RenderContext.hpp"
 #include "Renderer/Render/RenderPass/RenderPass.hpp"
@@ -148,6 +149,57 @@ namespace
         }
         return fb_state.fb;
     }
+
+    struct ViewportFBState
+    {
+        ID::FrameBufferID fb = ID::FrameBufferID::invalid_id();
+        uint32_t width  = 0;
+        uint32_t height = 0;
+    };
+
+    ViewportFBState& viewport_fb_state()
+    {
+        static ViewportFBState s_viewport_fb = ViewportFBState();
+        return s_viewport_fb;
+    }
+
+    /*
+    *   ensure_viewport_fb 确保"最终显示 FBO"存在且尺寸匹配。
+    *   PostProcessPass 输出到该 FBO，随后 blit 到默认 framebuffer 供窗口显示，
+    *   同时其颜色纹理可供 ImGui Viewport 面板采样显示。
+    */
+    ID::FrameBufferID ensure_viewport_fb(uint32_t w, uint32_t h)
+    {
+        if (w == 0 || h == 0)
+        {
+            return ID::FrameBufferID::invalid_id();
+        }
+
+        auto& fb_state = viewport_fb_state();
+        if (!fb_state.fb.is_valid() || fb_state.width != w || fb_state.height != h)
+        {
+            if (fb_state.fb.is_valid())
+            {
+                FBManager::destroy(fb_state.fb);
+            }
+            // 最终显示目标：RGBA8（tone mapping / gamma 已在后处理完成）
+            ID::FrameBufferCreateInfo info(w, h);
+            info.color_format = ID::TextureFormat::RGBA8;
+            info.has_depth_attachment = false;
+            fb_state.fb = FBManager::create(info);
+            fb_state.width    = w;
+            fb_state.height   = h;
+            ID_INFO("Renderer: 显示 FBO 重建 {}x{} (RGBA8)", w, h);
+        }
+        return fb_state.fb;
+    }
+
+    // 当前 visual pipeline 是否包含后处理（无后处理时需手动拷贝 scene_fb → viewport_fb）
+    bool& post_process_enabled_flag()
+    {
+        static bool s_enabled = true;
+        return s_enabled;
+    }
 } // 匿名命名空间
 
 // 获取帧队列的宏
@@ -279,6 +331,7 @@ namespace ID::Renderer
             stats.transparent = static_cast<uint32_t>(transparent_batches().size());
 
             FrameBufferID scene_fb = ensure_scene_fb(window_width, window_height);
+            FrameBufferID viewport_fb = ensure_viewport_fb(window_width, window_height);
 
             RenderContext ctx
             {
@@ -290,9 +343,25 @@ namespace ID::Renderer
                 transparent_batches(),
                 lights(),
                 &stats,
-                scene_fb
+                scene_fb,
+                viewport_fb
             };
             get_render_graph().execute(ctx);
+
+            // 无后处理时 PostProcessPass 不参与渲染，需把 HDR 场景 FBO 直接拷贝到显示 FBO
+            if(!post_process_enabled_flag()
+                && scene_fb.is_valid() && viewport_fb.is_valid())
+            {
+                RenderCommand::blit_framebuffer(scene_fb, viewport_fb,
+                    window_width, window_height);
+            }
+
+            // 显示 FBO → 默认 framebuffer（窗口可见）
+            if(viewport_fb.is_valid())
+            {
+                RenderCommand::blit_framebuffer_to_default(viewport_fb,
+                    window_width, window_height);
+            }
         }
 
         clear_submissions();
@@ -359,10 +428,15 @@ namespace ID::Renderer
 
         if (post_process)
         {
-            graph.add_pass<PostProcessPass>();      // 输出默认屏幕
+            graph.add_pass<PostProcessPass>();      // 输出到 ctx.viewport_fb（显示 FBO）
         }
 
         ID_INFO("Renderer: 视觉管线装配完成 (shadow={} skybox={} post_process={})",
             shadow, skybox, post_process);
+    }
+
+    FrameBufferID get_viewport_fb()
+    {
+        return viewport_fb_state().fb;
     }
 } // namespace ID::Renderer

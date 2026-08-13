@@ -13,6 +13,9 @@ namespace ID
     class TransformComponent;
     class MeshRendererComponent;
     class LightComponent;
+    class RigidBodyComponent;
+    class AudioSourceComponent;
+    class AudioListenerComponent;
 
     namespace detail
     {
@@ -72,7 +75,8 @@ namespace ID
         {
             static_assert(std::is_base_of<Component, ComponentType>::value, "传入的类型必须是 Component 的子类");
             constexpr std::size_t idx = detail::type_index<ComponentType,
-                TransformComponent, MeshRendererComponent, LightComponent>();
+                TransformComponent, MeshRendererComponent, LightComponent,
+                RigidBodyComponent, AudioSourceComponent, AudioListenerComponent>();
             static_assert(idx != 0,
                 "组件类型未登记：请在前向声明区添加该类声明，并追加到类型列表中");
             return static_cast<TypeID>(idx);

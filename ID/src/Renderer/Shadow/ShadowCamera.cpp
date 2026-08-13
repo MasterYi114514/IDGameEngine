@@ -14,7 +14,7 @@ namespace ID
         : ShadowCamera(main_camera)
     {
         m_config.param.quality       = ShadowQuality::High;
-        m_config.param.bias          = 0.005f;
+        m_config.param.bias          = 0.0002f;
         m_config.param.normal_bias   = 0.02f;
         m_config.ortho_extent        = ortho_extent;
         m_config.near_plane          = near_plane;

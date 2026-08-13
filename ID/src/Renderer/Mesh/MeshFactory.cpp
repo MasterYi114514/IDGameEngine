@@ -507,7 +507,7 @@ namespace ID
     {
         if(!mesh_id.is_valid())
         {
-            ID_ERROR("尝试序列化无效的 MeshID");
+            ID_ERROR("尝试使用无效的 MeshID 进行序列化");
             return JSON::null;
         }
 

@@ -37,6 +37,9 @@ namespace ID
         uint32_t get_width()  const { return WindowPool::get_width();  }
         uint32_t get_height() const { return WindowPool::get_height(); }
 
+        // 请求关闭引擎（退出主循环），供 DevGUI 菜单等使用
+        void close() { m_running = false; }
+
         // ---- 单例（方便 Input 等系统访问 Application）----
         static Application& get_instance() { return *s_instance; }
 

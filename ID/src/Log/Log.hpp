@@ -5,14 +5,23 @@
 
 namespace ID
 {
-    extern ID_API std::shared_ptr<Logger> ID_Logger;
+    /**
+     *  返回 ID 引擎的全局 Logger（Meyers 单例，惰性初始化，避免静态初始化顺序问题）
+     */
+    ID_API std::shared_ptr<Logger>& get_ID_logger();
 } // namespace ID
 
-#define ID_TRACE(...)      ::ID::ID_Logger->trace(__VA_ARGS__)
-#define ID_DEBUG(...)      ::ID::ID_Logger->debug(__VA_ARGS__)
-#define ID_INFO(...)       ::ID::ID_Logger->info(__VA_ARGS__)
-#define ID_WARN(...)       ::ID::ID_Logger->warn(__VA_ARGS__)
-#define ID_ERROR(...)      ::ID::ID_Logger->error(__VA_ARGS__)
+#ifdef _ID_DEBUG
+    #define ID_TRACE(...)      ::ID::get_ID_logger()->trace(__VA_ARGS__)
+    #define ID_DEBUG(...)      ::ID::get_ID_logger()->debug(__VA_ARGS__)
+#else
+    #define ID_TRACE(...)
+    #define ID_DEBUG(...)    
+#endif
+
+#define ID_INFO(...)       ::ID::get_ID_logger()->info(__VA_ARGS__)
+#define ID_WARN(...)       ::ID::get_ID_logger()->warn(__VA_ARGS__)
+#define ID_ERROR(...)      ::ID::get_ID_logger()->error(__VA_ARGS__)
 
 
 /**
@@ -39,7 +48,7 @@ namespace ID
         {                                                   \
             if(condition)                                   \
             {                                               \
-                ::ID::ID_Logger->error(__VA_ARGS__);        \
+                ::ID::get_ID_logger()->error(__VA_ARGS__);  \
             }                                               \
         } while(0)
 #else

@@ -9,8 +9,19 @@
 #include "Log/Log.hpp"
 
 #define GLFW_INCLUDE_NONE
+
+// IME 禁用（规避搜狗等输入法注入导致进程崩溃）：需先包含 windows.h
+#ifdef _WIN32
+    #include <windows.h>
+    #include <imm.h>
+#endif
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+// 暴露 Win32 原生句柄 API（glfwGetWin32Window）
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 
 namespace
@@ -84,6 +95,10 @@ namespace ID
         if(!m_native_window) return;
 
         if(!glad_init(m_native_window)) return;
+
+        // 禁用 IME 输入上下文：搜狗等输入法（SogouPY.ime）注入本进程后
+        // 会在窗口创建/输入处理阶段崩溃（0xc0000005），游戏窗口通常不需要系统 IME
+        ImmAssociateContext(glfwGetWin32Window(m_native_window), nullptr);
 
         glfwSetWindowUserPointer(m_native_window, this);
 

@@ -156,7 +156,13 @@ namespace ID
             return;
         }
 
-        FrameBufferID dst = m_output_fb;    // 无效 = 默认屏幕
+        FrameBufferID dst = m_output_fb;
+        // 未显式指定输出目标时：优先输出到 ctx.viewport_fb（显示 FBO，供窗口/Viewport 面板使用），
+        // 仍无效则输出默认屏幕
+        if(!dst.is_valid() && ctx.viewport_fb.is_valid())
+        {
+            dst = ctx.viewport_fb;
+        }
 
         if (m_effects & PostProcessEffect_Bloom)
         {

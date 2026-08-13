@@ -56,7 +56,13 @@ namespace ID
         void set_gravity(const Vec3& gravity);
         Vec3 get_gravity() const;
 
-        // 模拟步进
+        /**
+         *  运行物理模拟
+         *  @brief 运行物理模拟，更新刚体的状态，每过 fixed_time_step 会进行一次物理模拟
+         *  @param dt               时间步长（秒）
+         *  @param max_sub_steps    最大子步数，超过该值的子步将被丢弃，默认为 4
+         *  @param fixed_time_step  固定时间步长（秒），默认为 1/60
+         */
         void step_simulation(float dt,
                              int   max_sub_steps   = 4,
                              float fixed_time_step = 1.0f / 60.0f);

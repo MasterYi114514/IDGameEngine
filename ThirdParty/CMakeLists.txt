@@ -2,10 +2,19 @@ cmake_minimum_required(VERSION 4.1.0)
 
 project(ThirdParty)
 
-# glad + glfw — 始终静态链接
+# glad — 静态链接（纯 GL 函数指针加载器，无全局状态）
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(glad)
+
+# glfw — 必须编译为共享库（DLL）
+# 原因：若为静态库，会被分别链接进 libIDWindowd.dll（创建窗口）、libIDd.dll（imgui_impl_glfw）、
+# Sandbox.exe 三份副本，各持独立 GLFW 全局状态，导致 imgui 的 glfwGetWin32Window 找不到
+# IDWindow 创建的窗口（hwnd=null，断言崩溃）。共享库保证全局状态唯一。
+# 注意：不能用 BUILD_SHARED_LIBS（顶层 CMake 的普通变量优先于 cache），需用 GLFW_LIBRARY_TYPE
+set(GLFW_LIBRARY_TYPE SHARED CACHE STRING "Library type override for GLFW" FORCE)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR})
 add_subdirectory(glfw)
+set(GLFW_LIBRARY_TYPE "" CACHE STRING "Library type override for GLFW" FORCE)
 
 # stb 纯头文件库
 add_library(stb INTERFACE)
@@ -54,6 +63,7 @@ add_library(imgui STATIC
     imgui/imgui_draw.cpp
     imgui/imgui_widgets.cpp
     imgui/imgui_tables.cpp
+    imgui/imgui_demo.cpp
     imgui/backends/imgui_impl_glfw.cpp
     imgui/backends/imgui_impl_opengl3.cpp
 )

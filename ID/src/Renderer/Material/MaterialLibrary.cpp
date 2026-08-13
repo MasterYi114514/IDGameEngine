@@ -68,6 +68,17 @@ namespace ID
         return MLib.size();
     }
 
+    std::vector<Material*> MaterialLibrary::get_all()
+    {
+        std::vector<Material*> result;
+        result.reserve(MLib.size());
+        for (const auto& material : MLib)
+        {
+            result.push_back(material.get());
+        }
+        return result;
+    }
+
     Json MaterialLibrary::serialize(const std::string& name, ArenaID arena_id)
     {
         Material* material = get(name);

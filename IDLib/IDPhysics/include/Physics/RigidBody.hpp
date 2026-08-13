@@ -56,6 +56,7 @@ namespace ID
         // 质量与类型
         void  set_mass(float mass);
         float get_mass() const;
+
         void  set_type(RigidBodyType type);
         RigidBodyType get_type() const;
 
@@ -70,10 +71,10 @@ namespace ID
         float get_angular_damping() const;
 
         // 力与冲量
-        void apply_force(const Vec3& force);
-        void apply_impulse(const Vec3& impulse);
-        void apply_torque(const Vec3& torque);
-        void clear_forces();
+        void apply_force(const Vec3& force);            // 施加一个力
+        void apply_impulse(const Vec3& impulse);        // 施加一个冲量
+        void apply_torque(const Vec3& torque);          // 施加一个力矩
+        void clear_forces();                            // 清除所有施加的力和力矩
 
         // 速度
         void set_linear_velocity(const Vec3& velocity);

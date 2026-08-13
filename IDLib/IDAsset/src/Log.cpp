@@ -2,5 +2,5 @@
 
 namespace ID
 {
-    std::shared_ptr<Logger> IDAsset_logger  = Log::create_logger("IDAsset", ID::Log::Level::Trace);
+    std::shared_ptr<Logger> IDAsset_logger  = Log::create_logger("IDAsset", ID::Log::Level::Info);
 } // namespace ID

@@ -1,13 +1,26 @@
 
 set(LIBRARY_OUTPUT_PATH ${BIN_DIR})
 
-add_library(glfw STATIC
-                 "${GLFW_SOURCE_DIR}/include/GLFW/glfw3.h"
-                 "${GLFW_SOURCE_DIR}/include/GLFW/glfw3native.h"
-                 internal.h platform.h mappings.h
-                 context.c init.c input.c monitor.c platform.c vulkan.c window.c
-                 egl_context.c osmesa_context.c null_platform.h null_joystick.h
-                 null_init.c null_monitor.c null_window.c null_joystick.c)
+# 支持共享库构建：GLFW_BUILD_SHARED_LIBRARY 由根 CMakeLists 根据 GLFW_LIBRARY_TYPE 决定。
+# （注意：此 ThirdParty 副本原本硬编码 STATIC，会导致 glfw 被链接进多个 DLL 时
+#   全局状态分裂，imgui_impl_glfw 无法找到其它模块创建的窗口）
+if (GLFW_BUILD_SHARED_LIBRARY)
+    add_library(glfw SHARED
+                     "${GLFW_SOURCE_DIR}/include/GLFW/glfw3.h"
+                     "${GLFW_SOURCE_DIR}/include/GLFW/glfw3native.h"
+                     internal.h platform.h mappings.h
+                     context.c init.c input.c monitor.c platform.c vulkan.c window.c
+                     egl_context.c osmesa_context.c null_platform.h null_joystick.h
+                     null_init.c null_monitor.c null_window.c null_joystick.c)
+else()
+    add_library(glfw STATIC
+                     "${GLFW_SOURCE_DIR}/include/GLFW/glfw3.h"
+                     "${GLFW_SOURCE_DIR}/include/GLFW/glfw3native.h"
+                     internal.h platform.h mappings.h
+                     context.c init.c input.c monitor.c platform.c vulkan.c window.c
+                     egl_context.c osmesa_context.c null_platform.h null_joystick.h
+                     null_init.c null_monitor.c null_window.c null_joystick.c)
+endif()
 
 # The time, thread and module code is shared between all backends on a given OS,
 # including the null backend, which still needs those bits to be functional
