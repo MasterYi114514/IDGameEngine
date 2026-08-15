@@ -5,25 +5,6 @@
 #include "Scene/AssetManager.hpp"
 #include "Log/Log.hpp"
 
-namespace
-{
-    // 由场景名生成安全文件名（清理 Windows 非法字符），返回 "<名>.json"
-    std::string scene_filename(const std::string& name)
-    {
-        std::string filename = name;
-        for(char& c : filename)
-        {
-            if(c == '/' || c == '\\' || c == ':' || c == '*' || c == '?'
-                || c == '"' || c == '<' || c == '>' || c == '|')
-            {
-                c = '_';
-            }
-        }
-        filename += ".json";
-        return filename;
-    }
-} // 匿名命名空间
-
 namespace ID
 {
     SceneSettingsPanel::SceneSettingsPanel() : ImGuiPanel("Scene Settings", true) { }
@@ -103,13 +84,11 @@ namespace ID
                 ID_INFO("[SceneSettings] 已切换到场景 '{}'", scene->get_name());
             }
 
-            // Save：保存该场景到 Assets/scene/<场景名>.json
+            // Save：保存该场景到 Assets/scene/<场景名>.json（材质库随场景一起保存，只对接 AssetManager）
             ImGui::SameLine();
             if(ImGui::SmallButton(("Save##" + btn_suffix).c_str()))
             {
-                const std::string filepath = std::string(AssetManager::SceneDir) + scene_filename(scene->get_name());
-                SceneManager::save(*scene, filepath);
-                ID_INFO("[SceneSettings] 场景 '{}' 已保存到 {}", scene->get_name(), filepath);
+                AssetManager::save_scene(*scene, AssetManager::scene_filename(scene->get_name()));
             }
 
             ImGui::SameLine();

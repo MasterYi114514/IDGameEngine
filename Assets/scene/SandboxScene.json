@@ -58,7 +58,12 @@
                                             "type": "Vec3"
                                         }
                                     },
-                                    "texture_overrides": {},
+                                    "texture_overrides": {
+                                        "texture_sampler": {
+                                            "slot": 0,
+                                            "tex_path": "../Assets/texture/1.png"
+                                        }
+                                    },
                                     "parent_name": "ManMaterial"
                                 },
                                 "mesh": {
@@ -134,7 +139,12 @@
                                             "type": "Vec3"
                                         }
                                     },
-                                    "texture_overrides": {},
+                                    "texture_overrides": {
+                                        "texture_sampler": {
+                                            "slot": 0,
+                                            "tex_path": "../Assets/texture/1.png"
+                                        }
+                                    },
                                     "parent_name": "ManMaterial"
                                 },
                                 "mesh": {
@@ -210,7 +220,12 @@
                                             "type": "Vec3"
                                         }
                                     },
-                                    "texture_overrides": {},
+                                    "texture_overrides": {
+                                        "texture_sampler": {
+                                            "slot": 0,
+                                            "tex_path": "../Assets/texture/1.png"
+                                        }
+                                    },
                                     "parent_name": "ManMaterial"
                                 },
                                 "mesh": {
@@ -286,7 +301,12 @@
                                             "type": "Vec3"
                                         }
                                     },
-                                    "texture_overrides": {},
+                                    "texture_overrides": {
+                                        "texture_sampler": {
+                                            "slot": 0,
+                                            "tex_path": "../Assets/texture/1.png"
+                                        }
+                                    },
                                     "parent_name": "ManMaterial"
                                 },
                                 "mesh": {
@@ -362,7 +382,12 @@
                                             "type": "Vec3"
                                         }
                                     },
-                                    "texture_overrides": {},
+                                    "texture_overrides": {
+                                        "texture_sampler": {
+                                            "slot": 0,
+                                            "tex_path": "../Assets/texture/1.png"
+                                        }
+                                    },
                                     "parent_name": "ManMaterial"
                                 },
                                 "mesh": {
@@ -614,15 +639,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -1.8877559238017483e-11,
-                            2.0283784374353075e-10,
-                            6.4671080508560408e-06,
+                            -2.8569760446295334e-10,
+                            8.5899559687518945e-10,
+                            7.4648437475843821e-06,
                             1.0
                         ],
                         "position": [
-                            -3.0000040531158447,
+                            -3.0000042915344238,
                             0.25,
-                            -4.7172256017802283e-05
+                            -4.7517249186057597e-05
                         ]
                     },
                     "is_active": true,
@@ -708,15 +733,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -4.5898316614403911e-13,
-                            1.6064817878747029e-11,
-                            0.00030072996742092073,
+                            -1.9730070008328049e-11,
+                            8.2557134739591476e-11,
+                            0.00027095849509350955,
                             0.99999994039535522
                         ],
                         "position": [
-                            -1.0001200437545776,
+                            -1.0001062154769897,
                             0.25,
-                            1.4859483599138912e-05
+                            1.3151025086699519e-05
                         ]
                     },
                     "is_active": true,
@@ -802,15 +827,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -3.9995040612694766e-10,
-                            2.8619887015857159e-10,
-                            2.0624176613637246e-05,
+                            -3.5405210013772503e-11,
+                            1.8070785146040436e-10,
+                            2.9486356652341783e-05,
                             1.0
                         ],
                         "position": [
-                            0.99999195337295532,
-                            0.25,
-                            -0.00017981143901124597
+                            0.9999883770942688,
+                            0.24999997019767761,
+                            -0.00018225456005893648
                         ]
                     },
                     "is_active": true,
@@ -913,5 +938,19 @@
             "name": "Light"
         }
     ],
-    "name": "SandboxScene"
+    "name": "SandboxScene",
+    "material_library": [
+        {
+            "info": {
+                "texture_defaults": {},
+                "param_defaults": {},
+                "name": "ManMaterial",
+                "shader_id": {
+                    "fra_path": "../Assets/shader/geometry.fsl",
+                    "ver_path": "../Assets/shader/geometry.vsl"
+                }
+            },
+            "name": "ManMaterial"
+        }
+    ]
 }

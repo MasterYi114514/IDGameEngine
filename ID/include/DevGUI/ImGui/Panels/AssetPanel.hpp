@@ -9,8 +9,8 @@ namespace ID
     *   AssetPanel — 资源浏览器面板（Asset Browser）
     *
     *   - 四分类（Audio / Scene / Shader / Texture）：目录枚举 + Combo 菜单选择 + Load 按钮；
-    *   - Scene 区：文件名输入框 + Save Current Scene 键 + Combo + Load 键
-    *     （Save 把当前场景保存到 Assets/scene/，Load 从 Assets/scene/ 加载并切换场景）；
+    *   - Scene 区：Combo + Load 键（Load 走 AssetManager，自动保存旧材质库并恢复新场景材质库；
+    *     Save 在 Scene Settings 面板的场景池列表中，每个场景独立保存）；
     *   - 目录文件列表与已加载资源列表均可作为拖拽源（DragDropSource），
     *     拖拽目标在 Inspector（AudioSource / MeshRenderer 编辑器）。
     *

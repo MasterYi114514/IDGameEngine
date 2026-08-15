@@ -55,6 +55,7 @@ PhysicsWorld::PhysicsWorld()
 
 PhysicsWorld::~PhysicsWorld()
 {
+    size_t destroyed_count = 0;
     for (size_t i = 0; i < m_impl->m_rigid_body_pool.size(); ++i)
     {
         RigidBody& rb = m_impl->m_rigid_body_pool[i];
@@ -66,9 +67,10 @@ PhysicsWorld::~PhysicsWorld()
             delete bt_rb->getMotionState();
             delete bt_rb->getCollisionShape();
             delete bt_rb;
+            ++destroyed_count;
         }
     }
-    IDPHYSICS_INFO("PhysicsWorld destroyed");
+    IDPHYSICS_INFO("物理世界已销毁：已从 Bullet 世界中移除并释放 {} 个刚体（碰撞形状/运动状态/用户指针），碰撞配置、调度器、宽相、约束求解器均已释放", destroyed_count);
 }
 
 PhysicsWorld::PhysicsWorld(PhysicsWorld&& other) noexcept : m_impl(std::move(other.m_impl)) {}

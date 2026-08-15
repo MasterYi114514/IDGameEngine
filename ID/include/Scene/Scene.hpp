@@ -16,7 +16,7 @@ namespace ID
         explicit Scene(const std::string& name = "Untitled Scene", SceneID id = SceneID{});
         
     public:
-        ~Scene() = default;
+        ~Scene();
 
         // 禁止拷贝
         Scene(const Scene&) = delete;

@@ -115,7 +115,8 @@ namespace ID
         if(!ImGui::CollapsingHeader("Scene")) return;
 
         // Load 键：从 Assets/scene/ 选中 .json 加载并切换场景
-        // （场景的 Save 在 Scene Settings 面板的场景池列表中，每个场景独立保存）
+        // （走 AssetManager：自动保存旧材质库，并优先恢复新场景文件中的材质库；
+        //   场景的 Save 在 Scene Settings 面板的场景池列表中，每个场景独立保存）
         const std::vector<std::string> files = AssetManager::list_scenes();
         const std::string selected = render_combo("##scene_load_combo", files, m_selected_scene_name);
 
@@ -237,7 +238,22 @@ namespace ID
                 ShaderID shader_id = AssetManager::load_shader(selected_shader);
                 if(shader_id.is_valid())
                 {
+                    const bool is_new = !MaterialLibrary::contains(mat_name);
                     Material* mat = MaterialLibrary::add(shader_id, mat_name);
+                    if(is_new)
+                    {
+                        // 默认参数与纹理绑定：避免 texture_sampler 未绑定采样黑色、u_color 默认 0 全黑
+                        mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
+                        const std::vector<std::string> textures = AssetManager::list_textures();
+                        if(!textures.empty())
+                        {
+                            TextureID tex = AssetManager::load_texture(textures[0]);
+                            if(tex.is_valid())
+                            {
+                                mat->set_texture("texture_sampler", tex, 0);
+                            }
+                        }
+                    }
                     ID_INFO("AssetPanel：已创建材质 '{}'（shader: {}）", mat_name, selected_shader);
                 }
                 else
@@ -263,6 +279,19 @@ namespace ID
             const std::string vs_name = std::filesystem::path(vs_path).filename().string();
             ImGui::BulletText("%s (shader: %s)", mat->get_name().c_str(), vs_name.c_str());
 
+            // u_color 颜色编辑（geometry 系列 shader 的调色参数）
+            const auto& defaults = mat->get_param_defaults();
+            const auto color_it = defaults.find("u_color");
+            if(color_it != defaults.end() && color_it->second.type == MaterialParamType::Vec3)
+            {
+                float color[3] = { color_it->second.value[0], color_it->second.value[1], color_it->second.value[2] };
+                ImGui::SameLine();
+                if(ImGui::ColorEdit3(("##u_color_" + mat->get_name()).c_str(), color))
+                {
+                    mat->set_param("u_color", Vec3(color[0], color[1], color[2]));
+                }
+            }
+
             ImGui::SameLine();
             if(ImGui::SmallButton(("X##del_mat_" + mat->get_name()).c_str()))
             {
@@ -273,8 +302,9 @@ namespace ID
 
         ImGui::Separator();
 
-        // 全局材质库持久化：Save（全库 → 文件） / Load（文件 → 全库）
-        ImGui::TextDisabled("全局材质库（MaterialLibrary 属于全体，不随场景序列化）:");
+        // 材质库随场景自动保存/加载（save/load scene 时自动同步到 Assets/material/）；
+        // 下方 Save Library / Load Library 用于手动管理材质库文件（如跨场景复用）
+        ImGui::TextDisabled("材质库文件（场景 Save/Load 时自动同步同名文件）:");
         ImGui::SetNextItemWidth(160.0f);
         ImGui::InputText("##material_lib_file", m_material_lib_name, sizeof(m_material_lib_name));
         ImGui::SameLine();

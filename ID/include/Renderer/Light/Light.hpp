@@ -21,7 +21,7 @@ namespace ID
 
         union
         {
-            Vec3 direction;           // 平行光方向（仅在 type 为 Directional 时有效）
+            Vec3 direction = Vec3(1.0f, -1.0f, 0.0f);    // 平行光方向（仅在 type 为 Directional 时有效）
             Pos3 position;            // 点光源或聚光灯位置（仅在 type 为 Point 或 Spot 时有效）
         }drop;          // d or p 的通假
 

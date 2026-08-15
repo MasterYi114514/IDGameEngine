@@ -116,6 +116,7 @@ namespace ID
             m_native_window = nullptr;
         }
         glfwTerminate();
+        ID_WINDOW_INFO("GLFW 窗口已销毁：原生窗口已销毁，OpenGL 上下文已释放（未显式删除的 GPU 资源由驱动回收），GLFW 已终止");
     }
 
     void GLFWWindow::set_callback()

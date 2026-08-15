@@ -1,5 +1,6 @@
 #include "Scene/AssetManager.hpp"
 #include "Scene/Audio/AudioManager.hpp"
+#include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
 #include "Renderer/Resource/ShaderManager.hpp"
 #include "Renderer/Resource/TextureManager.hpp"
@@ -104,7 +105,80 @@ namespace ID
 
     Scene& AssetManager::load_scene(const std::string& name)
     {
-        return SceneManager::load(std::string(SceneDir) + name);
+        const std::string filepath = std::string(SceneDir) + name;
+
+        // 1) 自动保存旧材质库到 MaterialDir（与旧场景同名文件），避免切换场景后丢失
+        const Scene& old_scene = SceneManager::get_current_scene();
+        save_material_library(scene_filename(old_scene.get_name()));
+
+        // 2) 读取场景文件，优先恢复材质库（MeshRenderer 等反序列化需要材质库已就绪）
+        std::ifstream file(filepath, std::ios::binary);
+        if(!file.good())
+        {
+            ID_ERROR("AssetManager：找不到场景文件 {}", filepath);
+            return SceneManager::get_current_scene();
+        }
+
+        const std::string content(
+            (std::istreambuf_iterator<char>(file)),
+            std::istreambuf_iterator<char>());
+
+        ArenaID arena = ArenaManager::create_arena();
+        const Json json = JSON::parse(content, arena);
+
+        // 旧版场景文件没有 material_library 字段：保持当前材质库（向后兼容）
+        if(json.contains("material_library"))
+        {
+            MaterialLibrary::clear();
+            MaterialLibrary::deserialize_all(json["material_library"]);
+        }
+        else
+        {
+            ID_WARN("AssetManager：场景 {} 无 material_library 字段（旧版文件），保持当前材质库", name);
+        }
+        ArenaManager::destroy_arena(arena);
+
+        // 3) 创建并返回新场景（材质库已就绪，场景内材质引用可正确恢复）
+        return SceneManager::load(filepath);
+    }
+
+    void AssetManager::save_scene(Scene& scene, const std::string& name)
+    {
+        // 1) 自动保存当前材质库到 MaterialDir（与场景文件同名）
+        save_material_library(name);
+
+        // 2) 序列化场景，携带 material_library 部分（加载时优先恢复材质库，再恢复 GameObject）
+        std::filesystem::create_directories(SceneDir);
+
+        ArenaID arena = ArenaManager::create_arena();
+        Json result = Json::create_object(arena);
+
+        result.insert("material_library", MaterialLibrary::serialize_all(arena));
+
+        const Json scene_json = scene.serialize(arena);
+        result.insert("name", scene_json["name"]);
+        result.insert("game_objects", scene_json["game_objects"]);
+
+        JSON::write_to_file(std::string(SceneDir) + name, result);
+        ArenaManager::destroy_arena(arena);
+
+        ID_INFO("AssetManager：场景 '{}' 已保存到 {}{}（材质库同步保存到 {}{}）",
+            scene.get_name(), SceneDir, name, MaterialDir, name);
+    }
+
+    std::string AssetManager::scene_filename(const std::string& name)
+    {
+        std::string filename = name;
+        for(char& c : filename)
+        {
+            if(c == '/' || c == '\\' || c == ':' || c == '*' || c == '?'
+                || c == '"' || c == '<' || c == '>' || c == '|')
+            {
+                c = '_';
+            }
+        }
+        filename += ".json";
+        return filename;
     }
 
     void AssetManager::save_material_library(const std::string& name)

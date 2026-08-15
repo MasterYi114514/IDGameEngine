@@ -117,7 +117,9 @@ namespace ID
         GLint location = glGetUniformLocation(m_program_id, name.c_str());
         if(location == -1)
         {
-            IDR_WARN("Uniform 变量 {} 不存在或未被使用", name);
+            // 设置不存在的 uniform 是 OpenGL 合法 no-op（如 geometry shader 无 u_view/u_proj），
+            // 属正常高频路径，降为 TRACE 避免刷屏；真拼写错误由开发者调试时观察
+            IDR_TRACE("Uniform 变量 {} 不存在或未被使用", name);
         }
 
         m_uniform_location_cache[name] = location;

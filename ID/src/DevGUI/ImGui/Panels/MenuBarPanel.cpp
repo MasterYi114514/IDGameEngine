@@ -3,17 +3,13 @@
 #include "Application/Application.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/AssetManager.hpp"
 #include "Log/Log.hpp"
-
-#include "IDJson.hpp"
-
-#include <fstream>
-#include <filesystem>
 
 namespace
 {
-    // 场景保存/加载使用的固定路径（设计书未要求文件对话框，先使用固定路径）
-    constexpr const char* k_scene_file = "scenes/save.json";
+    // 菜单 Save/Open 使用的固定文件名（AssetManager 内部拼到 Assets/scene/ 下）
+    constexpr const char* k_scene_file = "save.json";
 } // 匿名命名空间
 
 namespace ID
@@ -146,38 +142,13 @@ namespace ID
     void MenuBarPanel::save_current_scene()
     {
         Scene& scene = SceneManager::get_current_scene();
-
-        std::filesystem::create_directories("scenes");
-
-        ArenaID arena = ArenaManager::create_arena();
-        const Json json = scene.serialize(arena);
-        JSON::write_to_file(k_scene_file, json);
-        ArenaManager::destroy_arena(arena);
-
-        ID_INFO("[MenuBar] 场景 '{}' 已保存到 {}", scene.get_name(), k_scene_file);
+        AssetManager::save_scene(scene, k_scene_file);
     }
 
     void MenuBarPanel::open_scene_from_file()
     {
-        std::ifstream file(k_scene_file, std::ios::binary);
-        if(!file.good())
-        {
-            ID_ERROR("[MenuBar] 打开场景失败：找不到文件 {}", k_scene_file);
-            return;
-        }
-
-        const std::string content(
-            (std::istreambuf_iterator<char>(file)),
-            std::istreambuf_iterator<char>());
-
-        ArenaID arena = ArenaManager::create_arena();
-        const Json json = JSON::parse(content, arena);
-
-        // 创建新场景并反序列化（旧场景保留在场景池中，只是暂停运行）
-        Scene& scene = SceneManager::create_scene("Loaded Scene");
-        scene.deserialize(json);
-        ArenaManager::destroy_arena(arena);
-
+        // 走 AssetManager：自动保存旧材质库并恢复新场景的材质库
+        Scene& scene = AssetManager::load_scene(k_scene_file);
         SceneManager::load_scene(scene);
         ID_INFO("[MenuBar] 已从 {} 加载场景 '{}' ({} 个 GameObject)",
             k_scene_file, scene.get_name(), scene.get_game_object_count());

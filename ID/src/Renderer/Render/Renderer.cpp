@@ -258,6 +258,7 @@ namespace ID::Renderer
                     continue;
                 }
                 MeshRendererComponent* mrc = go.get_component<MeshRendererComponent>();
+                
                 // 未激活的 MeshRendererComponent 不参与渲染
                 if (mrc == nullptr || !mrc->is_active())
                 {

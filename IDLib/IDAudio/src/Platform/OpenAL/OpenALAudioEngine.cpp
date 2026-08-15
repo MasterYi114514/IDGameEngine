@@ -156,7 +156,7 @@ void AudioEngine::shutdown()
     }
 
     g_initialized = false;
-    IDAUDIO_INFO("AudioEngine shut down");
+    IDAUDIO_INFO("音频引擎已关闭：全部音源与音频片段（OpenAL 缓冲区）已销毁，上下文与默认设备已释放");
 }
 
 bool AudioEngine::is_initialized()

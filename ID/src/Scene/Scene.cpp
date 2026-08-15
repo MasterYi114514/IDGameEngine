@@ -34,6 +34,20 @@ namespace ID
         ID_INFO("[Scene] 构造完成: '{}' (id={})", name, id.id);
     }
 
+    Scene::~Scene()
+    {
+        // ⚠️ 必须在 PhysicsSystem 析构前释放 GameObject：
+        // 成员按声明逆序析构，m_physics_system 先于 m_game_objects 销毁；
+        // 若此时 GameObject 析构，其 RigidBodyComponent 会调用 m_world->remove_rigid_body()，
+        // 访问已销毁的 PhysicsWorld，构成 use-after-free。
+        // 在析构体内显式 clear，保证组件析构时物理世界仍然存活。
+        const size_t game_object_count = m_game_objects.size();
+        m_game_objects.clear();
+
+        ID_INFO("[Scene] 场景 '{}' (id={}) 销毁：{} 个 GameObject 及其组件已释放，物理系统随后销毁",
+                m_name, m_id.id, game_object_count);
+    }
+
     GameObject::ID Scene::create_game_object(const std::string& name)
     {
         GameObject::ID id;

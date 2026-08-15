@@ -6,12 +6,26 @@
 
 #define MLib ::ID::MaterialLibrary::storage()
 
+namespace
+{
+    // 材质库静态存储：程序退出阶段析构时打印汇总日志，确认所有材质已释放
+    struct MaterialStorage
+    {
+        std::vector<std::unique_ptr<ID::Material>> data;
+
+        ~MaterialStorage()
+        {
+            ID_INFO("材质库已销毁：{} 个材质（参数、纹理绑定描述）已全部释放", data.size());
+        }
+    };
+} // 匿名命名空间
+
 namespace ID
 {
     std::vector<std::unique_ptr<Material>>& MaterialLibrary::storage()
     {
-        static std::vector<std::unique_ptr<Material>> s_storage;
-        return s_storage;
+        static MaterialStorage s_storage;
+        return s_storage.data;
     }
 
     Material* MaterialLibrary::add(ShaderID shader, const std::string& name)
