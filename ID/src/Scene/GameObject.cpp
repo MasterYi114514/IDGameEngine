@@ -23,7 +23,7 @@ namespace ID
     }
 
     GameObject::GameObject(Scene* scene, ID id, const std::string& name)
-        : m_scene(scene), m_id(id), m_name(name), m_is_active(true) { }
+        : m_scene(scene), m_id(id), m_name(name), m_is_active(false) { }
 
     void GameObject::set_parent(ID parent_id)
     {

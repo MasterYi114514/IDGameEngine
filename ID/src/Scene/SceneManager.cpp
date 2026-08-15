@@ -1,6 +1,7 @@
 #include "IDpch.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/AssetManager.hpp"
 
 #include "Log/Log.hpp"
 #include "IDJson.hpp"
@@ -70,7 +71,12 @@ namespace ID
 
     Scene& SceneManager::get_current_scene()
     {
-        if (!g_CurrentScene) load_scene(default_scene);
+        if (!g_CurrentScene)
+        {
+            load_scene(default_scene);
+            // 首次进入默认场景：初始化其材质库（存在则加载，不存在则新建空库）
+            AssetManager::load_default_scene_material_library();
+        }
         return *g_CurrentScene;
     }
 

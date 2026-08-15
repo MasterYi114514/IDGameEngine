@@ -463,7 +463,12 @@
                                             "type": "Vec3"
                                         }
                                     },
-                                    "texture_overrides": {},
+                                    "texture_overrides": {
+                                        "texture_sampler": {
+                                            "slot": 0,
+                                            "tex_path": "../Assets/texture/1.png"
+                                        }
+                                    },
                                     "parent_name": "ManMaterial"
                                 },
                                 "mesh": {
@@ -586,7 +591,12 @@
                                     "type": "Vec3"
                                 }
                             },
-                            "texture_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
                             "parent_name": "ManMaterial"
                         },
                         "mesh": {
@@ -639,15 +649,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -2.8569760446295334e-10,
-                            8.5899559687518945e-10,
-                            7.4648437475843821e-06,
+                            -3.0973529296929314e-10,
+                            9.9568109312997422e-10,
+                            9.9707840490736999e-06,
                             1.0
                         ],
                         "position": [
-                            -3.0000042915344238,
+                            -3.0000052452087402,
                             0.25,
-                            -4.7517249186057597e-05
+                            -5.0099566578865051e-05
                         ]
                     },
                     "is_active": true,
@@ -684,7 +694,12 @@
                                     "type": "Vec3"
                                 }
                             },
-                            "texture_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
                             "parent_name": "ManMaterial"
                         },
                         "mesh": {
@@ -719,7 +734,7 @@
                     "type": "RigidBodyComponent"
                 }
             ],
-            "is_active": false,
+            "is_active": true,
             "name": "Ball"
         },
         {
@@ -733,15 +748,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -1.9730070008328049e-11,
-                            8.2557134739591476e-11,
-                            0.00027095849509350955,
+                            3.9273560125578991e-14,
+                            -2.2818417294567794e-11,
+                            0.00027878148830495775,
                             0.99999994039535522
                         ],
                         "position": [
-                            -1.0001062154769897,
+                            -1.0001096725463867,
                             0.25,
-                            1.3151025086699519e-05
+                            2.175793269998394e-05
                         ]
                     },
                     "is_active": true,
@@ -778,7 +793,12 @@
                                     "type": "Vec3"
                                 }
                             },
-                            "texture_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
                             "parent_name": "ManMaterial"
                         },
                         "mesh": {
@@ -813,7 +833,7 @@
                     "type": "RigidBodyComponent"
                 }
             ],
-            "is_active": false,
+            "is_active": true,
             "name": "Ball"
         },
         {
@@ -827,15 +847,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -3.5405210013772503e-11,
-                            1.8070785146040436e-10,
-                            2.9486356652341783e-05,
+                            5.9774900307285606e-11,
+                            7.6346839961161095e-10,
+                            1.2194158443890046e-05,
                             1.0
                         ],
                         "position": [
-                            0.9999883770942688,
-                            0.24999997019767761,
-                            -0.00018225456005893648
+                            0.99999463558197021,
+                            0.25,
+                            -0.00014222851314116269
                         ]
                     },
                     "is_active": true,
@@ -872,7 +892,12 @@
                                     "type": "Vec3"
                                 }
                             },
-                            "texture_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
                             "parent_name": "ManMaterial"
                         },
                         "mesh": {
@@ -907,7 +932,7 @@
                     "type": "RigidBodyComponent"
                 }
             ],
-            "is_active": false,
+            "is_active": true,
             "name": "Ball"
         },
         {

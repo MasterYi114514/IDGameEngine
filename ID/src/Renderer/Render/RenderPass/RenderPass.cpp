@@ -34,6 +34,11 @@ namespace ID
         const MaterialInstance& material = entry.material ? *entry.material : MaterialInstance(nullptr);
         ShaderID shader = material.get_shader();
 
+        // 每批绘制前解绑纹理单元 0：材质未绑定纹理时，避免采样到上一批残留的纹理
+        // （GLSL sampler 默认绑 unit 0；残留会让"无纹理=纯黑"失效，显示上个物体的纹理）
+        // 有纹理的材质会在 material.apply() 中重新绑定自己的纹理
+        IDRCmd::unbind_texture(0);
+
         material.apply();
 
         set_frame_uniforms(ctx, shader, ambient);

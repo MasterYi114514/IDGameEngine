@@ -82,7 +82,7 @@ namespace ID
         Scene*      m_scene = nullptr;          // 所属场景
         ID          m_id = INVALID_ID;          // GameObject ID
         std::string m_name;
-        bool        m_is_active = true;         // 是否激活（参与更新和渲染）
+        bool        m_is_active = false;         // 是否激活（参与更新和渲染）
 
         using ComponentPtr = std::unique_ptr<Component>;
         std::vector<ComponentPtr> m_components;

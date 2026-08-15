@@ -58,5 +58,9 @@ namespace ID
 
         // 由场景名生成安全文件名（清理 Windows 非法字符），返回 "<名>.json"
         static std::string scene_filename(const std::string& name);
+
+        // 引擎启动时默认场景（default scene）的材质库初始化：
+        // 存在 Assets/material/<默认场景名>.json 则加载，不存在则新建空材质库文件
+        static void load_default_scene_material_library();
     };
 } // namespace ID

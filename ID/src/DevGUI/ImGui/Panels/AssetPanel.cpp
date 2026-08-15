@@ -3,6 +3,7 @@
 #include "Scene/AssetManager.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneManager.hpp"
+#include "Scene/Component/MeshRendererComponent.hpp"
 #include "Renderer/Material/MaterialLibrary.hpp"
 #include "Renderer/Resource/ShaderManager.hpp"
 #include "Log/Log.hpp"
@@ -242,17 +243,8 @@ namespace ID
                     Material* mat = MaterialLibrary::add(shader_id, mat_name);
                     if(is_new)
                     {
-                        // 默认参数与纹理绑定：避免 texture_sampler 未绑定采样黑色、u_color 默认 0 全黑
+                        // 新材质只补默认颜色；纹理由用户显式拖拽绑定（无纹理时采样默认黑色）
                         mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
-                        const std::vector<std::string> textures = AssetManager::list_textures();
-                        if(!textures.empty())
-                        {
-                            TextureID tex = AssetManager::load_texture(textures[0]);
-                            if(tex.is_valid())
-                            {
-                                mat->set_texture("texture_sampler", tex, 0);
-                            }
-                        }
                     }
                     ID_INFO("AssetPanel：已创建材质 '{}'（shader: {}）", mat_name, selected_shader);
                 }
@@ -274,29 +266,64 @@ namespace ID
         {
             if(!mat) continue;
 
-            // 显示材质名 + 顶点 shader 文件名
+            // 第一行：材质名 + shader 文件名 + 删除按钮
             const std::string vs_path = ShaderManager::get_vertex_shader_path(mat->get_shader());
             const std::string vs_name = std::filesystem::path(vs_path).filename().string();
             ImGui::BulletText("%s (shader: %s)", mat->get_name().c_str(), vs_name.c_str());
 
-            // u_color 颜色编辑（geometry 系列 shader 的调色参数）
-            const auto& defaults = mat->get_param_defaults();
-            const auto color_it = defaults.find("u_color");
-            if(color_it != defaults.end() && color_it->second.type == MaterialParamType::Vec3)
-            {
-                float color[3] = { color_it->second.value[0], color_it->second.value[1], color_it->second.value[2] };
-                ImGui::SameLine();
-                if(ImGui::ColorEdit3(("##u_color_" + mat->get_name()).c_str(), color))
-                {
-                    mat->set_param("u_color", Vec3(color[0], color[1], color[2]));
-                }
-            }
-
             ImGui::SameLine();
             if(ImGui::SmallButton(("X##del_mat_" + mat->get_name()).c_str()))
             {
-                MaterialLibrary::remove(mat->get_name());
-                ID_INFO("AssetPanel：已删除材质 '{}'", mat->get_name());
+                // 先拷贝名字：remove 会释放 Material，之后 mat 是悬垂指针，不能再访问
+                const std::string mat_name = mat->get_name();
+
+                // 删除前检查场景引用：有物体使用该材质时拒绝删除，避免 MaterialInstance::m_parent 悬垂
+                const Scene& scene = SceneManager::get_current_scene();
+                const std::vector<GameObject::ID> users = scene.find_game_objects_with_component<MeshRendererComponent>();
+                bool in_use = false;
+                for(GameObject::ID id : users)
+                {
+                    const auto* mesh = scene.get_game_object(id).get_component<MeshRendererComponent>();
+                    if(mesh && mesh->get_model().get_material().get_parent() == mat)
+                    {
+                        in_use = true;
+                        break;
+                    }
+                }
+
+                if(in_use)
+                {
+                    ID_WARN("AssetPanel：材质 '{}' 正被场景物体引用，无法删除", mat_name);
+                }
+                else
+                {
+                    MaterialLibrary::remove(mat_name);
+                    ID_INFO("AssetPanel：已删除材质 '{}'", mat_name);
+                    break;      // mat 已释放，跳出本帧循环
+                }
+            }
+
+            // 第二行：u_color 颜色编辑（独立一行，避免条目过长）
+            const auto& defaults = mat->get_param_defaults();
+            const auto color_it = defaults.find("u_color");
+            float color[3] = { 1.0f, 1.0f, 1.0f };
+            if(color_it != defaults.end() && color_it->second.type == MaterialParamType::Vec3)
+            {
+                color[0] = color_it->second.value[0];
+                color[1] = color_it->second.value[1];
+                color[2] = color_it->second.value[2];
+            }
+            else
+            {
+                // 材质缺省 u_color（如从材质库文件加载的材质）：补默认白色，
+                // 保证按钮显示的颜色与实际渲染使用的 u_color 一致
+                mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
+            }
+            ImGui::Text("  u_color");
+            ImGui::SameLine();
+            if(ImGui::ColorEdit3(("##u_color_" + mat->get_name()).c_str(), color))
+            {
+                mat->set_param("u_color", Vec3(color[0], color[1], color[2]));
             }
         }
 

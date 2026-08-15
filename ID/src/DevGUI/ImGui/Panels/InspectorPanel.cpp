@@ -261,21 +261,12 @@ namespace ID
                 ShaderID shader_id = AssetManager::load_shader(name);
                 if(shader_id.is_valid())
                 {
-                    // 用新 shader 重建材质并绑定到模型；新材质补默认值（u_color + 纹理），避免全黑
+                    // 用新 shader 重建材质并绑定到模型；新材质只补默认颜色，纹理由用户显式拖拽绑定
                     const bool is_new = !MaterialLibrary::contains(name);
                     Material* mat = MaterialLibrary::add(shader_id, name);
                     if(is_new)
                     {
                         mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
-                        const std::vector<std::string> textures = AssetManager::list_textures();
-                        if(!textures.empty())
-                        {
-                            TextureID tex = AssetManager::load_texture(textures[0]);
-                            if(tex.is_valid())
-                            {
-                                mat->set_texture("texture_sampler", tex, 0);
-                            }
-                        }
                     }
                     model.set_material(MaterialInstance(*mat));
                     ID_INFO("[Inspector] 已用 shader '{}' 重建材质", name);

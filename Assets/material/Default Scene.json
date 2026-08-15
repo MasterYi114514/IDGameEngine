@@ -2,13 +2,22 @@
     {
         "info": {
             "texture_defaults": {},
-            "param_defaults": {},
-            "name": "ManMaterial",
+            "param_defaults": {
+                "u_color": {
+                    "value": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "type": "Vec3"
+                }
+            },
+            "name": "geoMaterial",
             "shader_id": {
                 "fra_path": "../Assets/shader/geometry.fsl",
                 "ver_path": "../Assets/shader/geometry.vsl"
             }
         },
-        "name": "ManMaterial"
+        "name": "geoMaterial"
     }
 ]

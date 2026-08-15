@@ -181,6 +181,24 @@ namespace ID
         return filename;
     }
 
+    void AssetManager::load_default_scene_material_library()
+    {
+        // 当前场景（首次进入时即 default scene）对应的材质库文件
+        const std::string lib_name = scene_filename(SceneManager::get_current_scene().get_name());
+        const std::string filepath = std::string(MaterialDir) + lib_name;
+
+        if(std::filesystem::exists(filepath))
+        {
+            load_material_library(lib_name);
+        }
+        else
+        {
+            // 不存在：新建空的材质库文件（MaterialLibrary 此刻为空，直接落盘）
+            save_material_library(lib_name);
+            ID_INFO("AssetManager：默认场景材质库不存在，已新建空库 {}", filepath);
+        }
+    }
+
     void AssetManager::save_material_library(const std::string& name)
     {
         // 确保目标目录存在
