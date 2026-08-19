@@ -35,7 +35,7 @@ namespace ID
         bool is_dynamic() const;
         bool is_kinematic() const;
 
-        // Trigger
+        // Trigger（开启：记录当前类型/质量并切到 Static + mass=0；关闭：恢复记录的类型/质量）
         void set_trigger(bool trigger);
         bool is_trigger() const;
 
@@ -75,5 +75,9 @@ namespace ID
         RigidBodyID         m_rigid_body;
         PhysicsWorld*       m_world     = nullptr;       // 由 PhysicsSystem 在同步时设置
         bool                m_need_sync = true;          // 是否同步到 PhysicsWorld
+
+        // Trigger 开启前的类型与质量（关闭 Trigger 时恢复）
+        RigidBodyType m_pre_trigger_type = RigidBodyType::Dynamic;
+        float         m_pre_trigger_mass = 1.0f;
     };
 } // namespace ID

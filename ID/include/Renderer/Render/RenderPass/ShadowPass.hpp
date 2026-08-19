@@ -26,6 +26,7 @@ namespace ID
 
         /// 获取当前阴影贴图的 FBO（供 ForwardPass 查询）
         FrameBufferID get_shadow_fb() const;
+        
         /// 获取当前光源 VP 矩阵
         const Mat4& get_light_view_proj() const { return m_light_view_proj; }
 

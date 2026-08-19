@@ -86,6 +86,11 @@ namespace ID
         return list_files_by_extensions(MaterialDir, { ".json" });
     }
 
+    std::vector<std::string> AssetManager::list_meshes()
+    {
+        return list_files_by_extensions(MeshDir, { ".obj", ".fbx", ".gltf", ".glb", ".dae" });
+    }
+
     AudioID AssetManager::load_audio(const std::string& name)
     {
         return AudioManager::load(std::string(AudioDir) + name);
@@ -101,6 +106,108 @@ namespace ID
         return ShaderManager::create(
             std::string(ShaderDir) + name + ".vsl",
             std::string(ShaderDir) + name + ".fsl");
+    }
+
+    MeshID AssetManager::load_mesh(const std::string& name)
+    {
+        return MeshFactory::create_mesh_from_file(std::string(MeshDir) + name);
+    }
+
+    bool AssetManager::rename_asset(const std::string& category,
+        const std::string& old_name, const std::string& new_name)
+    {
+        // 名字合法性：非空且不含 Windows 非法字符（字符集与 scene_filename 一致）
+        if(new_name.empty())
+        {
+            ID_WARN("AssetManager：重命名失败，新名字不能为空");
+            return false;
+        }
+        for(char c : new_name)
+        {
+            if(c == '/' || c == '\\' || c == ':' || c == '*' || c == '?'
+                || c == '"' || c == '<' || c == '>' || c == '|')
+            {
+                ID_WARN("AssetManager：重命名失败，新名字 '{}' 含非法字符", new_name);
+                return false;
+            }
+        }
+
+        // 重命名单文件：旧文件缺失 / 目标已存在 / 系统错误均返回 false
+        auto rename_file = [](const std::string& old_path, const std::string& new_path) -> bool
+        {
+            if(!std::filesystem::exists(old_path))
+            {
+                ID_ERROR("AssetManager：重命名失败，旧文件不存在 {}", old_path);
+                return false;
+            }
+            if(std::filesystem::exists(new_path))
+            {
+                ID_WARN("AssetManager：重命名失败，目标已存在 {}", new_path);
+                return false;
+            }
+            std::error_code ec;
+            std::filesystem::rename(old_path, new_path, ec);
+            if(ec)
+            {
+                ID_ERROR("AssetManager：重命名失败 {}（{}）", old_path, ec.message());
+                return false;
+            }
+            return true;
+        };
+
+        if(category == "audio")
+        {
+            if(rename_file(std::string(AudioDir) + old_name, std::string(AudioDir) + new_name))
+            {
+                ID_INFO("AssetManager：音频 '{}' 已重命名为 '{}'", old_name, new_name);
+                return true;
+            }
+        }
+        else if(category == "texture")
+        {
+            if(rename_file(std::string(TextureDir) + old_name, std::string(TextureDir) + new_name))
+            {
+                ID_INFO("AssetManager：纹理 '{}' 已重命名为 '{}'", old_name, new_name);
+                return true;
+            }
+        }
+        else if(category == "shader")
+        {
+            // shader 成对改名：先整体检查 .vsl/.fsl 的旧文件与目标，再分别 rename
+            const std::string old_vsl = std::string(ShaderDir) + old_name + ".vsl";
+            const std::string old_fsl = std::string(ShaderDir) + old_name + ".fsl";
+            const std::string new_vsl = std::string(ShaderDir) + new_name + ".vsl";
+            const std::string new_fsl = std::string(ShaderDir) + new_name + ".fsl";
+            if(!std::filesystem::exists(old_vsl) || !std::filesystem::exists(old_fsl))
+            {
+                ID_ERROR("AssetManager：重命名失败，shader '{}' 的 .vsl/.fsl 不完整", old_name);
+                return false;
+            }
+            if(std::filesystem::exists(new_vsl) || std::filesystem::exists(new_fsl))
+            {
+                ID_WARN("AssetManager：重命名失败，shader 目标 '{}' 已存在", new_name);
+                return false;
+            }
+            if(!rename_file(old_vsl, new_vsl))
+            {
+                return false;
+            }
+            if(!rename_file(old_fsl, new_fsl))
+            {
+                // 第二个文件失败时回滚第一个，避免半改状态
+                std::error_code ec;
+                std::filesystem::rename(new_vsl, old_vsl, ec);
+                ID_ERROR("AssetManager：重命名失败，shader '{}' 改名已回滚", old_name);
+                return false;
+            }
+            ID_INFO("AssetManager：shader '{}' 已重命名为 '{}'（.vsl/.fsl 成对改名）", old_name, new_name);
+            return true;
+        }
+        else
+        {
+            ID_WARN("AssetManager：不支持重命名分类 '{}'", category);
+        }
+        return false;
     }
 
     Scene& AssetManager::load_scene(const std::string& name)

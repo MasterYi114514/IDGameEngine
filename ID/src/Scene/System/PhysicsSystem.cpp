@@ -7,6 +7,28 @@
 
 namespace ID
 {
+    namespace
+    {
+        /*
+        *   判断 TransformComponent 与刚体的位姿是否出现偏差（逐分量精确比较）。
+        *
+        *   pull_transforms 会把物理世界的位姿原样写入 TransformComponent，因此正常
+        *   运行中二者完全一致；出现任何偏差都说明 Transform 被外部代码（如 DevUI 的
+        *   Inspector 面板）修改过，需要把新位姿传送到物理世界。
+        */
+        bool pose_diverged(const TransformComponent& transform, const RigidBody& body)
+        {
+            if (transform.get_position() != body.get_position()) return true;
+
+            const Quat t_rot = transform.get_orientation();
+            const Quat b_rot = body.get_rotation();
+            return t_rot.x() != b_rot.x()
+                || t_rot.y() != b_rot.y()
+                || t_rot.z() != b_rot.z()
+                || t_rot.w() != b_rot.w();
+        }
+    } // namespace
+
     // ========== 生命周期 ==========
 
     void PhysicsSystem::on_attach(Scene* scene)
@@ -31,7 +53,7 @@ namespace ID
         // 阶段 1：收集场景中所有 RigidBodyComponent，创建/更新刚体
         sync_rigid_bodies();
 
-        // 阶段 2：推送 Static / Kinematic 的 Transform → PhysicsWorld
+        // 阶段 2：Kinematic 每帧由 Transform 驱动；Static / Dynamic 在 Transform 被外部修改时传送位姿
         push_transforms();
 
         // 阶段 3：步进物理模拟
@@ -77,8 +99,8 @@ namespace ID
                 RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
                 if (comp && comp->m_rigid_body == rigid_body)
                 {
-                    // 未激活的组件不参与物理同步
-                    if (!comp->is_active()) break;
+                    // 未激活的 GameObject / 组件不参与物理同步
+                    if (!go.is_active() || !comp->is_active()) break;
 
                     TransformComponent* transform = go.get_component<TransformComponent>();
                     if (transform && transform->is_active())
@@ -99,8 +121,8 @@ namespace ID
                 RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
                 if (comp && comp->m_rigid_body == rigid_body)
                 {
-                    // 未激活的组件不参与物理同步
-                    if (!comp->is_active()) break;
+                    // 未激活的 GameObject / 组件不参与物理同步
+                    if (!go.is_active() || !comp->is_active()) break;
 
                     TransformComponent* transform = go.get_component<TransformComponent>();
                     if (transform && transform->is_active())
@@ -125,8 +147,8 @@ namespace ID
             RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
             if (!comp) continue;
 
-            // 未激活：不参与物理模拟，移除已存在的刚体（若刚被停用）
-            if (!comp->is_active())
+            // GameObject 或组件未激活：不参与物理模拟，移除已存在的刚体（若刚被停用）
+            if (!go.is_active() || !comp->is_active())
             {
                 if (comp->m_rigid_body.is_valid())
                 {
@@ -158,6 +180,7 @@ namespace ID
                     ID_ERROR("PhysicsSystem: 创建刚体失败 (GO: '{}', ID={})", go.get_name(), go_id);
                 }
             }
+
             // 需要同步：CreateInfo 有变更
             else if (comp->m_need_sync)
             {
@@ -171,6 +194,7 @@ namespace ID
                 body.set_type(comp->m_info.type);
                 body.set_linear_damping(comp->m_info.linear_damping);
                 body.set_angular_damping(comp->m_info.angular_damping);
+                body.set_material(comp->m_info.material);
                 body.set_allow_sleep(comp->m_info.allow_sleep);
 
                 comp->m_need_sync = false;
@@ -199,19 +223,27 @@ namespace ID
             GameObject& go = m_scene->get_game_object(go_id);
             RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
             if (!comp || !comp->m_rigid_body.is_valid()) continue;
-            if (!comp->is_active()) continue;      // 未激活：不推送
+            if (!go.is_active() || !comp->is_active()) continue;      // 未激活：不推送
+
+            TransformComponent* transform = go.get_component<TransformComponent>();
+            if (!transform || !transform->is_active()) continue;
 
             RigidBody& body = m_physics_world.get_rigid_body(comp->m_rigid_body);
 
-            // Static：只同步一次（首次创建已设置），之后不需要
-            // Kinematic：每帧推送 Transform → 物理引擎
-            if (body.is_kinematic())
+            // Kinematic：每帧由 Transform 驱动位姿
+            // Static / Dynamic：仅当 Transform 被外部修改（与刚体位姿出现偏差）时才传送
+            if (!body.is_kinematic() && !pose_diverged(*transform, body)) continue;
+
+            body.set_transform(transform->get_position(), transform->get_orientation());
+
+            // Dynamic 刚体传送后清零速度并唤醒，让它从编辑后的位姿重新开始模拟
+            // （否则残留的线速度 / 角速度会让刚体立刻离开被编辑到的位置）
+            if (body.is_dynamic())
             {
-                TransformComponent* transform = go.get_component<TransformComponent>();
-                if (transform && transform->is_active())
-                {
-                    body.set_transform(transform->get_position(), transform->get_orientation());
-                }
+                // 注意：Vec3 默认构造不保证零初始化，必须显式写入零向量
+                body.set_linear_velocity(Vec3(0.0f, 0.0f, 0.0f));
+                body.set_angular_velocity(Vec3(0.0f, 0.0f, 0.0f));
+                body.wake_up();
             }
         }
     }
@@ -224,7 +256,7 @@ namespace ID
             GameObject& go = m_scene->get_game_object(go_id);
             RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
             if (!comp || !comp->m_rigid_body.is_valid()) continue;
-            if (!comp->is_active()) continue;      // 未激活：不拉取
+            if (!go.is_active() || !comp->is_active()) continue;      // 未激活：不拉取
 
             RigidBody& body = m_physics_world.get_rigid_body(comp->m_rigid_body);
 
@@ -234,12 +266,10 @@ namespace ID
                 TransformComponent* transform = go.get_component<TransformComponent>();
                 if (transform && transform->is_active())
                 {
-                    Vec3 phys_pos = body.get_position();
-
-                    // 只有位置变了才写入，避免无谓触发 dirty 传播
-                    if (phys_pos != transform->get_position())
+                    // 只有位姿真正变化才写入，避免每帧无谓触发 dirty 传播
+                    if (pose_diverged(*transform, body))
                     {
-                        transform->set_position(phys_pos);
+                        transform->set_position(body.get_position());
                         transform->set_orientation(body.get_rotation());
                     }
                 }

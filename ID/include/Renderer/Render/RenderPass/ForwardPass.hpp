@@ -55,8 +55,8 @@ namespace ID
     private:
         // 输出的 FrameBuffer
         FrameBufferID  m_output_fb = FrameBufferID::invalid_id();     
-        Vec3           m_ambient;       // 环境光颜色
-        bool           m_use_scene_fb;  // 是否使用 ctx.scene_fb 作为输出
-        bool           m_render_transparent; // 是否渲染透明物体
+        Vec3           m_ambient;               // 环境光颜色
+        bool           m_use_scene_fb;          // 是否使用 ctx.scene_fb 作为输出
+        bool           m_render_transparent;    // 是否渲染透明物体
     };
 } // namespace ID

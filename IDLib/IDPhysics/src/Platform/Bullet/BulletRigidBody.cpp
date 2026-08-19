@@ -87,6 +87,28 @@ void RigidBody::set_angular_damping(float d) { if (btRigidBody* bt_rb = get_bt(*
 float RigidBody::get_linear_damping() const  { const btRigidBody* bt_rb = get_bt(*this); return bt_rb ? bt_rb->getLinearDamping() : 0.0f; }
 float RigidBody::get_angular_damping() const { const btRigidBody* bt_rb = get_bt(*this); return bt_rb ? bt_rb->getAngularDamping() : 0.0f; }
 
+// ========== 材质 ==========
+
+void RigidBody::set_material(const PhysicsMaterial& material)
+{
+    btRigidBody* bt_rb = get_bt(*this);
+    if (!bt_rb) return;
+    bt_rb->setFriction(material.friction);
+    bt_rb->setRestitution(material.restitution);
+    bt_rb->setRollingFriction(material.rolling_friction);
+}
+
+PhysicsMaterial RigidBody::get_material() const
+{
+    const btRigidBody* bt_rb = get_bt(*this);
+    PhysicsMaterial material;   // 无有效刚体时返回默认材质
+    if (!bt_rb) return material;
+    material.friction         = bt_rb->getFriction();
+    material.restitution      = bt_rb->getRestitution();
+    material.rolling_friction = bt_rb->getRollingFriction();
+    return material;
+}
+
 // ========== 力与冲量 ==========
 
 void RigidBody::apply_force(const Vec3& force)   { if (btRigidBody* bt_rb = get_bt(*this)) bt_rb->applyCentralForce(btVector3(force[0], force[1], force[2])); }

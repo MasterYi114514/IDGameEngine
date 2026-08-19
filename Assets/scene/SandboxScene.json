@@ -64,7 +64,7 @@
                                             "tex_path": "../Assets/texture/1.png"
                                         }
                                     },
-                                    "parent_name": "ManMaterial"
+                                    "parent_name": "geoMaterial"
                                 },
                                 "mesh": {
                                     "info": {
@@ -145,7 +145,7 @@
                                             "tex_path": "../Assets/texture/1.png"
                                         }
                                     },
-                                    "parent_name": "ManMaterial"
+                                    "parent_name": "geoMaterial"
                                 },
                                 "mesh": {
                                     "info": {
@@ -226,7 +226,7 @@
                                             "tex_path": "../Assets/texture/1.png"
                                         }
                                     },
-                                    "parent_name": "ManMaterial"
+                                    "parent_name": "geoMaterial"
                                 },
                                 "mesh": {
                                     "info": {
@@ -307,7 +307,7 @@
                                             "tex_path": "../Assets/texture/1.png"
                                         }
                                     },
-                                    "parent_name": "ManMaterial"
+                                    "parent_name": "geoMaterial"
                                 },
                                 "mesh": {
                                     "info": {
@@ -388,7 +388,7 @@
                                             "tex_path": "../Assets/texture/1.png"
                                         }
                                     },
-                                    "parent_name": "ManMaterial"
+                                    "parent_name": "geoMaterial"
                                 },
                                 "mesh": {
                                     "info": {
@@ -469,7 +469,7 @@
                                             "tex_path": "../Assets/texture/1.png"
                                         }
                                     },
-                                    "parent_name": "ManMaterial"
+                                    "parent_name": "geoMaterial"
                                 },
                                 "mesh": {
                                     "info": {
@@ -597,7 +597,7 @@
                                     "tex_path": "../Assets/texture/1.png"
                                 }
                             },
-                            "parent_name": "ManMaterial"
+                            "parent_name": "geoMaterial"
                         },
                         "mesh": {
                             "info": {
@@ -649,15 +649,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            -3.0973529296929314e-10,
-                            9.9568109312997422e-10,
-                            9.9707840490736999e-06,
+                            -3.1409133627313679e-10,
+                            9.5535979127703285e-10,
+                            -6.621039574383758e-07,
                             1.0
                         ],
                         "position": [
-                            -3.0000052452087402,
+                            -3.000004768371582,
                             0.25,
-                            -5.0099566578865051e-05
+                            -4.0318747778655961e-05
                         ]
                     },
                     "is_active": true,
@@ -700,7 +700,7 @@
                                     "tex_path": "../Assets/texture/1.png"
                                 }
                             },
-                            "parent_name": "ManMaterial"
+                            "parent_name": "geoMaterial"
                         },
                         "mesh": {
                             "info": {
@@ -748,15 +748,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            3.9273560125578991e-14,
-                            -2.2818417294567794e-11,
-                            0.00027878148830495775,
+                            -3.717649799117595e-11,
+                            -3.3853770481373502e-11,
+                            0.00028239333187229931,
                             0.99999994039535522
                         ],
                         "position": [
-                            -1.0001096725463867,
+                            -1.0001106262207031,
                             0.25,
-                            2.175793269998394e-05
+                            7.8381272032856941e-06
                         ]
                     },
                     "is_active": true,
@@ -799,7 +799,7 @@
                                     "tex_path": "../Assets/texture/1.png"
                                 }
                             },
-                            "parent_name": "ManMaterial"
+                            "parent_name": "geoMaterial"
                         },
                         "mesh": {
                             "info": {
@@ -847,15 +847,15 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            5.9774900307285606e-11,
-                            7.6346839961161095e-10,
-                            1.2194158443890046e-05,
+                            -5.9781644912160203e-11,
+                            7.5135775379209235e-10,
+                            1.9704757505678572e-05,
                             1.0
                         ],
                         "position": [
-                            0.99999463558197021,
+                            0.999991774559021,
                             0.25,
-                            -0.00014222851314116269
+                            -9.6660915005486459e-05
                         ]
                     },
                     "is_active": true,
@@ -898,7 +898,7 @@
                                     "tex_path": "../Assets/texture/1.png"
                                 }
                             },
-                            "parent_name": "ManMaterial"
+                            "parent_name": "geoMaterial"
                         },
                         "mesh": {
                             "info": {
@@ -968,14 +968,23 @@
         {
             "info": {
                 "texture_defaults": {},
-                "param_defaults": {},
-                "name": "ManMaterial",
+                "param_defaults": {
+                    "u_color": {
+                        "value": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "type": "Vec3"
+                    }
+                },
+                "name": "geoMaterial",
                 "shader_id": {
                     "fra_path": "../Assets/shader/geometry.fsl",
                     "ver_path": "../Assets/shader/geometry.vsl"
                 }
             },
-            "name": "ManMaterial"
+            "name": "geoMaterial"
         }
     ]
 }

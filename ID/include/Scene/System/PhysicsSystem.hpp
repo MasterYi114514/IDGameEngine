@@ -39,7 +39,7 @@ namespace ID
         /// 收集场景中所有 RigidBodyComponent，创建/更新刚体
         void sync_rigid_bodies();
 
-        /// Static / Kinematic：推送 Transform → PhysicsWorld
+        /// 检测 Transform 被外部修改（如 DevUI）时传送刚体位姿；Kinematic 每帧由 Transform 驱动
         void push_transforms();
 
         /// Dynamic：拉回 PhysicsWorld → TransformComponent

@@ -2,6 +2,7 @@
 
 #include "IDpch.hpp"
 #include "Scene/Audio/AudioID.hpp"
+#include "Renderer/Mesh/MeshFactory.hpp"
 #include "Renderer/IDRCore.hpp"
 
 namespace ID
@@ -25,11 +26,12 @@ namespace ID
 
     public:
         // ★ constexpr 目录路径（运行时工作目录为 bin/，与 PostProcessPass 的 "../Assets/..." 一致）
-        static constexpr const char* AudioDir   = "../Assets/audio/";
-        static constexpr const char* SceneDir   = "../Assets/scene/";
-        static constexpr const char* ShaderDir  = "../Assets/shader/";
-        static constexpr const char* TextureDir = "../Assets/texture/";
-        static constexpr const char* MaterialDir = "../Assets/material/";
+        static constexpr const char* AudioDir       = "../Assets/audio/";
+        static constexpr const char* SceneDir       = "../Assets/scene/";
+        static constexpr const char* ShaderDir      = "../Assets/shader/";
+        static constexpr const char* TextureDir     = "../Assets/texture/";
+        static constexpr const char* MaterialDir    = "../Assets/material/";
+        static constexpr const char* MeshDir        = "../Assets/mesh/";
 
         // ---- 目录枚举（供 Panel 菜单/列表展示，只返回文件名，不含目录前缀）----
         static std::vector<std::string> list_audios();    // *.wav
@@ -37,6 +39,7 @@ namespace ID
         static std::vector<std::string> list_shaders();   // *.vsl 的基础名（成对 .vsl/.fsl，缺配对跳过）
         static std::vector<std::string> list_textures();  // *.png 等图片后缀
         static std::vector<std::string> list_material_libraries();  // *.json（全局材质库文件）
+        static std::vector<std::string> list_meshes();     // *.obj 等模型后缀
 
         // ---- 统一加载入口（Panel 只对接 AssetManager）----
 
@@ -48,6 +51,19 @@ namespace ID
 
         // 内部：ShaderManager::create(ShaderDir + name + ".vsl", ShaderDir + name + ".fsl")
         static ShaderID  load_shader(const std::string& name);   
+
+        // 内部：MeshFactory::create_mesh_from_file(MeshDir + name)
+        static MeshID    load_mesh(const std::string& name);
+
+        /**
+         * @brief 重命名资产磁盘文件
+         * @param category "audio" / "shader" / "texture"（未来可扩 "mesh"）
+         * @param old_name 旧文件名（不含目录前缀；shader 为基础名）
+         * @param new_name 新文件名（shader 为基础名，成对 .vsl/.fsl 同时改名）
+         * @return 成功返回 true（目标已存在 / 旧文件不存在 / 非法名字返回 false）
+         */
+        static bool rename_asset(const std::string& category,
+            const std::string& old_name, const std::string& new_name);
 
         static void      save_scene(Scene& scene, const std::string& name);
         static Scene&    load_scene(const std::string& name);    

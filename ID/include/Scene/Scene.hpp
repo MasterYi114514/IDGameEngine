@@ -29,6 +29,7 @@ namespace ID
     public:
         // 运行时唯一标识（SceneManager 分配，不随改名/序列化变化）
         SceneID get_id() const { return m_id; }
+        
         /**
          *  @brief 创建一个新的 GameObject
          *  @param name GameObject 的名称

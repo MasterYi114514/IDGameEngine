@@ -70,6 +70,10 @@ namespace ID
         float get_linear_damping() const;
         float get_angular_damping() const;
 
+        // 材质
+        void            set_material(const PhysicsMaterial& material);
+        PhysicsMaterial get_material() const;
+
         // 力与冲量
         void apply_force(const Vec3& force);            // 施加一个力
         void apply_impulse(const Vec3& impulse);        // 施加一个冲量

@@ -227,6 +227,27 @@ namespace ID
             ImGui::EndCombo();
         }
 
+        // ---- Mesh 拖拽接收（从 Asset Browser 拖入文件 Mesh）----
+        ImGui::TextDisabled("拖拽 Mesh 文件（ASSET_MESH）到此处更换网格");
+        if(ImGui::BeginDragDropTarget())
+        {
+            if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_MESH"))
+            {
+                const std::string name = static_cast<const char*>(payload->Data);
+                MeshID mesh_id = AssetManager::load_mesh(name);
+                if(mesh_id.is_valid())
+                {
+                    model.set_mesh(mesh_id);
+                    ID_INFO("[Inspector] 已加载文件 Mesh '{}'", name);
+                }
+                else
+                {
+                    ID_ERROR("[Inspector] Mesh 加载失败: {}", name);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
         // ---- Material 选择（枚举 MaterialLibrary）----
         const MaterialInstance& material = model.get_material();
         const std::string current_name = material.get_parent()
@@ -427,6 +448,91 @@ namespace ID
             rigid_body.set_angular_damping(std::max(angular_damping, 0.0f));
         }
 
+        // ---- Collider Shape（碰撞箱类型与尺寸编辑）----
+        const ColliderShape& shape = rigid_body.get_collider_shape();
+        const char* shape_names[] = { "Box", "Sphere", "Capsule", "Plane" };
+        int shape_index = static_cast<int>(shape.type);
+        if(ImGui::Combo("Shape", &shape_index, shape_names, 4))
+        {
+            // 类型切换：按新类型生成默认形状整体替换（union 数据随之重建），本帧直接返回避免脏读
+            ColliderShape new_shape;
+            switch(static_cast<ColliderShape::Type>(shape_index))
+            {
+            case ColliderShape::Type::Box:
+                new_shape = ColliderShape::make_box(Vec3(0.5f, 0.5f, 0.5f));
+                break;
+            case ColliderShape::Type::Sphere:
+                new_shape = ColliderShape::make_sphere(0.5f);
+                break;
+            case ColliderShape::Type::Capsule:
+                new_shape = ColliderShape::make_capsule(0.5f, 1.0f);
+                break;
+            case ColliderShape::Type::Plane:
+                new_shape = ColliderShape::make_plane(Vec3(0.0f, 1.0f, 0.0f), 0.0f);
+                break;
+            }
+            rigid_body.set_collider_shape(new_shape);
+            ImGui::PopID();
+            return;
+        }
+
+        // 尺寸编辑：只读当前 type 对应的 union 成员，改本地副本 → make_* → set_collider_shape
+        switch(shape.type)
+        {
+        case ColliderShape::Type::Box:
+        {
+            const Vec3& half = shape.m_data.half_extents;
+            float box[3] = { half[0], half[1], half[2] };
+            if(ImGui::DragFloat3("Half Extents", box, 0.01f, 0.01f, 100.0f))
+            {
+                rigid_body.set_collider_shape(ColliderShape::make_box(Vec3(
+                    std::max(box[0], 0.01f), std::max(box[1], 0.01f), std::max(box[2], 0.01f))));
+            }
+            break;
+        }
+        case ColliderShape::Type::Sphere:
+        {
+            float radius = shape.m_data.radius;
+            if(ImGui::DragFloat("Radius", &radius, 0.01f, 0.01f, 100.0f))
+            {
+                rigid_body.set_collider_shape(ColliderShape::make_sphere(std::max(radius, 0.01f)));
+            }
+            break;
+        }
+        case ColliderShape::Type::Capsule:
+        {
+            float radius = shape.m_data.capsule.radius;
+            float height = shape.m_data.capsule.height;
+            bool changed = false;
+            if(ImGui::DragFloat("Radius", &radius, 0.01f, 0.01f, 100.0f)) changed = true;
+            if(ImGui::DragFloat("Height", &height, 0.01f, 0.01f, 100.0f)) changed = true;
+            if(changed)
+            {
+                rigid_body.set_collider_shape(ColliderShape::make_capsule(
+                    std::max(radius, 0.01f), std::max(height, 0.01f)));
+            }
+            break;
+        }
+        case ColliderShape::Type::Plane:
+        {
+            const Vec3& normal = shape.m_data.plane.normal;
+            float normal_v[3] = { normal[0], normal[1], normal[2] };
+            float constant = shape.m_data.plane.constant;
+            bool changed = false;
+            if(ImGui::DragFloat3("Normal", normal_v, 0.01f)) changed = true;
+            if(ImGui::DragFloat("Constant", &constant, 0.01f)) changed = true;
+            if(changed)
+            {
+                // 法线需归一化（平面方程 normal · x = constant），零向量时回退为默认朝上
+                Vec3 n(normal_v[0], normal_v[1], normal_v[2]);
+                const float len = n.get_length();
+                n = len > 1e-6f ? n / len : Vec3(0.0f, 1.0f, 0.0f);
+                rigid_body.set_collider_shape(ColliderShape::make_plane(n, constant));
+            }
+            break;
+        }
+        }
+
         // 物理材质
         const PhysicsMaterial& mat = rigid_body.get_material();
         float friction    = mat.friction;
@@ -437,10 +543,12 @@ namespace ID
         {
             material_changed = true;
         }
+
         if(ImGui::DragFloat("Restitution", &restitution, 0.01f, 0.0f, 2.0f))
         {
             material_changed = true;
         }
+        
         if(material_changed)
         {
             PhysicsMaterial new_mat = mat;

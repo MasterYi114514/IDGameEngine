@@ -22,7 +22,7 @@ namespace ID
         CameraPanel();
         void on_imgui_render() override;
 
-        // 注入要编辑的相机（不持有所有权）
+        // 注入要编辑的相机
         void set_camera(Camera* camera) { m_camera = camera; }
 
     private:

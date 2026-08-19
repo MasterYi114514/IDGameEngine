@@ -58,6 +58,7 @@ namespace ID
         // 基础查询接口
         ShaderID get_shader() const { return m_shader; }
         const std::string& get_name() const { return m_name; }
+        void set_name(const std::string& name) { m_name = name; }
         const std::map<std::string, MaterialParam>& get_param_defaults() const { return m_param_defaults; }
         const std::map<std::string, TextureBindingDesc>& get_texture_defaults() const 
             { return m_texture_defaults; }

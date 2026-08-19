@@ -1,10 +1,5 @@
 #version 440 core
 
-// ============================================================================
-//  阴影深度预渲染顶点着色器（Depth-only Pass）
-//  只关心投影位置（写入深度缓冲），不输出任何 varying
-// ============================================================================
-
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec2 aUV;
 layout(location = 2) in vec3 aNormal;
@@ -17,6 +12,6 @@ void main()
 {
     vec3 world_pos    = (u_model * vec4(aPos, 1.0)).xyz;
     vec3 world_normal = normalize(mat3(u_model) * aNormal);
-    world_pos += world_normal * u_normal_bias;      // 沿法线偏移，消除自阴影空缺
+    world_pos += world_normal * u_normal_bias;                  // 沿法线偏移，消除自阴影空缺
     gl_Position = u_light_view_proj * vec4(world_pos, 1.0);
 }

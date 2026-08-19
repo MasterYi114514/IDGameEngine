@@ -95,11 +95,24 @@ namespace ID
 
     void RigidBodyComponent::set_trigger(bool trigger)
     {
-        // Trigger 是引擎侧概念：Static + mass=0 + 不参与碰撞响应
+        // 状态未变化（防止重复开启时把 Static+mass=0 覆盖到已保存的恢复信息上）
+        if (trigger == is_trigger()) return;
+
         if (trigger)
         {
+            // Trigger 是引擎侧概念：Static + mass=0 + 不参与碰撞响应
+            // 开启前保存当前类型与质量，关闭时恢复，避免丢失用户原设置
+            m_pre_trigger_type = m_info.type;
+            m_pre_trigger_mass = m_info.mass;
+
             m_info.type = RigidBodyType::Static;
             m_info.mass = 0.0f;
+        }
+        else
+        {
+            // 关闭 Trigger：恢复开启前的类型与质量
+            m_info.type = m_pre_trigger_type;
+            m_info.mass = m_pre_trigger_mass;
         }
         m_need_sync = true;
     }
@@ -170,6 +183,11 @@ namespace ID
     {
         m_info.material = material;
         m_need_sync = true;
+
+        if (m_world && m_rigid_body.is_valid())
+        {
+            m_world->get_rigid_body(m_rigid_body).set_material(material);
+        }
     }
 
     const PhysicsMaterial& RigidBodyComponent::get_material() const

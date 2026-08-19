@@ -8,6 +8,8 @@
 #include "Renderer/Resource/ShaderManager.hpp"
 #include "Log/Log.hpp"
 
+#include <cstring>
+
 namespace ID
 {
     AssetPanel::AssetPanel() : ImGuiPanel("Asset Browser", true) { }
@@ -20,8 +22,10 @@ namespace ID
         render_scene_section();
         render_shader_section();
         render_texture_section();
+        render_mesh_section();
         render_material_section();
         render_loaded_list();
+        render_rename_popup();
 
         end_window();
     }
@@ -57,7 +61,8 @@ namespace ID
         return selected_name;
     }
 
-    void AssetPanel::render_drag_list(const char* payload_type, const std::vector<std::string>& files)
+    void AssetPanel::render_drag_list(const char* payload_type,
+        const std::vector<std::string>& files, const std::string& category)
     {
         ImGui::TextDisabled("目录列表（拖拽到 Inspector 选择资源）:");
         for(const auto& file : files)
@@ -68,6 +73,15 @@ namespace ID
                 ImGui::SetDragDropPayload(payload_type, file.c_str(), file.size() + 1);
                 ImGui::Text("拖拽 %s", file.c_str());
                 ImGui::EndDragDropSource();
+            }
+            if(!category.empty() && ImGui::BeginPopupContextItem(("##ctx_rename_" + category + "_" + file).c_str()))
+            {
+                if(ImGui::MenuItem("重命名"))
+                {
+                    open_rename_popup({ category, file, false });
+                    ImGui::CloseCurrentPopup();     // 点击后关闭右键菜单
+                }
+                ImGui::EndPopup();
             }
         }
     }
@@ -104,7 +118,7 @@ namespace ID
             }
         }
 
-        render_drag_list("ASSET_AUDIO", files);
+        render_drag_list("ASSET_AUDIO", files, "audio");
     }
 
     // =====================================================================
@@ -136,7 +150,7 @@ namespace ID
             }
         }
 
-        render_drag_list("ASSET_SCENE", files);
+        render_drag_list("ASSET_SCENE", files, "");
     }
 
     // =====================================================================
@@ -172,7 +186,7 @@ namespace ID
             }
         }
 
-        render_drag_list("ASSET_SHADER", files);
+        render_drag_list("ASSET_SHADER", files, "shader");
     }
 
     // =====================================================================
@@ -208,7 +222,43 @@ namespace ID
             }
         }
 
-        render_drag_list("ASSET_TEXTURE", files);
+        render_drag_list("ASSET_TEXTURE", files, "texture");
+    }
+
+    // =====================================================================
+    //  Mesh 区
+    // =====================================================================
+
+    void AssetPanel::render_mesh_section()
+    {
+        if(!ImGui::CollapsingHeader("Mesh")) return;
+
+        const std::vector<std::string> files = AssetManager::list_meshes();
+        const std::string selected = render_combo("##mesh_combo", files, m_selected_mesh_name);
+
+        ImGui::SameLine();
+        if(ImGui::Button("Load##mesh"))
+        {
+            if(selected.empty())
+            {
+                ID_WARN("AssetPanel：请先选择 Mesh 文件");
+            }
+            else
+            {
+                MeshID id = AssetManager::load_mesh(selected);
+                if(id.is_valid())
+                {
+                    add_loaded_asset("mesh", selected,
+                        std::string(AssetManager::MeshDir) + selected, id.get_id());
+                }
+                else
+                {
+                    ID_ERROR("AssetPanel：Mesh 加载失败: {}", selected);
+                }
+            }
+        }
+
+        render_drag_list("ASSET_MESH", files, "mesh");
     }
 
     // =====================================================================
@@ -270,6 +320,18 @@ namespace ID
             const std::string vs_path = ShaderManager::get_vertex_shader_path(mat->get_shader());
             const std::string vs_name = std::filesystem::path(vs_path).filename().string();
             ImGui::BulletText("%s (shader: %s)", mat->get_name().c_str(), vs_name.c_str());
+
+            // 右键菜单：重命名材质（材质库材质走 MaterialLibrary，不碰磁盘）
+            // 注意：BulletText 无 ID，PopupContextItem 必须传显式 str_id，否则所有条目共享同一 popup ID
+            if(ImGui::BeginPopupContextItem(("##ctx_rename_mat_" + mat->get_name()).c_str()))
+            {
+                if(ImGui::MenuItem("重命名"))
+                {
+                    open_rename_popup({ "material", mat->get_name(), true });
+                    ImGui::CloseCurrentPopup();     // 点击后关闭右键菜单
+                }
+                ImGui::EndPopup();
+            }
 
             ImGui::SameLine();
             if(ImGui::SmallButton(("X##del_mat_" + mat->get_name()).c_str()))
@@ -384,10 +446,23 @@ namespace ID
             ImGui::BulletText("[%s] #%u %s (%s)", asset.category.c_str(), asset.id,
                 asset.name.c_str(), asset.path.c_str());
 
+            // 右键菜单：重命名资源（磁盘文件走 AssetManager::rename_asset）
+            // 注意：BulletText 无 ID，PopupContextItem 必须传显式 str_id（category+name 保证唯一）
+            if(ImGui::BeginPopupContextItem(("##ctx_rename_asset_" + asset.category + "_" + asset.name).c_str()))
+            {
+                if(ImGui::MenuItem("重命名"))
+                {
+                    open_rename_popup({ asset.category, asset.name, false });
+                    ImGui::CloseCurrentPopup();     // 点击后关闭右键菜单
+                }
+                ImGui::EndPopup();
+            }
+
             const char* payload_type = nullptr;
             if(asset.category == "audio")       payload_type = "ASSET_AUDIO";
             else if(asset.category == "shader") payload_type = "ASSET_SHADER";
             else if(asset.category == "texture") payload_type = "ASSET_TEXTURE";
+            else if(asset.category == "mesh")  payload_type = "ASSET_MESH";
 
             if(payload_type && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
@@ -403,5 +478,142 @@ namespace ID
     {
         m_loaded_assets.push_back({ category, name, path, id });
         ID_INFO("AssetPanel：已加载 {} '{}' (id={}, {})", category, name, id, path);
+    }
+
+    // =====================================================================
+    //  改名弹窗（材质库材质 / 磁盘文件）
+    // =====================================================================
+
+    void AssetPanel::open_rename_popup(const RenameTarget& target)
+    {
+        m_rename_target = target;
+        // 预填旧名字作为默认新名字，方便用户微调
+        std::memset(m_rename_buffer, 0, sizeof(m_rename_buffer));
+        std::strncpy(m_rename_buffer, target.old_name.c_str(), sizeof(m_rename_buffer) - 1);
+        // 注意：此处位于右键菜单（popup window）上下文中，直接 OpenPopup 会因 ID 栈不同而无法被
+        // 主窗口的 BeginPopupModal 匹配；改为请求标志，由 render_rename_popup 在主窗口上下文中打开
+        m_rename_open_requested = true;
+    }
+
+    void AssetPanel::render_rename_popup()
+    {
+        // 在主窗口（Asset Browser）上下文中打开弹窗，保证与 BeginPopupModal 的 ID 一致
+        if(m_rename_open_requested)
+        {
+            ImGui::OpenPopup("Rename Asset");
+            m_rename_open_requested = false;
+        }
+
+        if(m_rename_target.category.empty()) return;
+
+        const bool open = ImGui::BeginPopupModal("Rename Asset", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        if(!open)
+        {
+            // 用户按 Esc 或点击外部关闭：清空待改名状态
+            m_rename_target.category.clear();
+            return;
+        }
+
+        ImGui::Text("重命名 %s", m_rename_target.old_name.c_str());
+        const bool enter_pressed = ImGui::InputText("##rename_input", m_rename_buffer, sizeof(m_rename_buffer),
+            ImGuiInputTextFlags_EnterReturnsTrue);
+
+        bool confirmed = enter_pressed;
+        if(ImGui::Button("确认##rename_confirm"))
+        {
+            confirmed = true;
+        }
+        ImGui::SameLine();
+        if(ImGui::Button("取消##rename_cancel"))
+        {
+            m_rename_target.category.clear();
+            ImGui::CloseCurrentPopup();
+        }
+
+        if(confirmed)
+        {
+            const std::string new_name = m_rename_buffer;
+            if(new_name.empty())
+            {
+                ID_WARN("AssetPanel：重命名失败，新名字不能为空");
+            }
+            else if(m_rename_target.is_material)
+            {
+                // 材质库材质：重名拒绝，成功后只改内存名字（序列化保存时自动取新名）
+                if(MaterialLibrary::contains(new_name))
+                {
+                    ID_WARN("AssetPanel：材质重命名失败，'{}' 已存在", new_name);
+                }
+                else
+                {
+                    Material* mat = MaterialLibrary::get(m_rename_target.old_name);
+                    if(mat)
+                    {
+                        mat->set_name(new_name);
+                        ID_INFO("AssetPanel：材质 '{}' 已重命名为 '{}'",
+                            m_rename_target.old_name, new_name);
+                        m_rename_target.category.clear();
+                        ImGui::CloseCurrentPopup();
+                    }
+                    else
+                    {
+                        ID_ERROR("AssetPanel：材质 '{}' 不存在", m_rename_target.old_name);
+                    }
+                }
+            }
+            else if(AssetManager::rename_asset(m_rename_target.category,
+                m_rename_target.old_name, new_name))
+            {
+                // 磁盘文件改名成功：同步更新已加载资源列表的 name / path
+                for(LoadedAsset& asset : m_loaded_assets)
+                {
+                    if(asset.category != m_rename_target.category) continue;
+                    if(asset.name != m_rename_target.old_name) continue;
+                    asset.name = new_name;
+                    if(asset.category == "shader")
+                    {
+                        asset.path = std::string(AssetManager::ShaderDir) + new_name + ".vsl / .fsl";
+                    }
+                    else if(asset.category == "audio")
+                    {
+                        asset.path = std::string(AssetManager::AudioDir) + new_name;
+                    }
+                    else if(asset.category == "texture")
+                    {
+                        asset.path = std::string(AssetManager::TextureDir) + new_name;
+                    }
+                    else if(asset.category == "mesh")
+                    {
+                        asset.path = std::string(AssetManager::MeshDir) + new_name;
+                    }
+                }
+
+                // 同步刷新对应分区 Combo 选择缓存
+                if(m_rename_target.category == "audio" && m_selected_audio_name == m_rename_target.old_name)
+                {
+                    m_selected_audio_name = new_name;
+                }
+                if(m_rename_target.category == "shader" && m_selected_shader_name == m_rename_target.old_name)
+                {
+                    m_selected_shader_name = new_name;
+                }
+                if(m_rename_target.category == "texture" && m_selected_texture_name == m_rename_target.old_name)
+                {
+                    m_selected_texture_name = new_name;
+                }
+                if(m_rename_target.category == "mesh" && m_selected_mesh_name == m_rename_target.old_name)
+                {
+                    m_selected_mesh_name = new_name;
+                }
+
+                ID_INFO("AssetPanel：{} '{}' 已重命名为 '{}'（已加载引用需重新加载）",
+                    m_rename_target.category, m_rename_target.old_name, new_name);
+                m_rename_target.category.clear();
+                ImGui::CloseCurrentPopup();
+            }
+            // 磁盘文件改名失败（目标已存在 / 非法名字等）：buffer 保留、弹窗不关闭，允许用户修改再试
+        }
+
+        ImGui::EndPopup();
     }
 } // namespace ID

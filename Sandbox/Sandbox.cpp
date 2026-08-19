@@ -3,7 +3,6 @@
 #include "Camera/CameraLayer.hpp"
 #include "Scene/SceneLayer.hpp"
 #include "Render/RenderLayer.hpp"
-#include "FunctionGraphLayer.hpp"
 
 // ★ DevGUI：ImGui 调试面板系统
 #include "DevGUI/ImGui/ImGuiLayer.hpp"
@@ -74,7 +73,6 @@ public:
     }
 
 private:
-    FunctionGraphLayer* m_func_graph_layer = nullptr;
     CameraLayer* m_camera_layer = nullptr;
     SceneLayer* m_scene_layer = nullptr;
     ::RenderLayer* m_render_layer = nullptr;

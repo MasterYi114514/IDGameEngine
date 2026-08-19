@@ -46,7 +46,23 @@ namespace ID
     void Camera::set_projection_type(ProjectionType type)
     {
         m_projection.type = type;
+        is_view_dirty = true;
         is_projection_dirty = true;
+        
+        // 根据 type 初始化默认参数
+        switch(type)
+        {
+        case ProjectionType::Perspective:
+            m_projection.persp.fov_y = 60.0f;
+            m_projection.persp.aspect = 16.0f / 9.0f;
+            break;
+        case ProjectionType::Orthographic:
+            m_projection.ortho.left   = -1.0f;
+            m_projection.ortho.right  =  1.0f;
+            m_projection.ortho.bottom = -1.0f;
+            m_projection.ortho.top    =  1.0f;
+            break;
+        }
     }
 
     void Camera::set_orthographic(float left, float right,
