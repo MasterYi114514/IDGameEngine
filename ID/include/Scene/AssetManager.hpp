@@ -52,8 +52,22 @@ namespace ID
         // 内部：ShaderManager::create(ShaderDir + name + ".vsl", ShaderDir + name + ".fsl")
         static ShaderID  load_shader(const std::string& name);   
 
-        // 内部：MeshFactory::create_mesh_from_file(MeshDir + name)
-        static MeshID    load_mesh(const std::string& name);
+        // 内部：MeshFactory::create_mesh_from_file(MeshDir + name, submesh_index)
+        static MeshID    load_mesh(const std::string& name, uint32_t submesh_index = 0);
+
+        /**
+         * @brief 枚举模型文件的子网格名称列表
+         * @param name Mesh 文件名（不含目录前缀）
+         * @return 子网格名列表（aiMesh 名称或 "submesh_N"）；加载失败 / 无子网格返回空列表
+         */
+        static std::vector<std::string> list_mesh_submeshes(const std::string& name);
+
+        /**
+         * @brief 加载文件 Mesh 携带的 diffuse 纹理
+         * @param mesh_id 由 load_mesh 得到的 MeshID
+         * @return 有效 TextureID；Mesh 无纹理信息 / 纹理加载失败返回 invalid_id
+         */
+        static TextureID load_mesh_texture(MeshID mesh_id);
 
         /**
          * @brief 重命名资产磁盘文件

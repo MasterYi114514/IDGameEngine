@@ -53,6 +53,96 @@ namespace
             else      { component.make_inactive(); }
         }
     }
+
+    // 将纹理绑定到材质：binding 名优先取材质现有第一个 texture binding，
+    // 否则用约定名（geometry.fsl 的 sampler）。返回实际使用的 binding 名。
+    std::string bind_texture_to_material(MaterialInstance& inst, TextureID tex)
+    {
+        std::string binding = "texture_sampler";
+        if(inst.get_parent())
+        {
+            const auto& defaults = inst.get_parent()->get_texture_defaults();
+            if(!defaults.empty()) binding = defaults.begin()->first;
+        }
+        inst.set_texture(binding, tex, 0);
+        return binding;
+    }
+
+    // 将文件 Mesh 携带的 diffuse 纹理加载并绑定到材质。
+    // 返回是否成功绑定；材质无效时仅告警（纹理已加载，可稍后点"重新绑定文件纹理"补救）
+    bool load_and_bind_mesh_texture(Model& model, MeshID mesh_id)
+    {
+        TextureID tex = AssetManager::load_mesh_texture(mesh_id);
+        if(!tex.is_valid())
+        {
+            return false;   // 无纹理 / 加载失败（load_mesh_texture 内部已区分原因告警）
+        }
+
+        MaterialInstance& inst = model.get_material();
+        if(!inst.is_valid())
+        {
+            ID_WARN("[Inspector] 材质无效（(none)），纹理已加载但未绑定；请先选择材质，再点'重新绑定文件纹理'");
+            return false;
+        }
+
+        std::string binding = bind_texture_to_material(inst, tex);
+        ID_INFO("[Inspector] 已自动绑定文件纹理到材质 binding '{}'", binding);
+        return true;
+    }
+
+    // 文件纹理 binding 名（选择逻辑与 bind_texture_to_material 一致）：
+    // 该名字下的绑定视为"引擎自动管理"，切子网格时先清后绑，避免旧子网格纹理残留
+    std::string file_texture_binding_name(const MaterialInstance& inst)
+    {
+        std::string binding = "texture_sampler";
+        if(inst.get_parent())
+        {
+            const auto& defaults = inst.get_parent()->get_texture_defaults();
+            if(!defaults.empty()) binding = defaults.begin()->first;
+        }
+        return binding;
+    }
+
+    // 替换 Model 的 Mesh 并销毁旧 Mesh：
+    // Model 是单 mesh 槽位，被替换的旧 Mesh 不再被引用，立即销毁以释放 MeshFactory 池槽位
+    // （切换子网格 / 图元 / 拖拽文件 Mesh 时避免 MeshID 持续增长，下次创建会复用该槽位）。
+    // 注意：仅适用于“独占旧 Mesh”的替换场景；引擎当前无 Model 拷贝共享 MeshID 的用法。
+    void replace_model_mesh(Model& model, MeshID new_id)
+    {
+        const MeshID old_id = model.get_mesh_id();
+        model.set_mesh(new_id);
+        if(old_id.is_valid() && old_id != new_id)
+        {
+            MeshFactory::destroy_mesh(old_id);
+        }
+    }
+
+    // 切换到文件的第 submesh_index 个子网格，并让纹理自动跟随：
+    // 新子网格有纹理 → 自动绑定；无纹理 → 清除文件纹理 binding（保留用户手动绑定语义一致）
+    void switch_submesh(Model& model, const std::string& mesh_name, uint32_t submesh_index)
+    {
+        MeshID new_id = AssetManager::load_mesh(mesh_name, submesh_index);
+        if(!new_id.is_valid())
+        {
+            ID_ERROR("[Inspector] 子网格 {} 加载失败: {}", submesh_index, mesh_name);
+            return;
+        }
+
+        // 切换前清理文件纹理 binding（若材质有效），避免旧子网格纹理残留。
+        // 约定：file_texture_binding_name 与 bind_texture_to_material 同一选择逻辑，该名字下的绑定
+        // 视为"引擎自动管理"；用户手动拖拽 ASSET_TEXTURE 也走同一 binding 名（沿用上期约定），语义一致。
+        // clear_override 同时清除同名 param override —— 约定名 "texture_sampler" 与材质参数名冲突概率极低，接受此折中。
+        MaterialInstance& inst = model.get_material();
+        if(inst.is_valid())
+        {
+            inst.clear_override(file_texture_binding_name(inst));
+        }
+
+        replace_model_mesh(model, new_id);
+        ID_INFO("[Inspector] 已切换到子网格 {}: {}", submesh_index, mesh_name);
+
+        load_and_bind_mesh_texture(model, new_id);
+    }
 } // 匿名命名空间
 
 namespace ID
@@ -217,7 +307,7 @@ namespace ID
                 const bool selected = (i == current);
                 if(ImGui::Selectable(k_primitive_options[i].label, selected))
                 {
-                    model.set_mesh(k_primitive_options[i].create());
+                    replace_model_mesh(model, k_primitive_options[i].create());
                 }
                 if(selected)
                 {
@@ -225,6 +315,63 @@ namespace ID
                 }
             }
             ImGui::EndCombo();
+        }
+
+        // ---- 来源与纹理信息展示（只读）----
+        if(source)
+        {
+            if(source->source_type == MeshSourceType::File)
+            {
+                ImGui::TextDisabled("来源: %s", source->file_path.c_str());
+                if(!source->texture_path.empty())
+                {
+                    ImGui::TextDisabled("纹理: %s", source->texture_path.c_str());
+                }
+                else
+                {
+                    ImGui::TextDisabled("纹理: （文件未携带纹理，可拖拽 ASSET_TEXTURE 手动绑定）");
+                }
+            }
+            else if(source->source_type == MeshSourceType::Primitive)
+            {
+                ImGui::TextDisabled("来源: 内置图元");
+            }
+        }
+
+        // ---- 子网格切换（仅 File 来源；展开时才枚举一次，见 AssetManager::list_mesh_submeshes 性能说明）----
+        if(source && source->source_type == MeshSourceType::File)
+        {
+            ImGui::PushID("submesh");
+            const std::string mesh_name = std::filesystem::path(source->file_path).filename().string();
+            const std::string preview = "子网格 #" + std::to_string(source->submesh_index);
+            if(ImGui::BeginCombo("子网格", preview.c_str()))
+            {
+                // 仅在展开时枚举一次（Assimp 完整解析约几十 ms，帧循环不调用）
+                const std::vector<std::string> names = AssetManager::list_mesh_submeshes(mesh_name);
+                if(names.empty())
+                {
+                    ImGui::TextDisabled("无法枚举子网格");
+                }
+                else
+                {
+                    for(size_t i = 0; i < names.size(); ++i)
+                    {
+                        const bool selected = (i == source->submesh_index);
+                        const std::string label = names[i] + " (" + std::to_string(i) + ")";
+                        // 点击非当前项才重建 mesh（点击当前项无意义，避免无谓解析 + 销毁/创建）
+                        if(ImGui::Selectable(label.c_str(), selected) && !selected)
+                        {
+                            switch_submesh(model, mesh_name, static_cast<uint32_t>(i));
+                        }
+                        if(selected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                }
+                ImGui::EndCombo();
+            }
+            ImGui::PopID();
         }
 
         // ---- Mesh 拖拽接收（从 Asset Browser 拖入文件 Mesh）----
@@ -237,8 +384,11 @@ namespace ID
                 MeshID mesh_id = AssetManager::load_mesh(name);
                 if(mesh_id.is_valid())
                 {
-                    model.set_mesh(mesh_id);
+                    replace_model_mesh(model, mesh_id);
                     ID_INFO("[Inspector] 已加载文件 Mesh '{}'", name);
+
+                    // 自动绑定文件携带的 diffuse 纹理
+                    load_and_bind_mesh_texture(model, mesh_id);
                 }
                 else
                 {
@@ -246,6 +396,26 @@ namespace ID
                 }
             }
             ImGui::EndDragDropTarget();
+        }
+
+        // ---- 重新绑定文件纹理（文件 Mesh 携带纹理，材质无效/纹理丢失时补救）----
+        if(source && source->source_type == MeshSourceType::File && !source->texture_path.empty())
+        {
+            if(ImGui::Button("重新绑定文件纹理"))
+            {
+                // 材质有效判断已移入 helper；失败时按 texture_path 是否为空区分错误文案（按钮显示前提即非空，此处兜底）
+                if(!load_and_bind_mesh_texture(model, mesh_id))
+                {
+                    if(source->texture_path.empty())
+                    {
+                        ID_ERROR("[Inspector] 文件未携带纹理，无法重新绑定");
+                    }
+                    else
+                    {
+                        ID_ERROR("[Inspector] 文件纹理加载失败: {}", source->texture_path);
+                    }
+                }
+            }
         }
 
         // ---- Material 选择（枚举 MaterialLibrary）----
@@ -304,14 +474,7 @@ namespace ID
                 if(texture_id.is_valid())
                 {
                     MaterialInstance& instance = model.get_material();
-                    // binding 名：优先取材质现有第一个 texture binding，否则用约定名（geometry.fsl 的 sampler）
-                    std::string binding = "texture_sampler";
-                    if(instance.get_parent())
-                    {
-                        const auto& defaults = instance.get_parent()->get_texture_defaults();
-                        if(!defaults.empty()) binding = defaults.begin()->first;
-                    }
-                    instance.set_texture(binding, texture_id, 0);
+                    std::string binding = bind_texture_to_material(instance, texture_id);
                     ID_INFO("[Inspector] 已绑定纹理 '{}' 到材质 binding '{}'", name, binding);
                 }
                 else

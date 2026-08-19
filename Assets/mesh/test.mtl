@@ -1,0 +1,22 @@
+# IDGameEngine 测试用 MTL
+# BoxMat：带 diffuse 纹理（map_Kd 1.png，与 test.obj 同目录）
+# PyramidMat：仅颜色（无 map_* 指令，用于验证"文件未携带纹理"路径）
+
+newmtl BoxMat
+Ns 96.078431
+Ka 0.2 0.2 0.2
+Kd 0.8 0.8 0.8
+Ks 0.5 0.5 0.5
+Ni 1.0
+d 1.0
+illum 2
+map_Kd ..\texture\1.png
+
+newmtl PyramidMat
+Ns 32.0
+Ka 0.2 0.2 0.2
+Kd 0.2 0.6 0.9
+Ks 0.3 0.3 0.3
+Ni 1.0
+d 1.0
+illum 2

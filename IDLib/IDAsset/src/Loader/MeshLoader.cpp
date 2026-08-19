@@ -108,6 +108,41 @@ namespace
                 mesh_data.indices.push_back(face.mIndices[2]);
             }
 
+            // ── diffuse 纹理路径提取 ──
+            if(ai_mesh->mMaterialIndex < scene->mNumMaterials)
+            {
+                aiMaterial* ai_mat = scene->mMaterials[ai_mesh->mMaterialIndex];
+                aiString tex_path;
+                if(ai_mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_path) == AI_SUCCESS)
+                {
+                    // 嵌入纹理（"*0" 开头）：本计划不支持导出，留空
+                    if(tex_path.length > 0 && tex_path.C_Str()[0] != '*')
+                    {
+                        mesh_data.texture_path = std::string(tex_path.C_Str());
+                    }
+                }
+            }
+
+            // 路径规范化：绝对路径直接使用，相对路径拼接模型文件所在目录
+            if(!mesh_data.texture_path.empty())
+            {
+                std::filesystem::path tex_path(mesh_data.texture_path);
+                if(!tex_path.is_absolute())
+                {
+                    mesh_data.texture_path =
+                        (std::filesystem::path(path).parent_path() / tex_path).lexically_normal().string();
+                }
+            }
+
+            // 无 UV 保护：顶点无 UV 时采样纹理无意义，强制置空避免下游误绑
+            if(!has_uv && !mesh_data.texture_path.empty())
+            {
+                IDASSET_WARN("MeshLoader::load_meshes：submesh '{}' 无 UV，忽略纹理路径: {}",
+                    ai_mesh->mName.length > 0 ? ai_mesh->mName.C_Str() : "submesh_" + std::to_string(mi),
+                    mesh_data.texture_path);
+                mesh_data.texture_path.clear();
+            }
+
             result.meshes.push_back(std::move(mesh_data));
             result.mesh_names.push_back(
                 ai_mesh->mName.length > 0 ? ai_mesh->mName.C_Str() : "submesh_" + std::to_string(mi));

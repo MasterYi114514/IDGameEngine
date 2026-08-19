@@ -51,7 +51,8 @@ namespace ID
 
     /*
     *  MeshSourceDesc 结构体描述一个 MeshID 的来源信息，供序列化/反序列化使用。
-    *  - source_type == File 时，file_path 和 submesh_index 有效
+    *  - source_type == File 时，file_path、submesh_index 和 texture_path 有效
+    *    （texture_path 为模型文件携带的 diffuse 纹理路径，已规范化；空字符串表示无纹理）
     *  - source_type == Primitive 时，primitive_type 和 primitive_params 有效
     */
     struct MeshSourceDesc
@@ -61,6 +62,7 @@ namespace ID
         // File 来源
         std::string         file_path;
         uint32_t            submesh_index = 0;
+        std::string         texture_path;   // 模型文件携带的 diffuse 纹理路径（规范化后；可为空）
 
         // Primitive 来源
         MeshPrimitiveType   primitive_type = MeshPrimitiveType::None;

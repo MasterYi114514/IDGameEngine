@@ -7,6 +7,7 @@
 #include "Renderer/Material/MaterialLibrary.hpp"
 #include "IDJson.hpp"
 #include "Log/Log.hpp"
+#include "Loader/MeshLoader.hpp"
 
 #include <fstream>
 
@@ -108,9 +109,43 @@ namespace ID
             std::string(ShaderDir) + name + ".fsl");
     }
 
-    MeshID AssetManager::load_mesh(const std::string& name)
+    MeshID AssetManager::load_mesh(const std::string& name, uint32_t submesh_index)
     {
-        return MeshFactory::create_mesh_from_file(std::string(MeshDir) + name);
+        return MeshFactory::create_mesh_from_file(std::string(MeshDir) + name, submesh_index);
+    }
+
+    std::vector<std::string> AssetManager::list_mesh_submeshes(const std::string& name)
+    {
+        // 每次调用完整解析模型文件（Assimp，约几十 ms）；仅由 Inspector 子网格 Combo 展开时调用一次，帧循环不调用
+        MeshLoadResult result = MeshLoader::load_meshes(std::string(MeshDir) + name);
+        return std::move(result.mesh_names);
+    }
+
+    TextureID AssetManager::load_mesh_texture(MeshID mesh_id)
+    {
+        const MeshSourceDesc* desc = MeshFactory::get_source_desc(mesh_id);
+        if(!desc)
+        {
+            ID_WARN("AssetManager::load_mesh_texture：MeshID {} 无来源信息", mesh_id.get_id());
+            return TextureID::invalid_id();
+        }
+        if(desc->source_type != MeshSourceType::File)
+        {
+            ID_WARN("AssetManager::load_mesh_texture：MeshID {} 非文件来源，无纹理", mesh_id.get_id());
+            return TextureID::invalid_id();
+        }
+        if(desc->texture_path.empty())
+        {
+            ID_WARN("AssetManager::load_mesh_texture：MeshID {} 的文件 Mesh 未携带纹理", mesh_id.get_id());
+            return TextureID::invalid_id();
+        }
+
+        TextureID tex = TextureManager::load_texture(desc->texture_path);
+        if(!tex.is_valid())
+        {
+            ID_ERROR("AssetManager::load_mesh_texture：纹理加载失败: {}", desc->texture_path);
+        }
+        return tex;
     }
 
     bool AssetManager::rename_asset(const std::string& category,

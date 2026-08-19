@@ -452,17 +452,18 @@ namespace ID
 
         RawMeshData& raw = result.meshes[submesh_index];
 
+        MeshSourceDesc desc;
+        desc.source_type = MeshSourceType::File;
+        desc.file_path = path;
+        desc.submesh_index = submesh_index;
+        desc.texture_path = raw.texture_path;   // 先拷贝纹理路径，再 move 顶点数据
+
         MeshData engine_data;
         engine_data.layout = default_layout;
         engine_data.vertices_data = std::move(raw.vertices_data);
         engine_data.indices = std::move(raw.indices);
 
         MeshID id = create_mesh(engine_data);
-
-        MeshSourceDesc desc;
-        desc.source_type = MeshSourceType::File;
-        desc.file_path = path;
-        desc.submesh_index = submesh_index;
         register_source(id, std::move(desc));
 
         return id;
@@ -484,17 +485,18 @@ namespace ID
         {
             RawMeshData& raw = result.meshes[i];
 
+            MeshSourceDesc desc;
+            desc.source_type = MeshSourceType::File;
+            desc.file_path = path;
+            desc.submesh_index = i;
+            desc.texture_path = raw.texture_path;   // 先拷贝纹理路径，再 move 顶点数据
+
             MeshData engine_data;
             engine_data.layout = default_layout;
             engine_data.vertices_data = std::move(raw.vertices_data);
             engine_data.indices = std::move(raw.indices);
 
             MeshID id = create_mesh(engine_data);
-
-            MeshSourceDesc desc;
-            desc.source_type = MeshSourceType::File;
-            desc.file_path = path;
-            desc.submesh_index = i;
             register_source(id, std::move(desc));
 
             result_ids.push_back(id);
@@ -527,6 +529,7 @@ namespace ID
                 Json info = Json::create_object(arena);
                 info["file_path"] = Json::create_string(desc->file_path, arena);
                 info["submesh_index"] = Json(static_cast<int>(desc->submesh_index));
+                info["texture_path"] = Json::create_string(desc->texture_path, arena);
                 result["info"] = info;
                 break;
             }
@@ -599,7 +602,29 @@ namespace ID
 
             std::string path = info["file_path"].as_cstr();
             uint32_t submesh = static_cast<uint32_t>(info["submesh_index"].as_int());
-            return create_mesh_from_file(path, submesh);
+
+            MeshID id = create_mesh_from_file(path, submesh);
+
+            // 兼容旧场景文件（无 texture_path 字段）与模型目录变动：
+            // JSON 中有非空 texture_path 且与新加载提取值不一致时，以 JSON 值为准写回 desc
+            if(id.is_valid() && info.contains("texture_path"))
+            {
+                std::string json_texture_path = info["texture_path"].as_cstr();
+                if(!json_texture_path.empty() && json_texture_path != "<none>")
+                {
+                    const MeshSourceDesc* d = get_source_desc(id);
+                    if(d && d->texture_path != json_texture_path)
+                    {
+                        ID_WARN("MeshFactory::deserialize：Mesh '{}' 纹理路径不一致（JSON: {}，模型提取: {}），采用 JSON 值",
+                            path, json_texture_path, d->texture_path);
+                        MeshSourceDesc updated = *d;
+                        updated.texture_path = json_texture_path;
+                        register_source(id, std::move(updated));
+                    }
+                }
+            }
+
+            return id;
         }
         else if (source_type == "Primitive")
         {

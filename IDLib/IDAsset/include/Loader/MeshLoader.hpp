@@ -16,6 +16,7 @@ namespace ID
         std::vector<uint32_t>   indices;
         uint32_t                vertex_count = 0;
         uint32_t                index_count = 0;
+        std::string             texture_path;       // diffuse 纹理文件路径（已规范化为可直接加载的路径；无纹理/无 UV 时为空）
 
         bool is_valid() const { return vertex_count > 0 && !vertices_data.empty(); }
     };
