@@ -212,7 +212,11 @@ float AudioEngine::get_master_volume()
 
 AudioSourceID AudioEngine::create_source()
 {
-    if (!g_initialized) return AudioSourceID{ AudioSourceID::INVALID };
+    if(!init())
+    {
+        IDAUDIO_ERROR("AudioEngine::create_source：AudioEngine 初始化失败，无法创建 AudioSource");
+        return AudioSourceID{ AudioSourceID::INVALID };
+    }
 
     ALuint al_source = 0;
     alGenSources(1, &al_source);
@@ -270,7 +274,11 @@ AudioSource& AudioEngine::get_source(AudioSourceID id)
 
 AudioClipID AudioEngine::create_clip(const AudioData& data)
 {
-    if (!g_initialized) return AudioClipID{ AudioClipID::INVALID };
+    if(!init())
+    {
+        IDAUDIO_ERROR("AudioEngine::create_clip：AudioEngine 初始化失败，无法创建 AudioClip");
+        return AudioClipID{ AudioClipID::INVALID };
+    }
 
     // 槽位分配
     AudioClipID::UnderlyingType slot = search_slot(g_clip_pool, g_freed_clip_ids);

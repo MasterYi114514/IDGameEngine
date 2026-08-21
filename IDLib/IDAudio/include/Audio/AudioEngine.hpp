@@ -19,8 +19,6 @@ namespace ID
      *  资源池管理：
      *  - AudioSource 池：create_source / destroy_source / get_source
      *  - AudioClip 池：create_clip / unload_clip / get_clip
-     *
-     *  设计参考：WindowPool（纯静态）+ IDRenderer ResourceManager（槽位复用）。
      */
     class IDAUDIO_API AudioEngine
     {

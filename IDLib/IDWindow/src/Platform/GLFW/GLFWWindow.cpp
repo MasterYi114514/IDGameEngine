@@ -54,7 +54,6 @@ namespace
         if(!native_window)
         {
             ID_WINDOW_ERROR("GLFWWindow: 窗口创建失败");
-            glfwTerminate();
             return nullptr;
         }
 
@@ -115,8 +114,10 @@ namespace ID
             glfwDestroyWindow(m_native_window);
             m_native_window = nullptr;
         }
-        glfwTerminate();
-        ID_WINDOW_INFO("GLFW 窗口已销毁：原生窗口已销毁，OpenGL 上下文已释放（未显式删除的 GPU 资源由驱动回收），GLFW 已终止");
+        // 不调用 glfwTerminate()：它会把池中其他存活窗口的原生句柄一并销毁，
+        // 导致后续销毁其他窗口时 glfwDestroyWindow 悬空崩溃。GLFW 保持初始化，
+        // 进程退出时由操作系统统一回收。
+        ID_WINDOW_INFO("GLFW 窗口已销毁：原生窗口已销毁，OpenGL 上下文已释放（未显式删除的 GPU 资源由驱动回收）");
     }
 
     void GLFWWindow::set_callback()
