@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include "Renderer/Light/Light.hpp"
-
 
 namespace ID
 {

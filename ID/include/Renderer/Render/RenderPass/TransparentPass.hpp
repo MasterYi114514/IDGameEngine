@@ -30,6 +30,9 @@ namespace ID
         const Vec3& get_ambient() const { return m_ambient; }
 
     public:
+        // 声明依赖：读改写 SceneColor（blend 到已有内容，不清屏）；读 ShadowMap（透明物体采样阴影）
+        void setup(RenderPassBuilder& builder) override;
+
         virtual void execute(RenderContext& ctx) override;
 
     private:

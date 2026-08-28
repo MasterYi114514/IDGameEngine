@@ -7,7 +7,7 @@
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Render/RenderContext.hpp"
 #include "Scene/Scene.hpp"
-#include "Renderer/Render/RenderGraph.hpp"
+#include "Renderer/Render/RenderGraph/RenderGraph.hpp"
 
 namespace ID::Renderer
 {

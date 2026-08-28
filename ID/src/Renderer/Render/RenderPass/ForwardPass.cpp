@@ -1,5 +1,6 @@
 #include "Renderer/Render/RenderPass/ForwardPass.hpp"
 #include "Renderer/IDRCore.hpp"
+#include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
 #include "Renderer/Mesh/Model.hpp"
 #include "Renderer/Mesh/Mesh.hpp"
 #include "Renderer/Render/RenderContext.hpp"
@@ -10,6 +11,12 @@ namespace ID
 {
     ForwardPass::ForwardPass(FrameBufferID output_fb, const Vec3& ambient)
         : RenderPass("ForwardPass"), m_output_fb(output_fb), m_ambient(ambient) { }
+
+    void ForwardPass::setup(RenderPassBuilder& builder)
+    {
+        builder.reads(RGResource::ShadowMap);    // 采样阴影（无 ShadowPass 时悬空警告为预期第二道保险）
+        builder.writes(RGResource::SceneColor);
+    }
 
     void ForwardPass::execute(RenderContext& ctx)
     {

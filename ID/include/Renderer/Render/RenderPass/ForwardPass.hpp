@@ -33,6 +33,9 @@ namespace ID
         const Vec3& get_ambient() const { return m_ambient; }
 
     public:
+        // 声明依赖：读 ShadowMap（采样阴影）；写 SceneColor（ctx.scene_fb，HDR 场景色）
+        void setup(RenderPassBuilder& builder) override;
+
         /**
          *  ForwardPass 的渲染阶段：
          *  - 绑定输出 FB（m_output_fb 或 ctx.scene_fb）

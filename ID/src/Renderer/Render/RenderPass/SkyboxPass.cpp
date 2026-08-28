@@ -1,5 +1,7 @@
 #include "Renderer/Render/RenderPass/SkyboxPass.hpp"
 #include "Renderer/IDRCore.hpp"
+#include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
+#include "Renderer/Render/RenderPass/ForwardPass.hpp"
 #include "Renderer/Mesh/MeshFactory.hpp"
 #include "Renderer/Mesh/Mesh.hpp"
 
@@ -12,6 +14,12 @@ namespace ID
           m_use_cubemap(!procedural && !cubemap_dir.empty()),
           m_cubemap_dir(cubemap_dir)
     { }
+
+    void SkyboxPass::setup(RenderPassBuilder& builder)
+    {
+        builder.requires_pass<ForwardPass>();        // 硬依赖：需要 Forward 先清屏+写深度，天空盒才能正确填背景
+        builder.read_writes(RGResource::SceneColor);   // 深度 LessEqual 填充背景，不清屏
+    }
 
     bool SkyboxPass::load_cubemap(const std::string& dir)
     {

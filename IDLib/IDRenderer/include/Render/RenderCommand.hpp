@@ -20,7 +20,7 @@ namespace ID::RenderCommand
 
     // 绑定渲染目标
     void IDR_API bind_framebuffer(const FrameBufferID framebuffer);
-    void IDR_API bind_default_framebuffer();
+    void IDR_API bind_default_framebuffer();    
 
     // 绑定 FB 颜色附件为采样纹理
     void IDR_API bind_framebuffer_color(const FrameBufferID framebuffer, 

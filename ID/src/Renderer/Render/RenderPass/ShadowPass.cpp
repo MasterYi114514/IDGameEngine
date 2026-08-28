@@ -1,5 +1,6 @@
 #include "Renderer/Render/RenderPass/ShadowPass.hpp"
 #include "Renderer/IDRCore.hpp"
+#include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
 #include "Renderer/Mesh/Model.hpp"
 #include "Renderer/Mesh/Mesh.hpp"
 
@@ -12,6 +13,11 @@ namespace ID
     ShadowPass::ShadowPass()
         : RenderPass("ShadowPass")
     { }
+
+    void ShadowPass::setup(RenderPassBuilder& builder)
+    {
+        builder.writes(RGResource::ShadowMap);
+    }
 
     // ── 辅助：获取 ShadowMap 的 FBO ──
     FrameBufferID ShadowPass::get_shadow_fb() const

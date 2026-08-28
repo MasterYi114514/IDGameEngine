@@ -24,13 +24,16 @@ namespace ID
         DirectionalShadowCamera& get_camera() { return m_shadow_camera; }
         const DirectionalShadowCamera& get_camera() const { return m_shadow_camera; }
 
-        /// 获取当前阴影贴图的 FBO（供 ForwardPass 查询）
+        /// 获取当前阴影贴图的 FBO
         FrameBufferID get_shadow_fb() const;
         
         /// 获取当前光源 VP 矩阵
         const Mat4& get_light_view_proj() const { return m_light_view_proj; }
 
     public:
+        // 声明依赖：写 ShadowMap（ctx.shadow_fb，供 Forward/Transparent 采样阴影）
+        void setup(RenderPassBuilder& builder) override;
+
         void execute(RenderContext& ctx) override;
 
     private:

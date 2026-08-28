@@ -5,6 +5,8 @@
 
 namespace ID
 {
+    class RenderPassBuilder;   // 前置声明（声明构建器，避免公开头引入完整定义依赖）
+
     /**
      *  RenderPass：渲染工序，即在渲染过程负责干完某一个任务，比如“渲染不透明物体”、“渲染透明物体”、“渲染光照”等。
      *  RenderPass 本身是一个抽象基类，不进行实例化，子类必须实现 execute(RenderContext&) 方法来完成一次渲染阶段
@@ -27,6 +29,12 @@ namespace ID
 
         // 子类必须实现
         virtual void execute(RenderContext& ctx) = 0;
+
+        /**
+         *  声明阶段：声明本 Pass 读/写哪些资源（在 add_pass 时由 RenderGraph 调用）
+         *  禁止在此做任何 GPU 操作——只做依赖声明
+         */
+        virtual void setup(RenderPassBuilder& builder) { /* 默认无资源依赖 */ }
 
         virtual void on_begin_frame() { }
         virtual void on_end_frame()   { }

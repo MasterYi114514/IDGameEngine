@@ -1,6 +1,7 @@
 #include "Renderer/Render/RenderPass/PostProcessPass.hpp"
 #include "Renderer/Render/FullscreenQuad.hpp"
 #include "Renderer/IDRCore.hpp"
+#include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
 
 #include "Log/Log.hpp"
 
@@ -23,6 +24,12 @@ namespace ID
           m_bloom_threshold(bloom_threshold),
           m_bloom_strength(bloom_strength)
     { }
+
+    void PostProcessPass::setup(RenderPassBuilder& builder)
+    {
+        builder.reads(RGResource::SceneColor);      // 输入场景 HDR
+        builder.writes(RGResource::ViewportTarget); // 输出最终呈现目标
+    }
 
     void PostProcessPass::ensure_resources(uint32_t window_w, uint32_t window_h)
     {

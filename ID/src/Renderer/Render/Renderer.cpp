@@ -437,6 +437,8 @@ namespace ID::Renderer
             graph.add_pass<PostProcessPass>();      // 输出到 ctx.viewport_fb（显示 FBO）
         }
 
+        graph.compile();   // 装配期立即验证 + 输出编译日志（执行序 / 剔除 / 悬空警告）
+
         ID_INFO("Renderer: 视觉管线装配完成 (shadow={} skybox={} post_process={})",
             shadow, skybox, post_process);
     }

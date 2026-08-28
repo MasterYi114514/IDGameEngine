@@ -42,6 +42,9 @@ namespace ID
         bool is_cubemap_mode() const { return m_use_cubemap; }
 
     public:
+        // 声明依赖：读改写 SceneColor（深度 LessEqual 填充背景，不清屏；不读 ShadowMap——天空盒不采样阴影）
+        void setup(RenderPassBuilder& builder) override;
+
         virtual void execute(RenderContext& ctx) override;
 
     private:

@@ -45,7 +45,9 @@
 
 // Renderer/Render
 #include "Renderer/Render/Renderer.hpp"
-#include "Renderer/Render/RenderGraph.hpp"
+#include "Renderer/Render/RenderGraph/RGTypes.hpp"
+#include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
+#include "Renderer/Render/RenderGraph/RenderGraph.hpp"
 #include "Renderer/Render/RenderContext.hpp"
 #include "Renderer/Render/FullscreenQuad.hpp"
 

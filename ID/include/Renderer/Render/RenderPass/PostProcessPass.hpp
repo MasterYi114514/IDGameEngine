@@ -56,6 +56,9 @@ namespace ID
         void set_bloom_strength(float strength) { m_bloom_strength = strength; }
 
     public:
+        // 声明依赖：读 SceneColor（输入场景 HDR）；写 ViewportTarget（ctx.viewport_fb，最终呈现目标）
+        void setup(RenderPassBuilder& builder) override;
+
         virtual void execute(RenderContext& ctx) override;
 
     private:

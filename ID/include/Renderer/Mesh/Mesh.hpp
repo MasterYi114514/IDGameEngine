@@ -6,8 +6,6 @@
 
 namespace ID
 {
-    class MeshFactory;
-
     class ID_API Mesh
     {
     public:
