@@ -1,0 +1,27 @@
+#version 440 core
+
+// ============================================================================
+//  G-Buffer 几何阶段顶点着色器（延迟渲染）
+//  结构与 geometry.vsl 完全一致（aPos/aUV/aNormal → v_uv/v_world_pos/v_normal），
+//  只输出几何数据，光照在延迟路径的 LightingPass 中完成。
+// ============================================================================
+
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec2 aUV;
+layout(location = 2) in vec3 aNormal;
+
+out vec2 v_uv;
+out vec3 v_world_pos;
+out vec3 v_normal;
+
+uniform mat4 u_mvp;
+uniform mat4 u_model;
+
+void main()
+{
+    v_uv        = aUV;
+    vec4 world  = u_model * vec4(aPos, 1.0);
+    v_world_pos = world.xyz / world.w;
+    v_normal    = normalize(mat3(u_model) * aNormal);
+    gl_Position = u_mvp * vec4(aPos, 1.0);
+}

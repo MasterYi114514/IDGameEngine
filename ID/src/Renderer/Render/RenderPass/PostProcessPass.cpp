@@ -65,12 +65,11 @@ namespace ID
                 if (m_bloom_a.is_valid()) FBManager::destroy(m_bloom_a);
                 if (m_bloom_b.is_valid()) FBManager::destroy(m_bloom_b);
 
-                FrameBufferCreateInfo info_a(bw, bh);
-                info_a.color_format = TextureFormat::RGBA16F;
+                // bloom 中间缓冲：1/4 分辨率 RGBA16F
+                FrameBufferCreateInfo info_a(bw, bh, TextureFormat::RGBA16F);
                 m_bloom_a = FBManager::create(info_a);
 
-                FrameBufferCreateInfo info_b(bw, bh);
-                info_b.color_format = TextureFormat::RGBA16F;
+                FrameBufferCreateInfo info_b(bw, bh, TextureFormat::RGBA16F);
                 m_bloom_b = FBManager::create(info_b);
 
                 m_bloom_w = bw;

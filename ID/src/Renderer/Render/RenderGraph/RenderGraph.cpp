@@ -4,12 +4,13 @@
 namespace
 {
     /*
-    *   reset_resources：重置资源版本时间线，并预填三个语义槽位名
+    *   reset_resources：重置资源版本时间线，并预填四个语义槽位名
     */
     void reset_resources(std::vector<ID::RGResourceNode>& resources)
     {
         resources.assign(static_cast<size_t>(ID::RGResource::Count), ID::RGResourceNode{});
         resources[static_cast<size_t>(ID::RGResource::ShadowMap)].name      = "ShadowMap";
+        resources[static_cast<size_t>(ID::RGResource::GBuffer)].name        = "GBuffer";
         resources[static_cast<size_t>(ID::RGResource::SceneColor)].name     = "SceneColor";
         resources[static_cast<size_t>(ID::RGResource::ViewportTarget)].name = "ViewportTarget";
     }

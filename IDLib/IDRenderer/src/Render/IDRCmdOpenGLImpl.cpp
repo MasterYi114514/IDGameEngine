@@ -219,11 +219,32 @@ namespace ID::RenderCommand
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    // get_framebuffer_color_texture：返回颜色附件的 GL 纹理句柄
-    uint32_t get_framebuffer_color_texture(const FrameBufferID framebuffer)
+    // blit_framebuffer_depth：src → dst（深度附件，尺寸一致）
+    void blit_framebuffer_depth(const FrameBufferID src, const FrameBufferID dst,
+        uint32_t width, uint32_t height)
+    {
+        if(!src.is_valid() || !dst.is_valid()) return;
+        if(width == 0 || height == 0) return;
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, IDR_ResFB(src)->get_FBO());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, IDR_ResFB(dst)->get_FBO());
+        glBlitFramebuffer(0, 0, static_cast<GLint>(width), static_cast<GLint>(height),
+            0, 0, static_cast<GLint>(width), static_cast<GLint>(height),
+            GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    // get_framebuffer_color_texture（带附件索引）：返回指定颜色附件的 GL 纹理句柄
+    uint32_t get_framebuffer_color_texture(const FrameBufferID framebuffer, uint32_t attachment)
     {
         if(!framebuffer.is_valid()) return 0;
-        return static_cast<uint32_t>(IDR_ResFB(framebuffer)->get_color_attachment(0));
+        return static_cast<uint32_t>(IDR_ResFB(framebuffer)->get_color_attachment(attachment));
+    }
+
+    // get_framebuffer_color_texture（旧单参版本）：委托带索引版本
+    uint32_t get_framebuffer_color_texture(const FrameBufferID framebuffer)
+    {
+        return get_framebuffer_color_texture(framebuffer, 0);
     }
 
     void bind_pipeline(const PipelineID pipeline)
@@ -237,6 +258,18 @@ namespace ID::RenderCommand
     void bind_shader(const ID::ShaderID shader)
     {
         g_GLCache.bind_shader(shader);
+    }
+
+    // get_pipeline_layout：返回管线的顶点布局（供"同 layout 换 shader"的管线派生）
+    const VertexBufferLayout& get_pipeline_layout(const PipelineID pipeline)
+    {
+        return IDR_ResPipeline(pipeline)->get_vertex_buffer_layout();
+    }
+
+    // get_pipeline_state：返回管线状态（同上）
+    const PipelineState& get_pipeline_state(const PipelineID pipeline)
+    {
+        return IDR_ResPipeline(pipeline)->get_pipeline_state();
     }
 
     // draw_indexed

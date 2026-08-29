@@ -54,9 +54,11 @@
 // Renderer/Render/RenderPass
 #include "Renderer/Render/RenderPass/RenderPass.hpp"
 #include "Renderer/Render/RenderPass/ForwardPass.hpp"
+#include "Renderer/Render/RenderPass/GBufferPass.hpp"
 #include "Renderer/Render/RenderPass/ShadowPass.hpp"
 #include "Renderer/Render/RenderPass/SkyboxPass.hpp"
 #include "Renderer/Render/RenderPass/TransparentPass.hpp"
+#include "Renderer/Render/RenderPass/LightingPass.hpp"
 #include "Renderer/Render/RenderPass/PostProcessPass.hpp"
 
 // Renderer/Light

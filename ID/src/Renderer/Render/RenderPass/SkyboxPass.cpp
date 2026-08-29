@@ -1,7 +1,6 @@
 #include "Renderer/Render/RenderPass/SkyboxPass.hpp"
 #include "Renderer/IDRCore.hpp"
 #include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
-#include "Renderer/Render/RenderPass/ForwardPass.hpp"
 #include "Renderer/Mesh/MeshFactory.hpp"
 #include "Renderer/Mesh/Mesh.hpp"
 
@@ -17,7 +16,8 @@ namespace ID
 
     void SkyboxPass::setup(RenderPassBuilder& builder)
     {
-        builder.requires_pass<ForwardPass>();        // 硬依赖：需要 Forward 先清屏+写深度，天空盒才能正确填背景
+        // 顺序由 SceneColor 的 RAW/WAW/WAR 边保证：Forward 或 Lighting 写入后本 Pass 才读改写；
+        // 深度取自当前绑定的场景 FBO（前向 = ForwardPass 写入，延迟 = LightingPass 从 G-Buffer blit）
         builder.read_writes(RGResource::SceneColor);   // 深度 LessEqual 填充背景，不清屏
     }
 

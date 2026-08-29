@@ -1,23 +1,33 @@
 #version 440 core
 
+// ============================================================================
+//  LightingPass 片段着色器（延迟渲染光照阶段）
+//  采样 G-Buffer 三个附件重组 per-pixel 输入，光照/阴影公式与 geometry.fsl
+//  （前向路径）逐段一致，保证两路径画面互为基准：
+//    u_gbuffer_albedo  (slot 0) : rgb = albedo，a = ambient_strength
+//    u_gbuffer_pos     (slot 1) : xyz = WorldPos，a = spec_strength
+//    u_gbuffer_normal  (slot 2) : xyz = Normal，a = shininess
+//    u_shadow_map      (slot 3) : ShadowPass 深度贴图
+//  光源上限 MAX_LIGHTS = 32（前向为 8），与 LightingPass.hpp 的常量一一对应。
+// ============================================================================
+
 out vec4 FragColor;
 
 in vec2 v_uv;
-in vec3 v_world_pos;
-in vec3 v_normal;
 
-uniform sampler2D texture_sampler;
+uniform sampler2D u_gbuffer_albedo;      // G-Buffer RT0（slot 0）
+uniform sampler2D u_gbuffer_pos;         // G-Buffer RT1（slot 1）
+uniform sampler2D u_gbuffer_normal;      // G-Buffer RT2（slot 2）
 
-uniform vec3  u_color;           // 材质颜色
 uniform vec3  u_camera_pos;      // 相机位置
 uniform vec3  u_ambient;
 
 uniform int   u_light_count;
-uniform vec3  u_light_dirs[8];
-uniform vec3  u_light_positions[8];
-uniform vec3  u_light_colors[8];
+uniform vec3  u_light_dirs[32];
+uniform vec3  u_light_positions[32];
+uniform vec3  u_light_colors[32];
 
-uniform sampler2D u_shadow_map;          // 阴影深度贴图（ShadowPass 产出，slot 1）
+uniform sampler2D u_shadow_map;          // 阴影深度贴图（ShadowPass 产出，slot 3）
 uniform mat4      u_light_space_mvp;     // 主方向光 VP 矩阵
 uniform int       u_shadow_enabled;      // 0 = 本帧无阴影（跳过阴影计算）
 uniform float     u_shadow_bias;         // 深度偏移（防止自阴影）
@@ -25,11 +35,6 @@ uniform int       u_shadow_pcf_radius;   // PCF 采样半径（0→1×1, 1→3×
 uniform int       u_shadow_light_index;  // 主方向光在光源数组中的下标（-1 表示无阴影）
 
 uniform float     u_light_size;         // 光源尺寸（用于 PCSS 半影宽度计算）
-
-// phong 光照模型参数
-uniform float u_ambient_strength;           // 环境光强度系数
-uniform float u_spec_strength;              // 镜面反射系数
-uniform float u_shininess;                  // 高光指数
 
 vec3 calc_ambient(float strength, vec3 light_color)
 {
@@ -175,12 +180,20 @@ float compute_shadow_pcss(vec3 world_pos)
 
 void main()
 {
-    vec4 tex_color = texture(texture_sampler, v_uv);
-    vec3 base_color = tex_color.rgb * u_color;
-    vec3 N = normalize(v_normal);
+    // 从 G-Buffer 重组 per-pixel 输入（附件布局见 gbuffer.fsl 顶部注释）
+    vec4 albedo_ambient = texture(u_gbuffer_albedo, v_uv);
+    vec4 pos_spec       = texture(u_gbuffer_pos, v_uv);
+    vec4 normal_shin    = texture(u_gbuffer_normal, v_uv);
 
-    // 环境光
-    vec3 result = calc_ambient(u_ambient_strength, u_ambient) * base_color;
+    vec3  albedo           = albedo_ambient.rgb;
+    float ambient_strength = albedo_ambient.a;
+    vec3  world_pos        = pos_spec.xyz;
+    float spec_strength    = pos_spec.a;
+    vec3  normal           = normalize(normal_shin.xyz);
+    float shininess        = normal_shin.a;
+
+    // 环境光（与 geometry.fsl 一致：ambient * base_color）
+    vec3 result = calc_ambient(ambient_strength, u_ambient) * albedo;
 
     for (int i = 0; i < u_light_count; ++i)
     {
@@ -192,24 +205,24 @@ void main()
         }
         else
         {
-            L = normalize(u_light_positions[i] - v_world_pos);
+            L = normalize(u_light_positions[i] - world_pos);
         }
 
         // 漫反射
-        vec3 diffuse = calc_diffuse(N, L, 1.0, u_light_colors[i]);
+        vec3 diffuse = calc_diffuse(normal, L, 1.0, u_light_colors[i]);
 
         // 镜面反射
-        vec3 specular = calc_spec_blinn_phong(N, L, normalize(u_camera_pos - v_world_pos), 
-            u_spec_strength, u_shininess, u_light_colors[i]);
+        vec3 specular = calc_spec_blinn_phong(normal, L, normalize(u_camera_pos - world_pos), 
+            spec_strength, shininess, u_light_colors[i]);
 
         // 阴影（仅主方向光）
         float shadow = 1.0;
         if (i == u_shadow_light_index && u_shadow_enabled == 1)
         {
-            shadow = compute_shadow_pcf(v_world_pos);
+            shadow = compute_shadow_pcf(world_pos);
         }
 
-        result += diffuse * base_color * shadow + specular;
+        result += diffuse * albedo * shadow + specular;
     }
 
     FragColor = vec4(result, 1.0);

@@ -12,6 +12,7 @@ namespace ID
     enum class RGResource : uint8_t
     {
         ShadowMap,       // ctx.shadow_fb（由 ShadowPass 写入）
+        GBuffer,         // ctx.gbuffer_fb（由 GBufferPass 写入，LightingPass 读取）
         SceneColor,      // ctx.scene_fb（Forward/Skybox/Transparent 读改写）
         ViewportTarget,  // ctx.viewport_fb（PostProcess 写入，最终呈现目标）
 

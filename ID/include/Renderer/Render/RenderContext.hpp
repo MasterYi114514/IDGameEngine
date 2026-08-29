@@ -83,6 +83,9 @@ namespace ID
 
         RendererStatistics*        statistics = nullptr;    // 统计（可空）
 
+        // G-Buffer 渲染目标（延迟路径：GBufferPass 写入，LightingPass 读取）
+        FrameBufferID              gbuffer_fb = FrameBufferID::invalid_id();
+
         // HDR 渲染目标
         FrameBufferID              scene_fb = FrameBufferID::invalid_id();
 

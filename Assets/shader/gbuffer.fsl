@@ -1,0 +1,39 @@
+#version 440 core
+
+// ============================================================================
+//  G-Buffer 片段着色器（延迟渲染几何阶段，MRT 输出）
+//  附件布局：
+//    RT0 (location=0) RGBA8    : rgb = Albedo（漫反射颜色，已乘纹理），a = ambient_strength
+//    RT1 (location=1) RGBA16F  : xyz = WorldPos（世界坐标），a = spec_strength
+//    RT2 (location=2) RGBA16F  : xyz = Normal（世界空间法线），a = shininess
+//  uniform 与 geometry.fsl 材质段同名（texture_sampler / u_color / u_ambient_strength /
+//  u_spec_strength / u_shininess），材质参数以 gbuffer shader 为目标直接复用
+//  （见 GBufferPass::apply_material）。
+// ============================================================================
+
+layout(location = 0) out vec4 GBuffer0;
+layout(location = 1) out vec4 GBuffer1;
+layout(location = 2) out vec4 GBuffer2;
+
+in vec2 v_uv;
+in vec3 v_world_pos;
+in vec3 v_normal;
+
+uniform sampler2D texture_sampler;
+
+uniform vec3  u_color;              // 材质颜色
+
+// phong 光照模型参数
+uniform float u_ambient_strength;   // 环境光强度系数
+uniform float u_spec_strength;      // 镜面反射系数
+uniform float u_shininess;          // 高光指数
+
+void main()
+{
+    vec4 tex_color = texture(texture_sampler, v_uv);
+    vec3 albedo    = tex_color.rgb * u_color;
+
+    GBuffer0 = vec4(albedo, u_ambient_strength);
+    GBuffer1 = vec4(v_world_pos, u_spec_strength);
+    GBuffer2 = vec4(normalize(v_normal), u_shininess);
+}

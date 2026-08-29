@@ -3,6 +3,8 @@
 #include "Core/IDRpch.hpp"
 #include "Resource/Shader/ShaderParamConcept.hpp"
 #include "Resource/ResourceID.hpp"
+#include "Resource/Pipeline/PipelineState.hpp"
+#include "Resource/VertexBuffer/VertexBufferLayout.hpp"
 
 #include "IDMath.hpp"
 
@@ -37,12 +39,26 @@ namespace ID::RenderCommand
     void IDR_API blit_framebuffer_to_default(const FrameBufferID src,
         uint32_t width, uint32_t height);
 
+    // 将 src 帧缓冲的深度附件 blit 到 dst 帧缓冲（尺寸相同；延迟路径：G-Buffer 深度 → 场景 FBO）
+    void IDR_API blit_framebuffer_depth(const FrameBufferID src, const FrameBufferID dst,
+        uint32_t width, uint32_t height);
+
     // 获取帧缓冲颜色附件的原生纹理句柄（供 ImGui::Image 等外部系统采样显示）
     uint32_t IDR_API get_framebuffer_color_texture(const FrameBufferID framebuffer);
+
+    // 获取帧缓冲指定颜色附件的原生纹理句柄（G-Buffer 多附件预览用）
+    uint32_t IDR_API get_framebuffer_color_texture(const FrameBufferID framebuffer,
+        uint32_t attachment);
 
     // 绑定管线
     void IDR_API bind_pipeline(const PipelineID pipeline);
     void IDR_API bind_shader(const ShaderID shader);
+
+    // 获取管线的顶点布局（供"同 layout 换 shader"的管线派生，如 GBufferPass）
+    const VertexBufferLayout& IDR_API get_pipeline_layout(const PipelineID pipeline);
+
+    // 获取管线状态（同上）
+    const PipelineState& IDR_API get_pipeline_state(const PipelineID pipeline);
 
     // 按照 IBO 绘制顶点
     void IDR_API draw_indexed(const PipelineID pipeline, const VertexBufferID vb, const IndexBufferID ib);

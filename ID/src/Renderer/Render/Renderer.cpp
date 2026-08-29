@@ -4,6 +4,8 @@
 #include "Renderer/Render/RenderContext.hpp"
 #include "Renderer/Render/RenderPass/RenderPass.hpp"
 #include "Renderer/Render/RenderPass/ForwardPass.hpp"
+#include "Renderer/Render/RenderPass/GBufferPass.hpp"
+#include "Renderer/Render/RenderPass/LightingPass.hpp"
 #include "Renderer/Render/RenderPass/ShadowPass.hpp"
 #include "Renderer/Render/RenderPass/SkyboxPass.hpp"
 #include "Renderer/Render/RenderPass/TransparentPass.hpp"
@@ -139,9 +141,7 @@ namespace
                 FBManager::destroy(fb_state.fb);
             }
             // HDR 场景渲染目标：RGBA16F 颜色附件 + 深度附件
-            // ★ 依赖 IDRenderer 增强：FrameBufferCreateInfo.color_format
-            ID::FrameBufferCreateInfo info(w, h);
-            info.color_format = ID::TextureFormat::RGBA16F;
+            ID::FrameBufferCreateInfo info(w, h, ID::TextureFormat::RGBA16F);
             fb_state.fb = FBManager::create(info);
             fb_state.width    = w;
             fb_state.height   = h;
@@ -183,8 +183,7 @@ namespace
                 FBManager::destroy(fb_state.fb);
             }
             // 最终显示目标：RGBA8（tone mapping / gamma 已在后处理完成）
-            ID::FrameBufferCreateInfo info(w, h);
-            info.color_format = ID::TextureFormat::RGBA8;
+            ID::FrameBufferCreateInfo info(w, h, ID::TextureFormat::RGBA8);
             info.has_depth_attachment = false;
             fb_state.fb = FBManager::create(info);
             fb_state.width    = w;
@@ -199,6 +198,117 @@ namespace
     {
         static bool s_enabled = true;
         return s_enabled;
+    }
+
+    struct GBufferFBState
+    {
+        ID::FrameBufferID fb = ID::FrameBufferID::invalid_id();
+        uint32_t width  = 0;
+        uint32_t height = 0;
+    };
+
+    GBufferFBState& gbuffer_fb_state()
+    {
+        static GBufferFBState s_gbuffer_fb = GBufferFBState();
+        return s_gbuffer_fb;
+    }
+
+    /*
+    *   ensure_gbuffer_fb 确保延迟渲染的 G-Buffer FBO 存在且尺寸匹配。
+    *   3 个颜色附件：RT0 RGBA8（albedo.rgb + ambient_strength.a）、
+    *   RT1 RGBA16F（world_pos.rgb + spec_strength.a）、RT2 RGBA16F（normal.rgb + shininess.a），
+    *   外加深度附件（DEPTH24，与场景 FBO 一致可 blit）。
+    */
+    ID::FrameBufferID ensure_gbuffer_fb(uint32_t w, uint32_t h)
+    {
+        if (w == 0 || h == 0)
+        {
+            return ID::FrameBufferID::invalid_id();
+        }
+
+        auto& fb_state = gbuffer_fb_state();
+        if (!fb_state.fb.is_valid() || fb_state.width != w || fb_state.height != h)
+        {
+            if (fb_state.fb.is_valid())
+            {
+                FBManager::destroy(fb_state.fb);
+            }
+            // 延迟路径固定 samples = 1（MSAA 延迟解析本期不做）
+            ID::FrameBufferCreateInfo info(w, h,
+                std::vector<ID::TextureFormat>{ ID::TextureFormat::RGBA8, ID::TextureFormat::RGBA16F, ID::TextureFormat::RGBA16F });
+            fb_state.fb = FBManager::create(info);
+            fb_state.width  = w;
+            fb_state.height = h;
+            ID_INFO("Renderer: G-Buffer FBO 重建 {}x{} (RGBA8 + RGBA16F x2)", w, h);
+        }
+        return fb_state.fb;
+    }
+
+    // 当前渲染路径（Forward / Deferred）
+    ID::Renderer::RenderPath& render_path_state()
+    {
+        static ID::Renderer::RenderPath s_path = ID::Renderer::RenderPath::Forward;
+        return s_path;
+    }
+
+    // 当前 visual pipeline 三开关状态（set_render_path 重装配时复用）
+    struct PipelineFlags
+    {
+        bool shadow       = true;
+        bool skybox       = false;
+        bool post_process = true;
+    };
+
+    PipelineFlags& pipeline_flags_state()
+    {
+        static PipelineFlags s_flags;
+        return s_flags;
+    }
+
+    /*
+    *   rebuild_pipeline：按当前渲染路径装配视觉管线（Forward / Deferred 分支）。
+    *   set_visual_pipeline 与 set_render_path 共用此入口，避免两处复制装配代码。
+    */
+    void rebuild_pipeline(bool shadow, bool skybox, bool post_process)
+    {
+        ID::RenderGraph& graph = ID::Renderer::get_render_graph();
+        graph.clear();
+
+        if (shadow)
+        {
+            graph.add_pass<ID::ShadowPass>();
+        }
+
+        if (render_path_state() == ID::Renderer::RenderPath::Deferred)
+        {
+            // Deferred 分支：几何（G-Buffer）+ 光照（全屏）两阶段必装
+            graph.add_pass<ID::GBufferPass>();                                      // 输出 ctx.gbuffer_fb
+            graph.add_pass<ID::LightingPass>(ID::Vec3(1.0f, 1.0f, 1.0f));           // 输出 ctx.scene_fb（环境光暂用固定白色）
+        }
+        else
+        {
+            // Forward 分支（现有装配不动）：ForwardPass 输出到 ctx.scene_fb；有天空盒时透明拆分
+            ID::ForwardPass& forward = graph.add_pass<ID::ForwardPass>();
+            forward.set_use_scene_fb(true);                 // 渲染到场景 HDR FBO
+            forward.set_render_transparent(!skybox);        // 有天空盒时透明拆分到 TransparentPass
+        }
+
+        if (skybox)
+        {
+            graph.add_pass<ID::SkyboxPass>();
+            graph.add_pass<ID::TransparentPass>();
+        }
+
+        if (post_process)
+        {
+            graph.add_pass<ID::PostProcessPass>();      // 输出到 ctx.viewport_fb（显示 FBO）
+        }
+
+        graph.compile();   // 装配期立即验证 + 输出编译日志（执行序 / 剔除 / 悬空警告）
+
+        ID_INFO("Renderer: 视觉管线装配完成 (path={} shadow={} skybox={} post_process={})",
+            render_path_state() == ID::Renderer::RenderPath::Deferred ? "Deferred" : "Forward",
+            shadow, skybox, post_process);
     }
 } // 匿名命名空间
 
@@ -338,6 +448,7 @@ namespace ID::Renderer
 
             FrameBufferID scene_fb = ensure_scene_fb(window_width, window_height);
             FrameBufferID viewport_fb = ensure_viewport_fb(window_width, window_height);
+            FrameBufferID gbuffer_fb = ensure_gbuffer_fb(window_width, window_height);
 
             RenderContext ctx
             {
@@ -349,6 +460,7 @@ namespace ID::Renderer
                 transparent_batches(),
                 lights(),
                 &stats,
+                gbuffer_fb,
                 scene_fb,
                 viewport_fb
             };
@@ -413,34 +525,35 @@ namespace ID::Renderer
 
     void set_visual_pipeline(bool shadow, bool skybox, bool post_process)
     {
-        RenderGraph& graph = get_render_graph();
-        graph.clear();
+        auto& flags = pipeline_flags_state();
+        flags.shadow       = shadow;
+        flags.skybox       = skybox;
+        flags.post_process = post_process;
+        rebuild_pipeline(shadow, skybox, post_process);
+    }
 
-        if (shadow)
+    void set_render_path(RenderPath path)
+    {
+        if (render_path_state() == path)
         {
-            graph.add_pass<ShadowPass>();
+            return;
         }
 
-        // ForwardPass 输出到 ctx.scene_fb（Renderer::render 注入）；有天空盒时透明拆分
-        ForwardPass& forward = graph.add_pass<ForwardPass>();
-        forward.set_use_scene_fb(true);                 // 渲染到场景 HDR FBO
-        forward.set_render_transparent(!skybox);        // 有天空盒时透明拆分到 TransparentPass
+        render_path_state() = path;
 
-        if (skybox)
-        {
-            graph.add_pass<SkyboxPass>();
-            graph.add_pass<TransparentPass>();
-        }
+        // 按当前三开关状态重装配（与 set_visual_pipeline 同一入口）
+        auto& flags = pipeline_flags_state();
+        rebuild_pipeline(flags.shadow, flags.skybox, flags.post_process);
+    }
 
-        if (post_process)
-        {
-            graph.add_pass<PostProcessPass>();      // 输出到 ctx.viewport_fb（显示 FBO）
-        }
+    RenderPath get_render_path()
+    {
+        return render_path_state();
+    }
 
-        graph.compile();   // 装配期立即验证 + 输出编译日志（执行序 / 剔除 / 悬空警告）
-
-        ID_INFO("Renderer: 视觉管线装配完成 (shadow={} skybox={} post_process={})",
-            shadow, skybox, post_process);
+    FrameBufferID get_gbuffer_fb()
+    {
+        return gbuffer_fb_state().fb;
     }
 
     FrameBufferID get_viewport_fb()

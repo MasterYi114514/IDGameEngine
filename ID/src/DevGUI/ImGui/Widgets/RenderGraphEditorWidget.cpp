@@ -372,10 +372,13 @@ namespace ID
                 ax::NodeEditor::BeginNode(node_id);
                 ImGui::TextColored(ImVec4(0.65f, 0.65f, 0.65f, 1.0f), "%s", ghost.name.c_str());
                 ImGui::SameLine();
+                // 多个 ghost 并存时按钮 ID 冲突，需 PushID 隔离（与实节点 x 按钮一致）
+                ImGui::PushID(static_cast<int>(0x10000000u + g));
                 if(ImGui::SmallButton("Enable"))
                 {
                     if(m_toggle_callback) m_toggle_callback(ghost.key, true);
                 }
+                ImGui::PopID();
                 ax::NodeEditor::EndNode();
                 ax::NodeEditor::PopStyleColor(2);
             }
