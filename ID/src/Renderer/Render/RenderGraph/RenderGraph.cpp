@@ -285,4 +285,64 @@ namespace ID
         }
         return count;
     }
+
+    void RenderGraph::build_view(RGGraphView& out) const
+    {
+        out.passes.clear();
+        out.edges.clear();
+        out.execution_order = m_execution_order;
+
+        // 槽位名："ShadowMap" 等，下标 = RGResource
+        out.resource_names.clear();
+        for(const RGResourceNode& res : m_resources)
+        {
+            out.resource_names.push_back(res.name);
+        }
+
+        // exec_index 反查表：m_order 中的位置即执行序；未入执行序（被剔除/编译失败清空） = -1
+        std::vector<int32_t> exec_index_of(m_nodes.size(), -1);
+        for(size_t i = 0; i < m_order.size(); ++i)
+        {
+            exec_index_of[m_order[i]] = static_cast<int32_t>(i);
+        }
+
+        for(size_t i = 0; i < m_nodes.size(); ++i)
+        {
+            const RGPassNode& node = m_nodes[i];
+
+            RGPassView view;
+            view.index      = static_cast<uint32_t>(i);
+            view.exec_index = exec_index_of[i];
+            view.name       = node.name;
+            view.culled     = node.culled;
+
+            // reads / writes：RGHandle.slot 去重后转 RGResource（同槽位多次声明只保留一次）
+            for(const RGHandle& h : node.reads)
+            {
+                if(!h.is_valid()) continue;
+                const RGResource res = static_cast<RGResource>(h.slot);
+                if(std::find(view.reads.begin(), view.reads.end(), res) == view.reads.end())
+                {
+                    view.reads.push_back(res);
+                }
+            }
+            for(const RGHandle& h : node.writes)
+            {
+                if(!h.is_valid()) continue;
+                const RGResource res = static_cast<RGResource>(h.slot);
+                if(std::find(view.writes.begin(), view.writes.end(), res) == view.writes.end())
+                {
+                    view.writes.push_back(res);
+                }
+            }
+
+            out.passes.push_back(std::move(view));
+
+            // 边：从 preds 端输出（与 export_graphviz 同源数据）
+            for(const RGPassEdge& e : node.preds)
+            {
+                out.edges.push_back(RGEdgeView{ e.node, static_cast<uint32_t>(i), e.type });
+            }
+        }
+    }
 } // namespace ID

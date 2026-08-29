@@ -95,5 +95,6 @@ namespace ID
         Mat4                       light_view_proj = Math::get_identity_mat4();   // 光源视图投影矩阵
         float                      shadow_bias = 0.0002f;       // 阴影深度偏移（防止自阴影）
         int                        shadow_pcf_radius = 1;       // PCF 采样半径（0→1×1, 1→3×3, 2→5×5, 3→7×7）
+        int                        shadow_light_index = -1;      // 主方向光在光源数组中的下标（-1 表示无）
     };
 } // namespace ID

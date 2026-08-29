@@ -75,3 +75,17 @@ target_include_directories(imgui
 target_compile_definitions(imgui PRIVATE IMGUI_IMPL_OPENGL_LOADER_GLAD)
 target_link_libraries(imgui PUBLIC glfw glad)
 
+# imgui-node-editor — 节点编辑器（静态库，仿 imgui 手写目标，不用其自带 CMake）
+add_library(imgui_node_editor STATIC
+    imgui-node-editor/imgui_node_editor.cpp
+    imgui-node-editor/imgui_node_editor_api.cpp
+    imgui-node-editor/imgui_canvas.cpp
+    imgui-node-editor/crude_json.cpp
+)
+target_include_directories(imgui_node_editor
+    PUBLIC
+        imgui-node-editor
+)
+target_compile_features(imgui_node_editor PRIVATE cxx_std_17)
+target_link_libraries(imgui_node_editor PUBLIC imgui)
+

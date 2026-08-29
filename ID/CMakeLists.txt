@@ -92,6 +92,7 @@ if(ID_RENDERER STREQUAL "OpenGL")
             IDPhysics
             IDAudio
             imgui
+            imgui_node_editor
     )
 
 elseif(ID_RENDERER STREQUAL "Vulkan")

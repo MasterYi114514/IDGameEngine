@@ -114,10 +114,12 @@ namespace ID
             IDRCmd::set_param(shader, "u_light_space_mvp", ctx.light_view_proj);
             IDRCmd::set_param(shader, "u_shadow_bias", ctx.shadow_bias);
             IDRCmd::set_param(shader, "u_shadow_pcf_radius", ctx.shadow_pcf_radius);
+            IDRCmd::set_param(shader, "u_shadow_light_index", ctx.shadow_light_index);
         }
         else
         {
             IDRCmd::set_param(shader, "u_shadow_enabled", 0);
+            IDRCmd::set_param(shader, "u_shadow_light_index", -1);
         }
     }
 } // namespace ID

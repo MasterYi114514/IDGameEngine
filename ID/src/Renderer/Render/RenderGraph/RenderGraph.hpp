@@ -16,18 +16,6 @@
 namespace ID
 {
     /*
-    *   RGEdgeType：依赖边类型（与 4.4 建边规则一一对应，GraphViz 导出标注用）
-    */
-    enum class RGEdgeType : uint8_t
-    {
-        RAW,       // Read After Write：读当前版本的写入者
-        WAW,       // Write After Write：写写不乱序
-        WAR,       // Write After Read：不能覆盖别人正在读的数据
-        Order,     // 保序边：读-读保序（依赖之前的读者）
-        Explicit   // 显式 after() 边（逃生舱，可指向前方，环检测由此而生）
-    };
-
-    /*
     *   RGPassEdge：带类型的依赖边（node 为对端节点索引，type 为边类型）
     */
     struct RGPassEdge

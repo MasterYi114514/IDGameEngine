@@ -151,7 +151,17 @@ namespace ID
 
         // 找主方向光
         Light dir_light;
-        if (!find_directional_light(ctx, dir_light))
+        int dir_light_index = -1;
+        for (int i = 0; i < static_cast<int>(ctx.lights.size()); ++i)
+        {
+            if (ctx.lights[i]->type == LightType::Directional && ctx.lights[i]->enabled)
+            {
+                dir_light = *ctx.lights[i];
+                dir_light_index = i;
+                break;
+            }
+        }
+        if (dir_light_index < 0)
             return;
 
         // 同步场景光源方向到 ShadowCamera（否则一直用默认的 (0,-1,0)）
@@ -197,5 +207,6 @@ namespace ID
         ctx.shadow_bias       = cfg.param.bias;
         ctx.shadow_pcf_radius = static_cast<int>(shadow_quality_to_pcf_kernel_size(cfg.param.quality));
         ctx.shadow_enabled    = true;
+        ctx.shadow_light_index = dir_light_index;
     }
 } // namespace ID

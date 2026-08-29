@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IDpch.hpp"
+#include "Renderer/Render/RenderGraph/RGTypes.hpp"
 #include "Renderer/Render/RenderPass/RenderPass.hpp"
 #include "Renderer/Render/RenderContext.hpp"
 #include <typeindex>
@@ -76,6 +77,12 @@ namespace ID
         const std::vector<std::string>& get_execution_order() const { return m_execution_order; } // 编译产物
         bool                            export_graphviz(std::string& out) const;
         RenderPass*                     find_pass_by_type(std::type_index type);                  
+
+        /**
+         *  @brief 导出绘制用只读视图（节点编辑器 / 调试 UI 用）
+         *  @param out 输出视图；包含全部节点（含剔除）、边及执行序
+         */
+        void build_view(RGGraphView& out) const;
 
     private:
         friend class RenderPassBuilder;
