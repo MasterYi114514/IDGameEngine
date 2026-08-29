@@ -11,7 +11,7 @@ namespace ID
     */
     bool RenderGraph::compile()
     {
-        // ——— ① Kahn 拓扑排序：就绪集合取注册序最小节点 → 确定性调度 ———
+        // Kahn 拓扑排序：就绪集合取注册序最小节点 → 确定性调度
         std::vector<uint32_t> order;
         order.reserve(m_nodes.size());
 
@@ -40,7 +40,7 @@ namespace ID
             }
         }
 
-        // ——— ② 环检测：残留入度 > 0 的节点在环上（或依赖环）→ 拒绝执行 ———
+        // 环检测：残留入度 > 0 的节点在环上（或依赖环）→ 拒绝执行
         if(order.size() != m_nodes.size())
         {
             std::string cycle_names;
@@ -60,7 +60,7 @@ namespace ID
             return false;
         }
 
-        // ——— ③ 死 Pass 剔除：从最终输出（ViewportTarget 写入者）沿 preds 反向可达性分析 ———
+        // 死 Pass 剔除：从最终输出（ViewportTarget 写入者）沿 preds 反向可达性分析
         //     显式 after 边也在 preds 中，"after 链可达的副作用节点"因此自动保留；
         //     ViewportTarget 无写入者时保守跳过剔除（未声明输出的装配不剔除任何 Pass）
         const RGResourceNode& output = m_resources[static_cast<size_t>(RGResource::ViewportTarget)];
@@ -120,7 +120,7 @@ namespace ID
             }
         }
 
-        // ——— ④ 悬空依赖警告：读取的槽位无任何写入者（放在剔除后：被剔除 Pass 不执行，不告警）———
+        // 悬空依赖警告：读取的槽位无任何写入者（放在剔除后：被剔除 Pass 不执行，不告警）
         for(const RGPassNode& node : m_nodes)
         {
             if(node.culled) continue;
@@ -135,7 +135,7 @@ namespace ID
             }
         }
 
-        // ——— ⑤ 收尾：固化执行序并输出编译日志 ———
+        // 收尾：固化执行序并输出编译日志
         m_order = std::move(order);
         m_execution_order.clear();
         m_execution_order.reserve(m_order.size());

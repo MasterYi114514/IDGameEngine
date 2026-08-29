@@ -2,6 +2,7 @@
 
 #include "Core/IDRpch.hpp"
 #include "Resource/Shader/ShaderCreateInfo.hpp"
+#include "Resource/Shader/ShaderUniformDesc.hpp"
 
 #ifdef IDRENDERER_USE_OPENGL
 
@@ -35,9 +36,13 @@ namespace ID
         */
         GLint get_uniform_location(const std::string& name) const;
 
+        // 获取 link 后反射出的 active uniform 列表（构造时一次性枚举，按名称排序）
+        const std::vector<ShaderUniformDesc>& get_active_uniforms() const { return m_active_uniforms; }
+
     private:
         GLuint m_program_id = 0;
         mutable std::unordered_map<std::string, GLint> m_uniform_location_cache;
+        std::vector<ShaderUniformDesc> m_active_uniforms;
     };
 } // namespace ID
 

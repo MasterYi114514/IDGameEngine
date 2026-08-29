@@ -40,6 +40,12 @@ namespace ID
             m_param_defaults[name] = MaterialParam(value);
         }
 
+        // 非模板重载：直接写入构造好的 MaterialParam（供反射默认值填充 / DevGUI 写回使用）
+        void set_param(const std::string& name, const MaterialParam& param)
+        {
+            m_param_defaults[name] = param;
+        }
+
         bool has_param(const std::string& name) const;
         void remove_param(const std::string& name) { m_param_defaults.erase(name); }
 
@@ -65,7 +71,7 @@ namespace ID
 
     public:
         /**
-         *  @brief 将材质的默认参数应用到当前渲染管线 
+         *  @brief 将材质的默认参数应用到当前渲染管线
          *  底层会调用 apply_param() 将每个参数写入管线的 shader
          */
         void apply() const;

@@ -5,6 +5,7 @@
 #include "Resource/VertexBuffer/VertexBufferCreateInfo.hpp"
 #include "Resource/IndexBuffer/IndexBufferCreateInfo.hpp"
 #include "Resource/Shader/ShaderCreateInfo.hpp"
+#include "Resource/Shader/ShaderUniformDesc.hpp"
 #include "Resource/Texture/TextureCreateInfo.hpp"
 #include "Resource/Pipeline/PipelineCreateInfo.hpp"
 #include "Resource/FrameBuffer/FrameBufferCreateInfo.hpp"
@@ -39,7 +40,12 @@ namespace ID
         static IndexBufferID    create(const IndexBufferCreateInfo&     create_info)
             requires IndexBufferRes<T, ResType>;
 
+        // Shader 资源接口
         static ShaderID         create(const ShaderCreateInfo&          create_info)
+            requires ShaderRes<T, ResType>;
+
+        // 获取 shader link 后反射出的 active uniform 列表（无效 ID 返回空表）
+        static std::vector<ShaderUniformDesc> get_active_uniforms(const ShaderID& id)
             requires ShaderRes<T, ResType>;
 
         static TextureID        create(const TextureCreateInfo&         create_info)

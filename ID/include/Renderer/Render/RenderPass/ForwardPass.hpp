@@ -22,7 +22,7 @@ namespace ID
         static constexpr uint32_t MAX_LIGHTS = 8;
 
         ForwardPass(FrameBufferID output_fb = FrameBufferID::invalid_id(),
-            const Vec3& ambient = Vec3(0.15f, 0.15f, 0.15f));
+            const Vec3& ambient = Vec3(1.0f, 1.0f, 1.0f));
         virtual ~ForwardPass() override = default;
 
     public:

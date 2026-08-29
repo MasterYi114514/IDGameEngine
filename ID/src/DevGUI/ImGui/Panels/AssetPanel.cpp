@@ -5,7 +5,9 @@
 #include "Scene/SceneManager.hpp"
 #include "Scene/Component/MeshRendererComponent.hpp"
 #include "Renderer/Material/MaterialLibrary.hpp"
+#include "Renderer/Material/MaterialReflection.hpp"
 #include "Renderer/Resource/ShaderManager.hpp"
+#include "DevGUI/ImGui/Widgets/MaterialParamWidget.hpp"
 #include "Log/Log.hpp"
 
 #include <cstring>
@@ -293,8 +295,11 @@ namespace ID
                     Material* mat = MaterialLibrary::add(shader_id, mat_name);
                     if(is_new)
                     {
-                        // 新材质只补默认颜色；纹理由用户显式拖拽绑定（无纹理时采样默认黑色）
-                        mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
+                        // 新材质按 shader 反射填充默认参数；纹理由用户显式拖拽绑定（无纹理时采样默认黑色）
+                        for(const EditableParamDesc& desc : get_editable_params(shader_id))
+                        {
+                            mat->set_param(desc.name, make_default_param(desc));
+                        }
                     }
                     ID_INFO("AssetPanel：已创建材质 '{}'（shader: {}）", mat_name, selected_shader);
                 }
@@ -365,27 +370,73 @@ namespace ID
                 }
             }
 
-            // 第二行：u_color 颜色编辑（独立一行，避免条目过长）
-            const auto& defaults = mat->get_param_defaults();
-            const auto color_it = defaults.find("u_color");
-            float color[3] = { 1.0f, 1.0f, 1.0f };
-            if(color_it != defaults.end() && color_it->second.type == MaterialParamType::Vec3)
+            // 参数编辑子区（默认收起，避免材质列表过长）：反射 shader 全部可编辑参数
+            if(ImGui::TreeNode(("参数##mat_params_" + mat->get_name()).c_str()))
             {
-                color[0] = color_it->second.value[0];
-                color[1] = color_it->second.value[1];
-                color[2] = color_it->second.value[2];
-            }
-            else
-            {
-                // 材质缺省 u_color（如从材质库文件加载的材质）：补默认白色，
-                // 保证按钮显示的颜色与实际渲染使用的 u_color 一致
-                mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
-            }
-            ImGui::Text("  u_color");
-            ImGui::SameLine();
-            if(ImGui::ColorEdit3(("##u_color_" + mat->get_name()).c_str(), color))
-            {
-                mat->set_param("u_color", Vec3(color[0], color[1], color[2]));
+                const std::vector<EditableParamDesc> editable =
+                    get_editable_params(mat->get_shader());
+
+                // shader 现存参数名集合（供陈旧参数判断）
+                std::set<std::string> shader_param_names;
+                for(const EditableParamDesc& desc : editable)
+                {
+                    shader_param_names.insert(desc.name);
+                }
+
+                for(const EditableParamDesc& desc : editable)
+                {
+                    ImGui::PushID(desc.name.c_str());
+
+                    // 当前值：材质已有该参数 → 取之；没有 → 类型默认值（仅显示，改动才写入材质）
+                    const auto& defaults = mat->get_param_defaults();
+                    const auto param_it = defaults.find(desc.name);
+                    MaterialParam param = (param_it != defaults.end()) ? param_it->second
+                        : make_default_param(desc);
+                    param.type = desc.type;    // 类型以 shader 反射为准，纠正旧数据类型漂移
+
+                    ImGui::TextUnformatted(desc.name.c_str());
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(%s)", material_param_type_tag(desc.type));
+                    ImGui::SameLine();
+                    if(draw_material_param_editor(param, desc.is_color))
+                    {
+                        mat->set_param(desc.name, param);   // 仅控件修改时写回
+                    }
+
+                    // 右键菜单：移除参数（风格参照本文件材质右键重命名菜单，PushID 已隔离 ID）
+                    if(ImGui::BeginPopupContextItem("##ctx_remove_param"))
+                    {
+                        if(ImGui::MenuItem("移除参数"))
+                        {
+                            mat->remove_param(desc.name);
+                        }
+                        ImGui::EndPopup();
+                    }
+
+                    ImGui::PopID();
+                }
+
+                // 材质中存在但 shader 已不存在的陈旧参数：警告 + 移除按钮
+                // （先收集名字再逐个渲染，避免边遍历 map 边 remove 导致迭代器失效）
+                std::vector<std::string> stale_names;
+                for(const auto& [pname, pparam] : mat->get_param_defaults())
+                {
+                    if(pparam.is_valid() && shader_param_names.find(pname) == shader_param_names.end())
+                    {
+                        stale_names.push_back(pname);
+                    }
+                }
+                for(const std::string& pname : stale_names)
+                {
+                    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.4f, 1.0f), "%s (shader 中已不存在)", pname.c_str());
+                    ImGui::SameLine();
+                    if(ImGui::SmallButton(("移除##stale_" + pname).c_str()))
+                    {
+                        mat->remove_param(pname);
+                    }
+                }
+
+                ImGui::TreePop();
             }
         }
 

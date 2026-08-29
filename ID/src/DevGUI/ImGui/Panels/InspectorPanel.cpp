@@ -12,6 +12,8 @@
 #include "Scene/Audio/AudioManager.hpp"
 #include "Renderer/Mesh/MeshFactory.hpp"
 #include "Renderer/Material/MaterialLibrary.hpp"
+#include "Renderer/Material/MaterialReflection.hpp"
+#include "DevGUI/ImGui/Widgets/MaterialParamWidget.hpp"
 #include "Log/Log.hpp"
 
 #include <cstring>
@@ -442,6 +444,69 @@ namespace ID
             ImGui::EndCombo();
         }
 
+        // ---- Material 参数 Override 编辑（材质有效时）----
+        MaterialInstance& material_inst = model.get_material();
+        if(const Material* parent = material_inst.get_parent())
+        {
+            if(ImGui::TreeNode("材质参数 (Override)"))
+            {
+                const auto& overrides = material_inst.get_param_overrides();
+                const auto& defaults  = parent->get_param_defaults();
+                for(const EditableParamDesc& desc : get_editable_params(parent->get_shader()))
+                {
+                    ImGui::PushID(desc.name.c_str());
+
+                    // 显示值优先级：override > 父默认 > 类型默认
+                    const auto oit = overrides.find(desc.name);
+                    const auto dit = defaults.find(desc.name);
+                    MaterialParam param = (oit != overrides.end()) ? oit->second
+                        : (dit != defaults.end()) ? dit->second
+                        : make_default_param(desc);
+                    param.type = desc.type;                 // 类型以 shader 反射为准，纠正旧数据类型漂移
+
+                    const bool overridden = (oit != overrides.end());
+                    if(overridden)
+                    {
+                        ImGui::TextUnformatted("[*]");    // override 徽标
+                    }
+                    else
+                    {
+                        ImGui::TextUnformatted("   ");     // 与徽标对齐占位
+                    }
+                    ImGui::SameLine();
+                    ImGui::TextUnformatted(desc.name.c_str());
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(%s)", material_param_type_tag(desc.type));
+                    ImGui::SameLine();
+                    if(draw_material_param_editor(param, desc.is_color))
+                    {
+                        material_inst.set_param_value(desc.name, param);   // 写入 override
+                    }
+
+                    if(overridden)
+                    {
+                        ImGui::SameLine();
+                        if(ImGui::SmallButton("重置##reset_override"))
+                        {
+                            // 注意：clear_override 会连带清同名 texture override；
+                            // 本计划 uniform 名与 sampler 名约定不重叠，可接受此折中
+                            material_inst.clear_override(desc.name);
+                        }
+                    }
+
+                    ImGui::PopID();
+                }
+
+                ImGui::Spacing();
+                if(ImGui::Button("Clear All Overrides"))
+                {
+                    material_inst.clear_all_overrides();
+                }
+
+                ImGui::TreePop();
+            }
+        }
+
         // ---- Material 区拖拽接收（从 Asset Browser 拖入 shader / 纹理）----
         ImGui::TextDisabled("拖拽 shader / 纹理 到此处选择资源");
         if(ImGui::BeginDragDropTarget())
@@ -452,12 +517,15 @@ namespace ID
                 ShaderID shader_id = AssetManager::load_shader(name);
                 if(shader_id.is_valid())
                 {
-                    // 用新 shader 重建材质并绑定到模型；新材质只补默认颜色，纹理由用户显式拖拽绑定
+                    // 用新 shader 重建材质并绑定到模型；新材质按反射填充默认参数，纹理由用户显式拖拽绑定
                     const bool is_new = !MaterialLibrary::contains(name);
                     Material* mat = MaterialLibrary::add(shader_id, name);
                     if(is_new)
                     {
-                        mat->set_param("u_color", Vec3(1.0f, 1.0f, 1.0f));
+                        for(const EditableParamDesc& desc : get_editable_params(shader_id))
+                        {
+                            mat->set_param(desc.name, make_default_param(desc));
+                        }
                     }
                     model.set_material(MaterialInstance(*mat));
                     ID_INFO("[Inspector] 已用 shader '{}' 重建材质", name);

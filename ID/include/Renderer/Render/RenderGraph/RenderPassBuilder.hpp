@@ -19,12 +19,12 @@ namespace ID
         std::function<std::unique_ptr<RenderPass>()>   create;    // 默认构造闭包（自动补加用）
     };
 
-    /*
+    /**
     *   RenderPassBuilder：Pass 声明构建器。
     *   仅在 RenderGraph::add_pass 内部构造（构造函数私有，友元 RenderGraph），
     *   传给 RenderPass::setup() 声明本 Pass 读/写哪些资源；声明收拢后写入图节点。
-    *   ⚠️ 禁止在 setup 中做任何 GPU 操作——只做依赖声明。
-    *   ⚠️ "想让别人读到你的输出，就必须在别人之前声明"（版本时间线语义）。
+    *   @warning 禁止在 setup 中做任何 GPU 操作——只做依赖声明。
+    *   "想让别人读到你的输出，就必须在别人之前声明"（版本时间线语义）。
     */
     class ID_API RenderPassBuilder
     {
@@ -44,7 +44,7 @@ namespace ID
         /**
          *  声明前置依赖 Pass（参考 Component 前置组件模式）：
          *  若图中未添加该类型 Pass，则自动补加（默认构造，物理上插到当前 Pass 之前声明，保证版本线正确）；
-         *  ⚠️ 仅用于硬依赖（缺失则渲染错误）；可选增强（如 Forward 之于 Shadow）不要声明，
+         *  仅用于硬依赖（缺失则渲染错误）；可选增强（如 Forward 之于 Shadow）不要声明，
          *  否则开关语义失效（悬空警告已覆盖提示）。
          */
         template<typename PassType>

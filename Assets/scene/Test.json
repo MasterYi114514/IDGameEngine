@@ -1,0 +1,215 @@
+{
+    "game_objects": [
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        1.0,
+                        1.0,
+                        1.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "position": [
+                            0.0,
+                            1.0,
+                            0.0
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
+                            "parent_name": "geoMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "latitude_segments": 16,
+                                "longitude_segments": 32,
+                                "radius": 0.5,
+                                "primitive_type": "Sphere"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "1"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_light": {
+                        "drop": [
+                            1.0,
+                            -1.0,
+                            0.0
+                        ],
+                        "outer_cone_angle": 30.0,
+                        "inner_cone_angle": 15.0,
+                        "intensity": 0.69999998807907104,
+                        "color": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "type": "Directional"
+                    },
+                    "is_active": true,
+                    "type": "LightComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "Light"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        10.0,
+                        1.0,
+                        10.0
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
+                            "parent_name": "geoMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "side_length": 1.0,
+                                "primitive_type": "Cube"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "Cube"
+        }
+    ],
+    "name": "Test",
+    "material_library": [
+        {
+            "info": {
+                "texture_defaults": {},
+                "param_defaults": {
+                    "u_spec_strength": {
+                        "value": [
+                            0.5
+                        ],
+                        "type": "Float"
+                    },
+                    "u_shininess": {
+                        "value": [
+                            32.0
+                        ],
+                        "type": "Float"
+                    },
+                    "u_color": {
+                        "value": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "type": "Vec3"
+                    },
+                    "u_ambient_strength": {
+                        "value": [
+                            0.10000000149011612
+                        ],
+                        "type": "Float"
+                    }
+                },
+                "name": "geoMaterial",
+                "shader_id": {
+                    "fra_path": "../Assets/shader/geometry.fsl",
+                    "ver_path": "../Assets/shader/geometry.vsl"
+                }
+            },
+            "name": "geoMaterial"
+        }
+    ]
+}

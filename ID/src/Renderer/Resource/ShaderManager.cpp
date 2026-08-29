@@ -42,6 +42,12 @@ namespace ID
         return {};
     }
 
+    std::vector<ShaderUniformDesc> ShaderManager::get_active_uniforms(ShaderID shader_id)
+    {
+        // 注意：全局 ::ShaderManager（IDRenderer 别名）被本类遮蔽，需全局限定
+        return ::ShaderManager::get_active_uniforms(shader_id);
+    }
+
     Json ShaderManager::serialize_shader(ShaderID shader_id, ArenaID arena_id)
     {
         Json json = Json::create_object(arena_id);

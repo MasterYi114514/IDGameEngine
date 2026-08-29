@@ -198,4 +198,17 @@ namespace ID
     {
         return IDR_ResVB(id)->get_vertex_count();
     }
+
+    // Shader 其它接口：返回 shader 反射出的 active uniform 列表拷贝（列表很小，拷贝可接受）
+    template<>
+    IDR_API std::vector<ShaderUniformDesc> ResourceManager<ShaderUINT, ResourceType::Shader>::get_active_uniforms(const ShaderID& id)
+    {
+        Shader* shader = IDR_ResShader(id);
+        if(!shader)
+        {
+            IDR_ERROR("传入无效的 ShaderID，无法获取 active uniform 列表");
+            return {};
+        }
+        return shader->get_active_uniforms();
+    }
 } // namespace ID

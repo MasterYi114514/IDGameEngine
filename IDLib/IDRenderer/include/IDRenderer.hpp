@@ -28,6 +28,7 @@ using UBManager         = ID::ResourceManager<ID::UniformBufferUINT,    ID::Reso
 #include "Resource/Shader/ShaderSourceLoader.hpp"
 #include "Resource/Shader/ShaderParamConcept.hpp"
 #include "Resource/Shader/ShaderCreateInfo.hpp"
+#include "Resource/Shader/ShaderUniformDesc.hpp"
 
 // Resource/Texture
 #include "Resource/Texture/TextureCreateInfo.hpp"

@@ -8,8 +8,8 @@ in vec3 v_normal;
 
 uniform sampler2D texture_sampler;
 
-uniform vec3  u_color;           // 材质颜色调制
-uniform vec3  u_camera_pos;      // 相机位置（高光用）
+uniform vec3  u_color;           // 材质颜色
+uniform vec3  u_camera_pos;      // 相机位置
 uniform vec3  u_ambient;
 
 uniform int   u_light_count;
@@ -23,7 +23,12 @@ uniform int       u_shadow_enabled;      // 0 = 本帧无阴影（跳过阴影�
 uniform float     u_shadow_bias;         // 深度偏移（防止自阴影）
 uniform int       u_shadow_pcf_radius;   // PCF 采样半径（0→1×1, 1→3×3, 2→5×5, 3→7×7）
 
-// PCF 软阴影：返回 0.0（全阴影）~ 1.0（全亮）
+// phong 光照模型参数
+uniform float u_ambient_strength;           // 环境光强度系数
+uniform float u_spec_strength;              // 镜面反射系数
+uniform float u_shininess;                  // 高光指数
+
+// PCF：返回 0.0（全阴影）~ 1.0（全亮）
 float compute_shadow(vec3 world_pos)
 {
     if (u_shadow_enabled == 0)
@@ -60,6 +65,31 @@ float compute_shadow(vec3 world_pos)
     return shadow / sample_count;
 }
 
+vec3 calc_ambient(float strength, vec3 light_color)
+{
+    return strength * light_color;
+}
+
+vec3 calc_diffuse(vec3 normal, vec3 light_dir, float kd, vec3 light_color)
+{
+    float diff = max(dot(normal, light_dir), 0.0);
+    return diff * kd * light_color;
+}
+
+vec3 calc_spec_phong(vec3 normal, vec3 light_dir, vec3 view_dir, float ks, float shininess, vec3 light_color)
+{
+    vec3 reflect_dir = reflect(-light_dir, normal);
+    float spec = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
+    return spec * ks * light_color;
+}
+
+vec3 calc_spec_blinn_phong(vec3 normal, vec3 light_dir, vec3 view_dir, float ks, float shininess, vec3 light_color)
+{
+    vec3 half_dir = normalize(light_dir + view_dir);
+    float spec = pow(max(dot(normal, half_dir), 0.0), shininess);
+    return spec * ks * light_color;
+}
+
 void main()
 {
     vec4 tex_color = texture(texture_sampler, v_uv);
@@ -67,7 +97,7 @@ void main()
     vec3 N = normalize(v_normal);
 
     // 环境光
-    vec3 result = u_ambient * base_color;
+    vec3 result = calc_ambient(u_ambient_strength, u_ambient) * base_color;
 
     for (int i = 0; i < u_light_count; ++i)
     {
@@ -82,14 +112,17 @@ void main()
             L = normalize(u_light_positions[i] - v_world_pos);
         }
 
-        float diff = max(dot(N, L), 0.0);
-        float shadow = (u_light_dirs[i] != vec3(0.0)) ? compute_shadow(v_world_pos) : 1.0;
-        result += u_light_colors[i] * diff * base_color * shadow;
+        // 漫反射
+        vec3 diffuse = calc_diffuse(N, L, 1.0, u_light_colors[i]);
 
-        vec3 V = normalize(u_camera_pos - v_world_pos);
-        vec3 H = normalize(L + V);
-        float spec = pow(max(dot(N, H), 0.0), 32.0);
-        result += u_light_colors[i] * spec * 0.3;
+        // 镜面反射
+        vec3 specular = calc_spec_blinn_phong(N, L, normalize(u_camera_pos - v_world_pos), 
+            u_spec_strength, u_shininess, u_light_colors[i]);
+
+        // 阴影
+        float shadow = u_light_dirs[i] != vec3(0.0) ? compute_shadow(v_world_pos) : 1.0;
+
+        result += diffuse * base_color * shadow + specular;
     }
 
     FragColor = vec4(result, 1.0);

@@ -39,6 +39,7 @@ namespace ID
         // 有纹理的材质会在 material.apply() 中重新绑定自己的纹理
         IDRCmd::unbind_texture(0);
 
+        // 写入材质参数，包括父级默认值 + 局部覆盖
         material.apply();
 
         set_frame_uniforms(ctx, shader, ambient);

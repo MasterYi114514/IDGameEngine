@@ -8,8 +8,8 @@
 namespace ID
 {
     class RenderPassBuilder;
-    struct RGPassNode;       // 内部节点（定义见 src/Renderer/Render/RenderGraph/RenderGraph.hpp，不对外）
-    struct RGResourceNode;   // 内部资源时间线（同上）
+    struct RGPassNode;
+    struct RGResourceNode;
 
     /*
     *   RenderGraph：渲染图 = 节点(Pass) + 边(资源依赖)。
@@ -58,18 +58,24 @@ namespace ID
         /** 清空节点与资源时间线（Pass 热插拔 = clear + 重建模式） */
         void clear();
 
-        /** 编译：推导校验 + 拓扑排序 + 剔除。改动后未编译则 execute 自动触发 */
+        /** 
+         *  @brief 进行 推导校验 + 拓扑排序 + 剔除。
+        */
         bool compile();
 
-        /** 按拓扑序执行；编译失败则拒绝执行并 ID_ERROR */
+        /** 
+         *  @brief 按拓扑序执行；编译失败则拒绝执行并 ID_ERROR。
+         *  底层会判断 m_dirty 标记，并在结构有变动时先 compile()，compile 失败（环等）时拒绝执行
+         *  @param ctx 渲染上下文（帧级参数 + 批次列表 + 渲染目标）
+         *  @note 仅执行未剔除的 Pass
+        */
         void execute(RenderContext& ctx);
 
-        // ——— 查询与调试 ———
-        // 实现均位于 .cpp：成员 m_nodes 含不完整类型 RGPassNode，内联访问会触发容器实例化
+        //  查询与调试 
         size_t                          get_pass_count() const;                     // 未剔除的数量
         const std::vector<std::string>& get_execution_order() const { return m_execution_order; } // 编译产物
-        bool                            export_graphviz(std::string& out) const;                  // DevGUI 用
-        RenderPass*                     find_pass_by_type(std::type_index type);                  // 同类型检索（无则 nullptr）
+        bool                            export_graphviz(std::string& out) const;
+        RenderPass*                     find_pass_by_type(std::type_index type);                  
 
     private:
         friend class RenderPassBuilder;
@@ -77,7 +83,6 @@ namespace ID
         uint32_t register_node(std::unique_ptr<RenderPass> pass);   // setup + 版本建边
         void     derive_edges(RGPassNode& node);                    // RAW/WAW/WAR 规则
 
-        // 内部结构定义见 src/Renderer/Render/RenderGraph/RenderGraph.hpp（不对外）
         std::vector<RGPassNode>                         m_nodes;          // Pass 节点（声明序）
         std::vector<RGResourceNode>                     m_resources;      // 资源版本时间线（大小 = RGResource::Count）
         std::vector<uint32_t>                           m_order;          // 编译后的拓扑序（节点索引）
