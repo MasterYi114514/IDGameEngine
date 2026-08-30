@@ -52,7 +52,10 @@ namespace ID
         static void set_object_uniforms(RenderContext& ctx, ShaderID shader, const ModelSE& entry);
 
         /**
-         *  ctx.shadow_enabled 为 true 时，表示当前帧启用了阴影渲染
+         *  前向路径阴影装配：绑定阴影 array 纹理（slot 1/2 raw+cmp）+ ShadowBlock UBO（binding 0）。
+         *  ctx.shadow_enabled 为 true 时，表示当前帧启用了阴影渲染（UBO 已由 ShadowPass 上传完整数据）；
+         *  无阴影帧时 ShadowPass 已上传 enabled=0 的块，shader 端跳过阴影计算，此处无需额外动作。
+         *  ⚠ 延迟路径对应实现见 LightingPass::execute（槽位后移 3/4），两处必须同步维护。
          */
         static void apply_shadow(RenderContext& ctx, ShaderID shader);
 

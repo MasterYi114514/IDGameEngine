@@ -123,5 +123,13 @@ namespace ID
          * @note   等价于 glm::scale
          */
         Mat4  IDMATH_API    get_scale(const Vec3& scale);
+
+        /**
+         * @brief  计算 4×4 矩阵的逆矩阵
+         * @param  mat  待求逆矩阵
+         * @return 逆矩阵（奇异矩阵返回单位矩阵）
+         * @note   等价于 glm::inverse
+         */
+        Mat4  IDMATH_API    get_inverse(const Mat4& mat);
     } // namespace Math
 } // namespace ID

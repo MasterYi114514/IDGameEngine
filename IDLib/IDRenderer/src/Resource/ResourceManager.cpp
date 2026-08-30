@@ -8,6 +8,7 @@
 #include "Resource/Texture/Texture.hpp"
 #include "Resource/Pipeline/Pipeline.hpp"
 #include "Resource/FrameBuffer/FrameBuffer.hpp"
+#include "Resource/Sampler/Sampler.hpp"
 #include "Resource/UniformBuffer/UniformBuffer.hpp"
 
 namespace
@@ -25,6 +26,7 @@ namespace
     ResourcePool<ID::TextureUINT, ID::Texture>              g_TexturePool;
     ResourcePool<ID::PipelineUINT, ID::Pipeline>            g_PipelinePool;
     ResourcePool<ID::FrameBufferUINT, ID::FrameBuffer>      g_FBPool;
+    ResourcePool<ID::SamplerUINT, ID::Sampler>              g_SamplerPool;
     ResourcePool<ID::UniformBufferUINT, ID::UniformBuffer>  g_UBPool;
 
 #define SLOT_IMPL(res_type, res_pool)                       \
@@ -50,6 +52,7 @@ namespace
         SLOT_IMPL(Texture,      g_TexturePool);
         SLOT_IMPL(Pipeline,     g_PipelinePool);
         SLOT_IMPL(FrameBuffer,  g_FBPool);
+        SLOT_IMPL(Sampler,      g_SamplerPool);
         SLOT_IMPL(UniformBuffer, g_UBPool);
 
         return new_id;
@@ -78,6 +81,7 @@ namespace
         DESTROY_IMPL(Texture,       g_TexturePool);
         DESTROY_IMPL(Pipeline,      g_PipelinePool);
         DESTROY_IMPL(FrameBuffer,   g_FBPool);
+        DESTROY_IMPL(Sampler,       g_SamplerPool);
         DESTROY_IMPL(UniformBuffer, g_UBPool);
     }
 } // 匿名命名空间
@@ -139,6 +143,11 @@ namespace ID::ResourceGetter
     {
         GET_IMPL(UniformBuffer, g_UBPool);
     }
+
+    Sampler*        get_sampler         (const SamplerID        id)
+    {
+        GET_IMPL(Sampler,       g_SamplerPool);
+    }
 } // namespace ID::ResourceGetter
 
 namespace ID
@@ -174,6 +183,7 @@ namespace ID
     CREATE_IMPL(Texture,        g_TexturePool);
     CREATE_IMPL(Pipeline,       g_PipelinePool);
     CREATE_IMPL(FrameBuffer,    g_FBPool);
+    CREATE_IMPL(Sampler,        g_SamplerPool);
     CREATE_IMPL(UniformBuffer,  g_UBPool);
 
 #define DESTROY_RES_IMPL(res_type, res_pool)                                                    \
@@ -190,6 +200,7 @@ namespace ID
     DESTROY_RES_IMPL(Texture,       g_TexturePool);
     DESTROY_RES_IMPL(Pipeline,      g_PipelinePool);
     DESTROY_RES_IMPL(FrameBuffer,   g_FBPool);
+    DESTROY_RES_IMPL(Sampler,       g_SamplerPool);
     DESTROY_RES_IMPL(UniformBuffer, g_UBPool);
     
     // VertexBuffer 其它接口

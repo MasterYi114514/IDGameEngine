@@ -1,5 +1,6 @@
 #include "Renderer/Render/RenderPass/LightingPass.hpp"
 #include "Renderer/IDRCore.hpp"
+#include "Renderer/Render/RendererSettings.hpp"
 #include "Renderer/Render/RenderGraph/RenderPassBuilder.hpp"
 #include "Renderer/Render/FullscreenQuad.hpp"
 #include "Renderer/Render/RenderContext.hpp"
@@ -103,26 +104,34 @@ namespace ID
         IDRCmd::bind_framebuffer_color(ctx.gbuffer_fb, 2, 2);
         IDRCmd::set_param(m_pipeline, "u_gbuffer_normal", 2);
 
-        // 阴影：uniform 名与值照抄 RenderPass::apply_shadow，仅 u_shadow_map 槽位改为 3
-        if (ctx.shadow_enabled && ctx.shadow_fb.is_valid())
+        // 阴影：槽位与 RenderPass::apply_shadow 对应，仅后移（raw 3 / cmp 4）
+        if (ctx.shadow_enabled && ctx.shadow_fb.is_valid() && ctx.shadow_depth_array.is_valid()
+            && ctx.shadow_sampler_cmp.is_valid() && ctx.shadow_ubo.is_valid())
         {
-            IDRCmd::bind_framebuffer_depth(ctx.shadow_fb, 3);
-            IDRCmd::set_param(m_pipeline, "u_shadow_enabled", 1);
+            // 同一张 array 纹理绑两个槽：raw（blocker search 读原始深度）+ cmp（硬件比较采样）
+            IDRCmd::bind_texture(ctx.shadow_depth_array, 3);
+            IDRCmd::bind_sampler(ctx.shadow_sampler_raw, 3);
+            IDRCmd::bind_texture(ctx.shadow_depth_array, 4);
+            IDRCmd::bind_sampler(ctx.shadow_sampler_cmp, 4);
             IDRCmd::set_param(m_pipeline, "u_shadow_map", 3);
-            IDRCmd::set_param(m_pipeline, "u_light_space_mvp", ctx.light_view_proj);
-            IDRCmd::set_param(m_pipeline, "u_shadow_bias", ctx.shadow_bias);
-            IDRCmd::set_param(m_pipeline, "u_shadow_pcf_radius", ctx.shadow_pcf_radius);
-            IDRCmd::set_param(m_pipeline, "u_shadow_light_index", ctx.shadow_light_index);
+            IDRCmd::set_param(m_pipeline, "u_shadow_map_cmp", 4);
+
+            // ShadowBlock UBO（P9：与 RenderPass::apply_shadow 一致，一次 bind 替代 10+ 次逐元素 set_param）
+            IDRCmd::bind_uniform_buffer(ctx.shadow_ubo, 0);
+            // CSM 选层需要主相机 view（延迟路径无顶点着色器提供，勿漏！）
+            IDRCmd::set_param(m_pipeline, "u_view", ctx.camera.get_view_matrix());
         }
-        else
-        {
-            IDRCmd::set_param(m_pipeline, "u_shadow_enabled", 0);
-            IDRCmd::set_param(m_pipeline, "u_shadow_light_index", -1);
-        }
+        // 无阴影帧：UBO 已由 ShadowPass 上传 enabled=0 的块，shader 端跳过阴影计算，无需额外动作
 
         // 相机 + 环境光
         IDRCmd::set_param(m_pipeline, "u_camera_pos", ctx.camera.get_pose().position);
         IDRCmd::set_param(m_pipeline, "u_ambient", m_ambient);
+
+        // 光照模型 / PBR 全局参数（RendererSettings，与 RenderPass::set_frame_uniforms 一致）
+        const RendererSettings& settings = get_renderer_settings();
+        IDRCmd::set_param(m_pipeline, "u_lighting_model", static_cast<int>(settings.lighting_model));
+        IDRCmd::set_param(m_pipeline, "u_metallic",       settings.metallic);
+        IDRCmd::set_param(m_pipeline, "u_roughness",      settings.roughness);
 
         // 光源数组 uniform：逐元素 set_param（名字数组模式与 RenderPass.cpp 一致，上限 32）
         if (ctx.lights.size() > MAX_LIGHTS)

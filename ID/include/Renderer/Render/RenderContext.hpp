@@ -3,6 +3,7 @@
 #include "IDpch.hpp"
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Light/Light.hpp"
+#include "Renderer/Shadow/ShadowConfig.hpp"   // MAX_CASCADES
 #include "Renderer/IDRCore.hpp"
 #include "Renderer/Mesh/Model.hpp"
 
@@ -93,10 +94,22 @@ namespace ID
         FrameBufferID              viewport_fb = FrameBufferID::invalid_id();
         
         // 阴影贴图渲染目标
-        FrameBufferID              shadow_fb = FrameBufferID::invalid_id();
+        FrameBufferID              shadow_fb = FrameBufferID::invalid_id();          // RenderGraph 依赖声明引用（语义不变）
+        TextureID                  shadow_depth_array = TextureID::invalid_id();     // 阴影深度 array 纹理（采样绑定用，ShadowPass 写回）
+        SamplerID                  shadow_sampler_raw = SamplerID::invalid_id();    // 阴影 raw 采样器（NEAREST，blocker search 用）
+        SamplerID                  shadow_sampler_cmp = SamplerID::invalid_id();    // 阴影 cmp 采样器（LINEAR + REF_TO_TEXTURE，硬件 PCF）
+        UniformBufferID            shadow_ubo = UniformBufferID::invalid_id();      // 阴影 ShadowBlock UBO（P9；消费点 bind binding 0）
         bool                       shadow_enabled = false;      // 此帧是否启用阴影渲染
+
+        // 级联阴影（ShadowPass 逐层写回；P8 起 shader 消费。复位由 ShadowPass::execute 开头统一执行）
+        uint32_t                   cascade_count   = 1;                              // 实际渲染层数（1 = 关闭 CSM）
+        Mat4                       light_view_projs[MAX_CASCADES];                   // 各层光源 VP（逐层写回）
+        float                      cascade_splits[MAX_CASCADES];                     // 各层远边界（视空间距离，正数）
+        float                      cascade_bias_scales[MAX_CASCADES];                // 各层 bias 缩放（texel 尺寸维度；复位段填 1.0f）
+
+        // 旧单级联字段（= 层 0 值；P8 前 shader 过渡期可用）
         Mat4                       light_view_proj = Math::get_identity_mat4();   // 光源视图投影矩阵
-        float                      shadow_bias = 0.0002f;       // 阴影深度偏移（防止自阴影）
+        float                      shadow_bias = 0.002f;       // 阴影深度偏移（防止自阴影）
         int                        shadow_pcf_radius = 1;       // PCF 采样半径（0→1×1, 1→3×3, 2→5×5, 3→7×7）
         int                        shadow_light_index = -1;      // 主方向光在光源数组中的下标（-1 表示无）
     };

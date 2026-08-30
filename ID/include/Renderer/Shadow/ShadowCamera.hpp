@@ -5,6 +5,7 @@
 #include "Renderer/IDRCore.hpp"
 #include "Renderer/Camera/Camera.hpp"
 #include "Renderer/Shadow/ShadowConfig.hpp"
+#include "Renderer/Render/RendererSettings.hpp"
 
 namespace ID
 {
@@ -13,6 +14,8 @@ namespace ID
         Mat4 view_proj = Math::get_identity_mat4();    // 光源视图投影矩阵
         Mat4 view = Math::get_identity_mat4();         // 光源视图矩阵
         Mat4 proj = Math::get_identity_mat4();         // 光源投影矩阵
+        float far_bound = 0.0f;                        // 本层视锥远边界（视空间距离，正数；shader 选层用）
+        float bias_scale = 1.0f;                       // 本层 AABB 宽度 / 层 0 宽度（texel 尺寸维度 bias 缩放；单级联恒 1.0）
     };
 
     class ShadowCamera
@@ -44,7 +47,11 @@ namespace ID
         DirectionalShadowConfig& get_config() { return m_config; }
         const DirectionalShadowConfig& get_config() const { return m_config; }
 
-        virtual uint32_t get_view_count() const override { return 1; }
+        virtual uint32_t get_view_count() const override
+        {
+            // 层数唯一事实来源：RendererSettings::cascade_count（1 = 关闭 CSM）
+            return std::clamp(get_renderer_settings().cascade_count, 1u, MAX_CASCADES);
+        }
         virtual ShadowView compute_view(uint32_t index, const Camera& main_camera) const override;
 
         void set_direction(const Vec3& dir) { m_direction = dir; m_direction.normalize(); }
@@ -53,6 +60,9 @@ namespace ID
     private:
         Vec3 m_direction = Vec3(0.0f, -1.0f, 0.0f);    // 光源方向
         DirectionalShadowConfig m_config;
+
+        // 层 0 AABB 宽度缓存（bias_scale 计算用；compute_view 必须按 0..count-1 顺序调用，ShadowPass 即如此）
+        mutable float m_layer0_extent = 0.0f;
     };
 
     // TODO : PointShadowCamera / SpotShadowCamera

@@ -56,6 +56,13 @@ namespace ID::Math
         return result;
     }
 
+    Mat4 get_inverse(const Mat4& mat)
+    {
+        Mat4 result;
+        result.get_glm_mat() = glm::inverse(mat.get_glm_mat());
+        return result;
+    }
+
 } // namespace ID::Math
 
 #else
@@ -213,6 +220,74 @@ namespace ID::Math
         result[1][1] = scale[1];
         result[2][2] = scale[2];
         result[3][3] = 1.0f;
+        return result;
+    }
+
+    Mat4 get_inverse(const Mat4& mat)
+    {
+        // 高斯-约当消元法求 4×4 逆矩阵（奇异矩阵返回单位矩阵）
+        float a[4][8];
+        for (int r = 0; r < 4; ++r)
+        {
+            for (int c = 0; c < 4; ++c)
+            {
+                a[r][c]     = mat.element(r, c);
+                a[r][c + 4] = (r == c) ? 1.0f : 0.0f;
+            }
+        }
+
+        for (int col = 0; col < 4; ++col)
+        {
+            // 选主元
+            int pivot = col;
+            for (int r = col + 1; r < 4; ++r)
+            {
+                if (std::abs(a[r][col]) > std::abs(a[pivot][col]))
+                {
+                    pivot = r;
+                }
+            }
+            if (std::abs(a[pivot][col]) < 1e-8f)
+            {
+                return Mat4::get_identity();   // 奇异矩阵
+            }
+
+            if (pivot != col)
+            {
+                for (int c = 0; c < 8; ++c)
+                {
+                    std::swap(a[pivot][c], a[col][c]);
+                }
+            }
+
+            // 归一化主元行
+            const float inv_pivot = 1.0f / a[col][col];
+            for (int c = 0; c < 8; ++c)
+            {
+                a[col][c] *= inv_pivot;
+            }
+
+            // 消去其他行
+            for (int r = 0; r < 4; ++r)
+            {
+                if (r == col) continue;
+                const float factor = a[r][col];
+                if (factor == 0.0f) continue;
+                for (int c = 0; c < 8; ++c)
+                {
+                    a[r][c] -= factor * a[col][c];
+                }
+            }
+        }
+
+        Mat4 result;
+        for (int r = 0; r < 4; ++r)
+        {
+            for (int c = 0; c < 4; ++c)
+            {
+                result.element(r, c) = a[r][c + 4];
+            }
+        }
         return result;
     }
 

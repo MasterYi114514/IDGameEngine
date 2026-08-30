@@ -55,5 +55,6 @@ namespace ID
     using PipelineID = ResourceID<PipelineUINT, ResourceType::Pipeline>;
     using TextureID = ResourceID<TextureUINT, ResourceType::Texture>;
     using FrameBufferID = ResourceID<FrameBufferUINT, ResourceType::FrameBuffer>;
+    using SamplerID = ResourceID<SamplerUINT, ResourceType::Sampler>;
     using UniformBufferID = ResourceID<UniformBufferUINT, ResourceType::UniformBuffer>;
 } // namespace ID

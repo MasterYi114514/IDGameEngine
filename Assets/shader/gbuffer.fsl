@@ -8,7 +8,6 @@
 //    RT2 (location=2) RGBA16F  : xyz = Normal（世界空间法线），a = shininess
 //  uniform 与 geometry.fsl 材质段同名（texture_sampler / u_color / u_ambient_strength /
 //  u_spec_strength / u_shininess），材质参数以 gbuffer shader 为目标直接复用
-//  （见 GBufferPass::apply_material）。
 // ============================================================================
 
 layout(location = 0) out vec4 GBuffer0;

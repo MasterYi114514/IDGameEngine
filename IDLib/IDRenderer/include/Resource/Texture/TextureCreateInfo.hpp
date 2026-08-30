@@ -37,6 +37,8 @@ namespace ID
 
         uint32_t      width      = 0;
         uint32_t      height     = 0;
+        uint32_t      layers     = 1;          // 纹理层数；>1 → GL_TEXTURE_2D_ARRAY（CSM 级联阴影等分层纹理）
+        bool          is_array   = false;      // 强制 array 形态（1 层亦为 GL_TEXTURE_2D_ARRAY；ShadowMap 统一形态用）
         TextureFormat format     = TextureFormat::RGBA8;
         TextureFilter filter     = TextureFilter::Linear;
         TextureWrap   wrap_s     = TextureWrap::Repeat;

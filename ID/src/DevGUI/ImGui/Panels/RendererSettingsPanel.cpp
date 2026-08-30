@@ -1,10 +1,13 @@
 #include "DevGUI/ImGui/Panels/RendererSettingsPanel.hpp"
 
 #include <fstream>
+#include <typeindex>
 
 #include "Application/Application.hpp"
 #include "Renderer/IDRCore.hpp"
 #include "Renderer/Render/Renderer.hpp"
+#include "Renderer/Render/RendererSettings.hpp"
+#include "Renderer/Render/RenderPass/ShadowPass.hpp"
 #include "Log/Log.hpp"
 
 namespace
@@ -98,14 +101,156 @@ namespace ID
             }
         }
 
-        // 顶部开关与节点图按钮共用同一状态源，变更统一走 apply_pipeline
+        // 顶部开关：Shadow Mapping 在前（其参数组紧随其后显示），Skybox/Post Processing 在后
+        // 开关与节点图按钮共用同一状态源，变更统一走 apply_pipeline
         bool changed = false;
         changed |= ImGui::Checkbox("Shadow Mapping", &m_shadow_mapping);
+        if(changed)
+        {
+            apply_pipeline();
+        }
+
+        // Shadow 参数组（从属于 Shadow Mapping：勾选才展开，缩进显示层级）
+        if(m_shadow_mapping)
+        {
+            ImGui::Indent();
+
+            ImGui::Separator();
+
+            // Shadow Quality：Low/Medium/High/Ultra Combo → 直连 ShadowPass 相机配置
+            // （ShadowPass 每帧 ensure_resources 按尺寸重建贴图，即改即生效）
+            ImGui::Text("Shadow Quality:");
+            {
+                if(ShadowPass* shadow_pass = static_cast<ShadowPass*>(
+                       Renderer::get_render_graph().find_pass_by_type(std::type_index(typeid(ShadowPass)))))
+                {
+                    ShadowQuality& quality = shadow_pass->get_camera().get_config().param.quality;
+                    const char* quality_names[] = { "Low (512)", "Medium (1024)", "High (2048)", "Ultra (4096)" };
+                    int current_quality = static_cast<int>(quality);   // Combo 需可写指针（回写选择）
+                    ImGui::SetNextItemWidth(360.0f);
+                    if(ImGui::Combo("Quality", &current_quality, quality_names, 4))
+                    {
+                        quality = static_cast<ShadowQuality>(current_quality);
+                    }
+                    ImGui::TextDisabled("PCF radius: %u  (0=1x1, 1=3x3, 2=5x5, 3=7x7)",
+                        shadow_quality_to_pcf_kernel_size(quality));
+                }
+            }
+
+            ImGui::Separator();
+
+            // Shadow Bias（ShadowPass → ShadowCamera 配置，即改即生效；ShadowPass 每帧读取）
+            // 管线重装配（clear + 重建）会更换 Pass 实例 → 每帧 find_pass_by_type，不缓存指针
+            ImGui::Text("Shadow Bias:");
+            {
+                if(ShadowPass* shadow_pass = static_cast<ShadowPass*>(
+                       Renderer::get_render_graph().find_pass_by_type(std::type_index(typeid(ShadowPass)))))
+                {
+                    ShadowParam& param = shadow_pass->get_camera().get_config().param;
+                    ImGui::SetNextItemWidth(360.0f);
+                    ImGui::DragFloat("Depth Bias", &param.bias, 0.0001f, 0.0f, 0.01f, "%.5f");
+                    ImGui::SetNextItemWidth(360.0f);
+                    ImGui::DragFloat("Normal Bias", &param.normal_bias, 0.001f, 0.0f, 0.5f, "%.4f");
+                    ImGui::TextDisabled("effective bias = Depth Bias x clamp(1/N.L, 1, 10) (slope-scaled)");
+                }
+            }
+
+            ImGui::Separator();
+
+            // Shadow Filtering：直接读写 RendererSettings（无面板本地副本，即改即生效）
+            ImGui::Text("Shadow Filtering:");
+            {
+                RendererSettings& settings = get_renderer_settings();
+                const int current_filter = static_cast<int>(settings.shadow_filter);
+                if(ImGui::RadioButton("Hard", current_filter == 0))
+                {
+                    settings.shadow_filter = ShadowFilter::Hard;
+                }
+                ImGui::SameLine();
+                if(ImGui::RadioButton("PCF", current_filter == 1))
+                {
+                    settings.shadow_filter = ShadowFilter::PCF;
+                }
+                ImGui::SameLine();
+                if(ImGui::RadioButton("PCSS", current_filter == 2))
+                {
+                    settings.shadow_filter = ShadowFilter::PCSS;
+                }
+
+                // 面光源尺寸（仅 PCSS 模式显示）
+                if(current_filter == 2)
+                {
+                    ImGui::SetNextItemWidth(360.0f);
+                    ImGui::DragFloat("Light Size", &settings.light_size, 0.1f, 1.0f, 50.0f);
+                }
+            }
+
+            ImGui::Separator();
+
+            // Cascaded Shadow Maps (CSM)：Enable 4 层 / 关闭 1 层 + PSSM 分割参数（直接写 RendererSettings）
+            ImGui::Text("Cascaded Shadow Maps (CSM):");
+            {
+                RendererSettings& settings = get_renderer_settings();
+                bool csm_enabled = (settings.cascade_count > 1);
+                if(ImGui::Checkbox("Enable CSM", &csm_enabled))
+                {
+                    settings.cascade_count = csm_enabled ? 4 : 1;
+                }
+                ImGui::TextDisabled("Current cascade count: %u", settings.cascade_count);
+
+                ImGui::SetNextItemWidth(360.0f);
+                ImGui::DragFloat("Cascade Lambda", &settings.cascade_lambda, 0.01f, 0.0f, 1.0f, "%.3f");
+                ImGui::TextDisabled("0 = uniform split, 1 = logarithmic split");
+
+                ImGui::SetNextItemWidth(360.0f);
+                ImGui::DragFloat("Cascade Far Override", &settings.cascade_far_override, 1.0f, 0.0f, 1000.0f, "%.1f");
+                ImGui::TextDisabled("0 = follow camera far, >0 = manual tighten");
+            }
+
+            ImGui::Unindent();
+        }
+
+        changed = false;
         changed |= ImGui::Checkbox("Skybox", &m_skybox);
         changed |= ImGui::Checkbox("Post Processing", &m_post_processing);
         if(changed)
         {
             apply_pipeline();
+        }
+
+        ImGui::Separator();
+
+        // Lighting Model：直接读写 RendererSettings（无面板本地副本，即改即生效）
+        ImGui::Text("Lighting Model:");
+        {
+            RendererSettings& settings = get_renderer_settings();
+            const int current_model = static_cast<int>(settings.lighting_model);
+            if(ImGui::RadioButton("Phong", current_model == 0))
+            {
+                settings.lighting_model = LightingModel::Phong;
+            }
+            ImGui::SameLine();
+            if(ImGui::RadioButton("Blinn-Phong", current_model == 1))
+            {
+                settings.lighting_model = LightingModel::BlinnPhong;
+            }
+            ImGui::SameLine();
+            if(ImGui::RadioButton("PBR", current_model == 2))
+            {
+                settings.lighting_model = LightingModel::PBR;
+            }
+
+            // PBR 全局参数（仅 PBR 模式显示，直接写 settings）
+            if(current_model == 2)
+            {
+                ImGui::Indent();
+                ImGui::Text("PBR Parameters:");
+                ImGui::SetNextItemWidth(360.0f);
+                ImGui::DragFloat("Metallic", &settings.metallic, 0.01f, 0.0f, 1.0f);
+                ImGui::SetNextItemWidth(360.0f);
+                ImGui::DragFloat("Roughness", &settings.roughness, 0.01f, 0.0f, 1.0f);
+                ImGui::Unindent();
+            }
         }
 
         ImGui::Separator();

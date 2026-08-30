@@ -4,6 +4,9 @@
 
 namespace ID
 {
+    // 级联阴影最大层数（唯一事实来源；层数本身由 RendererSettings::cascade_count 控制）
+    inline constexpr uint32_t MAX_CASCADES = 4;
+
     enum class ShadowQuality : uint8_t
     {
         Low     = 0,    //  512², 无 PCF
@@ -28,7 +31,7 @@ namespace ID
     struct ShadowParam
     {
         ShadowQuality quality = ShadowQuality::High;    // 阴影质量
-        float         bias = 0.0002f;                   // 阴影偏移（防止自阴影）
+        float         bias = 0.0015f;                  // 阴影偏移（防止自阴影）
         float         normal_bias = 0.02f;             // 法线偏移（防止自阴影）
     };
 

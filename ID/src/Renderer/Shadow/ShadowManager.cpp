@@ -12,7 +12,7 @@ namespace ID
         ShadowMapPool g_shadow_map_pool;
     }
 
-    ShadowMapID ShadowManager::create(FrameBufferID fb, ShadowMapType map_type)
+    ShadowMapID ShadowManager::create(uint32_t size, uint32_t layer_count, ShadowMapType map_type)
     {
         SMUINT new_id = g_shadow_map_pool.search_slot();
         if(new_id == static_cast<SMUINT>(-1))
@@ -23,14 +23,15 @@ namespace ID
 
         if(new_id >= g_shadow_map_pool.m_pool.size())
         {
-            g_shadow_map_pool.m_pool.emplace_back(fb, map_type);
+            g_shadow_map_pool.m_pool.emplace_back(size, layer_count);
         }
         else
         {
-            g_shadow_map_pool.m_pool[new_id] = ShadowMap(fb, map_type);
+            g_shadow_map_pool.m_pool[new_id] = ShadowMap(size, layer_count);
         }
+        g_shadow_map_pool.m_pool[new_id].set_type(map_type);
 
-        ID_TRACE("[ShadowManager] 创建 ShadowMap id={}", new_id);
+        ID_TRACE("[ShadowManager] 创建 ShadowMap id={} size={} layers={}", new_id, size, layer_count);
 
         return ShadowMapID(new_id);
     }

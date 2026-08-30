@@ -31,6 +31,11 @@ namespace ID::RenderCommand
     // 绑定 FB 深度附件为采样纹理
     void IDR_API bind_framebuffer_depth(const FrameBufferID framebuffer, uint32_t slot);
 
+    // 将外部纹理的第 layer 层 attach 到 framebuffer 的深度附件（array 深度纹理逐层渲染用）。
+    // 语义：只改 FBO 当前深度附件指向，FBO 不持有该纹理所有权——生命周期由调用方管理。
+    void IDR_API attach_framebuffer_depth_layer(const FrameBufferID framebuffer,
+        const TextureID texture, uint32_t layer);
+
     // 将 src 帧缓冲的颜色附件 blit 到 dst 帧缓冲（尺寸相同）
     void IDR_API blit_framebuffer(const FrameBufferID src, const FrameBufferID dst,
         uint32_t width, uint32_t height);
@@ -109,5 +114,16 @@ namespace ID::RenderCommand
 
     void IDR_API bind_texture(const TextureID texture, uint32_t slot);
     void IDR_API unbind_texture(uint32_t slot);
+
+    // 绑定 sampler object 到纹理槽（sampler 状态优先于纹理对象参数；cmp/raw 双采样状态用）
+    void IDR_API bind_sampler(const SamplerID sampler, uint32_t slot);
+    void IDR_API unbind_sampler(uint32_t slot);
+
+    // 绑定 UBO 到指定绑定点（glBindBufferBase；与 shader layout(std140, binding=N) 对应）
+    void IDR_API bind_uniform_buffer(const UniformBufferID ub, uint32_t binding_point);
+
+    // 更新 UBO 数据（从 offset 起更新 size 字节；glBufferSubData，调用方确保 ub 有效）
+    void IDR_API update_uniform_buffer(const UniformBufferID ub,
+        const void* data, size_t size, size_t offset = 0);
 
 } // namespace ID::RenderCommand

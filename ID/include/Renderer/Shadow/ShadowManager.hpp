@@ -18,7 +18,8 @@ namespace ID
         ~ShadowManager() = delete;
         
     public:
-        static ShadowMapID create(FrameBufferID fb = FrameBufferID::invalid_id(), 
+        // 创建 array 深度阴影贴图（layer_count = 1 亦走 array 路径，统一形态）
+        static ShadowMapID create(uint32_t size, uint32_t layer_count = 1,
             ShadowMapType map_type = ShadowMapType::Texture2D);
 
         static ShadowMap*  get_shadow_map(ShadowMapID id);

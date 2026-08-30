@@ -14,6 +14,7 @@ namespace ID
         Pipeline,
         Texture,
         FrameBuffer,
+        Sampler,
         UniformBuffer
     };
 
@@ -26,6 +27,7 @@ namespace ID
     IDR_UINT_IMPL(Pipeline,     std::uint16_t);
     IDR_UINT_IMPL(Texture,      std::uint32_t);
     IDR_UINT_IMPL(FrameBuffer,  std::uint8_t);
+    IDR_UINT_IMPL(Sampler,      std::uint16_t);
     IDR_UINT_IMPL(UniformBuffer, std::uint32_t);
 #else
     IDR_UINT_IMPL(VertexBuffer, std::uint32_t);
@@ -34,6 +36,7 @@ namespace ID
     IDR_UINT_IMPL(Pipeline,     std::uint16_t);
     IDR_UINT_IMPL(Texture,      std::uint32_t);
     IDR_UINT_IMPL(Framebuffer,  std::uint8_t);
+    IDR_UINT_IMPL(Sampler,      std::uint16_t);
     IDR_UINT_IMPL(UniformBuffer, std::uint32_t);
 #endif
 
@@ -49,5 +52,6 @@ namespace ID
     IDR_ConceptImpl(Pipeline);
     IDR_ConceptImpl(Texture);
     IDR_ConceptImpl(FrameBuffer);
+    IDR_ConceptImpl(Sampler);
     IDR_ConceptImpl(UniformBuffer);
 } // namespace ID

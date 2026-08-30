@@ -1,6 +1,8 @@
 #include "Render/RenderCommand.hpp"
 #include "Resource/ResourceGetter.hpp"
 
+#include "Log/Log.hpp"
+
 #ifdef IDRENDERER_USE_OPENGL
 
 #include <glad/glad.h>
@@ -310,15 +312,71 @@ namespace ID::RenderCommand
     // bind_texture
     void bind_texture(const TextureID texture, uint32_t slot)
     {
+        Texture* tex = IDR_ResTexture(texture);
+        if (!tex) return;
+
         glActiveTexture(GL_TEXTURE0 + slot);
-        glBindTexture(GL_TEXTURE_2D, IDR_ResTexture(texture)->get_texture_id());
+        glBindTexture(tex->get_target(), tex->get_texture_id());
     }
 
     // unbind_texture
     void unbind_texture(uint32_t slot)
     {
+        // 槽上残留纹理的 target 不可知 → 同时解绑 2D 与 2D_ARRAY
+        // （2D 解绑不清 array 残留；两次调用均为低成本 no-op）
         glActiveTexture(GL_TEXTURE0 + slot);
         glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    }
+
+    // bind_sampler
+    void bind_sampler(const SamplerID sampler, uint32_t slot)
+    {
+        Sampler* s = IDR_ResSampler(sampler);
+        if (!s) return;
+        glBindSampler(slot, s->get_sampler());
+    }
+
+    // unbind_sampler
+    void unbind_sampler(uint32_t slot)
+    {
+        glBindSampler(slot, 0);
+    }
+
+    // bind_uniform_buffer
+    void bind_uniform_buffer(const UniformBufferID ub, uint32_t binding_point)
+    {
+        UniformBuffer* ubo = IDR_ResUBO(ub);
+        if (!ubo) return;
+        glBindBufferBase(GL_UNIFORM_BUFFER, binding_point, ubo->get_ubo());
+    }
+
+    // update_uniform_buffer
+    void update_uniform_buffer(const UniformBufferID ub,
+        const void* data, size_t size, size_t offset)
+    {
+        UniformBuffer* ubo = IDR_ResUBO(ub);
+        if (!ubo) return;
+        ubo->update_data(data, size, offset);
+    }
+
+    // attach_framebuffer_depth_layer
+    void attach_framebuffer_depth_layer(const FrameBufferID framebuffer,
+        const TextureID texture, uint32_t layer)
+    {
+        Texture* tex = IDR_ResTexture(texture);
+        FrameBuffer* fb = IDR_ResFB(framebuffer);
+        if (!tex || !fb) return;
+
+        if (layer >= tex->get_layers())
+        {
+            IDR_WARN("attach_framebuffer_depth_layer: layer {} 超出纹理层数 {}", layer, tex->get_layers());
+            return;
+        }
+
+        glBindFramebuffer(GL_FRAMEBUFFER, fb->get_FBO());
+        glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+            tex->get_texture_id(), 0, static_cast<GLint>(layer));
     }
 
 } // namespace ID::RenderCommand

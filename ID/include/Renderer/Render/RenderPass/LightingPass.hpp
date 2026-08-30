@@ -12,6 +12,8 @@ namespace ID
      *  并把 G-Buffer 深度 blit 到场景 FBO（供后续 Skybox/Transparent 深度测试）。
      *  - 光源上限 MAX_LIGHTS = 32（延迟路径较前向 8 提升；与 deferred_lighting.fsl 数组长度一致）
      *  - 光照/阴影公式与 geometry.fsl（前向）逐段一致，两路径画面互为验收基准
+     *  - 阴影：array 纹理绑 slot 3/4（raw+cmp），ShadowBlock UBO（binding 0）由 ShadowPass 上传，
+     *    本 Pass 仅 bind + 补设 u_view（CSM 选层需要主相机 view，延迟路径无 vs 提供）
      */
     class ID_API LightingPass : public RenderPass
     {

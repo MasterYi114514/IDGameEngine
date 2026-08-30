@@ -14,6 +14,7 @@ using ShaderManager     = ID::ResourceManager<ID::ShaderUINT,           ID::Reso
 using TextureManager    = ID::ResourceManager<ID::TextureUINT,          ID::ResourceType::Texture>;
 using PipelineManager   = ID::ResourceManager<ID::PipelineUINT,         ID::ResourceType::Pipeline>;
 using FBManager         = ID::ResourceManager<ID::FrameBufferUINT,      ID::ResourceType::FrameBuffer>;
+using SamplerManager    = ID::ResourceManager<ID::SamplerUINT,          ID::ResourceType::Sampler>;
 using UBManager         = ID::ResourceManager<ID::UniformBufferUINT,    ID::ResourceType::UniformBuffer>;
 
 // Resource/VertexBuffer
@@ -32,6 +33,10 @@ using UBManager         = ID::ResourceManager<ID::UniformBufferUINT,    ID::Reso
 
 // Resource/Texture
 #include "Resource/Texture/TextureCreateInfo.hpp"
+
+// Resource/Sampler
+#include "Resource/Sampler/SamplerParam.hpp"
+#include "Resource/Sampler/SamplerCreateInfo.hpp"
 
 // Resource/Pipeline
 #include "Resource/Pipeline/PipelineState.hpp"

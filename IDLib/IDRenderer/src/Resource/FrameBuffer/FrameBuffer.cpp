@@ -81,10 +81,14 @@ namespace ID
             glDrawBuffer(GL_NONE);
         }
 
-        // 检查 FBO 是否完整
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        // 检查 FBO 是否完整。无任何附件时跳过：该形态供外部 attach 深度层的调用方使用
+        // （如 ShadowMap 的 array 深度 FBO，完整性由 attach 后保证）
+        if (!m_color_texs.empty() || m_depth_tex != 0)
         {
-            IDR_ERROR("OpenGL实现下，Framebuffer 不完整");
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            {
+                IDR_ERROR("OpenGL实现下，Framebuffer 不完整");
+            }
         }
 
         // 解绑 FBO 与 纹理

@@ -1,5 +1,6 @@
 #include "Renderer/IDRCore.hpp"
 #include "Renderer/Render/RenderPass/RenderPass.hpp"
+#include "Renderer/Render/RendererSettings.hpp"
 #include "Renderer/Mesh/Model.hpp"
 #include "Renderer/Mesh/Mesh.hpp"
 #include "Renderer/Render/RenderContext.hpp"
@@ -93,6 +94,12 @@ namespace ID
             }
             IDRCmd::set_param(shader, light_color_name[i], color);
         }
+
+        // 光照模型 / PBR 全局参数（RendererSettings，与 LightingPass 一致）
+        const RendererSettings& settings = get_renderer_settings();
+        IDRCmd::set_param(shader, "u_lighting_model", static_cast<int>(settings.lighting_model));
+        IDRCmd::set_param(shader, "u_metallic",       settings.metallic);
+        IDRCmd::set_param(shader, "u_roughness",      settings.roughness);
     }
 
     void RenderPass::set_object_uniforms(RenderContext& ctx, ShaderID shader, const ModelSE& entry)
@@ -106,20 +113,21 @@ namespace ID
 
     void RenderPass::apply_shadow(RenderContext& ctx, ShaderID shader)
     {
-        if(ctx.shadow_enabled && ctx.shadow_fb.is_valid())
+        if(ctx.shadow_enabled && ctx.shadow_fb.is_valid() && ctx.shadow_depth_array.is_valid()
+            && ctx.shadow_sampler_cmp.is_valid() && ctx.shadow_ubo.is_valid())
         {
-            IDRCmd::bind_framebuffer_depth(ctx.shadow_fb, 1);
-            IDRCmd::set_param(shader, "u_shadow_enabled", 1);
+            // 同一张 array 纹理绑两个槽：raw（blocker search 读原始深度）+ cmp（硬件比较采样）
+            IDRCmd::bind_texture(ctx.shadow_depth_array, 1);
+            IDRCmd::bind_sampler(ctx.shadow_sampler_raw, 1);
+            IDRCmd::bind_texture(ctx.shadow_depth_array, 2);
+            IDRCmd::bind_sampler(ctx.shadow_sampler_cmp, 2);
             IDRCmd::set_param(shader, "u_shadow_map", 1);
-            IDRCmd::set_param(shader, "u_light_space_mvp", ctx.light_view_proj);
-            IDRCmd::set_param(shader, "u_shadow_bias", ctx.shadow_bias);
-            IDRCmd::set_param(shader, "u_shadow_pcf_radius", ctx.shadow_pcf_radius);
-            IDRCmd::set_param(shader, "u_shadow_light_index", ctx.shadow_light_index);
+            IDRCmd::set_param(shader, "u_shadow_map_cmp", 2);
+
+            // ShadowBlock UBO（P9：ShadowPass 每帧一次 glBufferSubData 上传全部阴影数据，
+            // 替代 P8 的 10+ 次逐元素 set_param；u_view 已由 set_frame_uniforms 设置）
+            IDRCmd::bind_uniform_buffer(ctx.shadow_ubo, 0);
         }
-        else
-        {
-            IDRCmd::set_param(shader, "u_shadow_enabled", 0);
-            IDRCmd::set_param(shader, "u_shadow_light_index", -1);
-        }
+        // 无阴影帧：UBO 已由 ShadowPass 上传 enabled=0 的块，shader 端跳过阴影计算，无需额外动作
     }
 } // namespace ID

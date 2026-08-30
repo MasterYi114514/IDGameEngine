@@ -7,6 +7,7 @@
 #include "Resource/Texture/Texture.hpp"
 #include "Resource/Pipeline/Pipeline.hpp"
 #include "Resource/FrameBuffer/FrameBuffer.hpp"
+#include "Resource/Sampler/Sampler.hpp"
 #include "Resource/UniformBuffer/UniformBuffer.hpp"
 
 namespace ID::ResourceGetter
@@ -17,6 +18,7 @@ namespace ID::ResourceGetter
     Texture*        get_texture         (const TextureID        id);
     Pipeline*       get_pipeline        (const PipelineID       id);
     FrameBuffer*    get_frame_buffer    (const FrameBufferID    id);
+    Sampler*        get_sampler         (const SamplerID        id);
     UniformBuffer*  get_uniform_buffer  (const UniformBufferID  id);
 
 } // namespace ID::ResourceGetter
@@ -28,4 +30,5 @@ namespace ID::ResourceGetter
 #define IDR_ResTexture(id)      ::ID::ResourceGetter::get_texture(id)
 #define IDR_ResPipeline(id)     ::ID::ResourceGetter::get_pipeline(id)
 #define IDR_ResFB(id)           ::ID::ResourceGetter::get_frame_buffer(id)
+#define IDR_ResSampler(id)      ::ID::ResourceGetter::get_sampler(id)
 #define IDR_ResUBO(id)          ::ID::ResourceGetter::get_uniform_buffer(id)

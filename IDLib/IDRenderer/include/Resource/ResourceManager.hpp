@@ -7,6 +7,7 @@
 #include "Resource/Shader/ShaderCreateInfo.hpp"
 #include "Resource/Shader/ShaderUniformDesc.hpp"
 #include "Resource/Texture/TextureCreateInfo.hpp"
+#include "Resource/Sampler/SamplerCreateInfo.hpp"
 #include "Resource/Pipeline/PipelineCreateInfo.hpp"
 #include "Resource/FrameBuffer/FrameBufferCreateInfo.hpp"
 #include "Resource/UniformBuffer/UniformBufferCreateInfo.hpp"
@@ -60,6 +61,9 @@ namespace ID
         static UniformBufferID  create(const UniformBufferCreateInfo&   create_info)
             requires UniformBufferRes<T, ResType>;
 
+        static SamplerID        create(const SamplerCreateInfo&         create_info)
+            requires SamplerRes<T, ResType>;
+
         // destroy 接口
 
 
@@ -81,5 +85,8 @@ namespace ID
 
         static void destroy(const UniformBufferID& id)
             requires UniformBufferRes<T, ResType>;
+
+        static void destroy(const SamplerID& id)
+            requires SamplerRes<T, ResType>;
     };
 } // namespace ID

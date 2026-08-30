@@ -18,7 +18,7 @@
                         ],
                         "position": [
                             0.0,
-                            1.0,
+                            0.0,
                             0.0
                         ]
                     },
@@ -70,7 +70,7 @@
                 }
             ],
             "is_active": true,
-            "name": "1"
+            "name": "ball"
         },
         {
             "children": [],
@@ -78,13 +78,13 @@
                 {
                     "m_light": {
                         "drop": [
-                            1.0,
-                            -1.0,
-                            0.0
+                            3.0,
+                            -4.0,
+                            5.0
                         ],
                         "outer_cone_angle": 30.0,
                         "inner_cone_angle": 15.0,
-                        "intensity": 0.69999998807907104,
+                        "intensity": 0.30000001192092896,
                         "color": [
                             1.0,
                             1.0,
@@ -97,7 +97,7 @@
                 }
             ],
             "is_active": true,
-            "name": "Light"
+            "name": "LightDir"
         },
         {
             "children": [],
@@ -117,7 +117,7 @@
                         ],
                         "position": [
                             0.0,
-                            0.0,
+                            -1.0,
                             0.0
                         ]
                     },
@@ -168,6 +168,157 @@
             ],
             "is_active": true,
             "name": "Cube"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_light": {
+                        "drop": [
+                            -10.0,
+                            5.0,
+                            5.0
+                        ],
+                        "outer_cone_angle": 30.0,
+                        "inner_cone_angle": 15.0,
+                        "intensity": 0.20000000298023224,
+                        "color": [
+                            0.97890293598175049,
+                            0.012391186319291592,
+                            0.012391186319291592
+                        ],
+                        "type": "Point"
+                    },
+                    "is_active": true,
+                    "type": "LightComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "l1"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_light": {
+                        "drop": [
+                            -5.0,
+                            5.0,
+                            5.0
+                        ],
+                        "outer_cone_angle": 30.0,
+                        "inner_cone_angle": 15.0,
+                        "intensity": 0.20000000298023224,
+                        "color": [
+                            0.23260901868343353,
+                            0.012391186319291592,
+                            0.97890293598175049
+                        ],
+                        "type": "Point"
+                    },
+                    "is_active": true,
+                    "type": "LightComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "l2"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_scale": [
+                        1.5,
+                        1.0,
+                        0.69999998807907104
+                    ],
+                    "m_pose": {
+                        "ori(Quat)": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "position": [
+                            0.0,
+                            0.0,
+                            3.0
+                        ]
+                    },
+                    "is_active": true,
+                    "type": "TransformComponent"
+                },
+                {
+                    "model": {
+                        "local_transform": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "material": {
+                            "param_overrides": {},
+                            "texture_overrides": {
+                                "texture_sampler": {
+                                    "slot": 0,
+                                    "tex_path": "../Assets/texture/1.png"
+                                }
+                            },
+                            "parent_name": "geoMaterial"
+                        },
+                        "mesh": {
+                            "info": {
+                                "side_length": 1.0,
+                                "primitive_type": "Cube"
+                            },
+                            "source_type": "Primitive"
+                        }
+                    },
+                    "is_active": true,
+                    "type": "MeshRendererComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "table"
+        },
+        {
+            "children": [],
+            "components": [
+                {
+                    "m_light": {
+                        "drop": [
+                            4.0,
+                            9.0,
+                            -10.0
+                        ],
+                        "outer_cone_angle": 30.0,
+                        "inner_cone_angle": 15.0,
+                        "intensity": 0.20000000298023224,
+                        "color": [
+                            0.0077622951939702034,
+                            0.91983121633529663,
+                            0.44647890329360962
+                        ],
+                        "type": "Point"
+                    },
+                    "is_active": true,
+                    "type": "LightComponent"
+                }
+            ],
+            "is_active": true,
+            "name": "l3"
         }
     ],
     "name": "Test",
@@ -198,7 +349,7 @@
                     },
                     "u_ambient_strength": {
                         "value": [
-                            0.10000000149011612
+                            0.05000000074505806
                         ],
                         "type": "Float"
                     }
