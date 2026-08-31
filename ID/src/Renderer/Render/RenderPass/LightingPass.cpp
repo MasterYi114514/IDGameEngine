@@ -8,6 +8,8 @@
 
 #include "Log/Log.hpp"
 
+#include <cmath>
+
 namespace ID
 {
     LightingPass::LightingPass(const Vec3& ambient) : RenderPass("LightingPass"), m_ambient(ambient) { }
@@ -16,9 +18,9 @@ namespace ID
     {
         // 硬依赖：没有几何数据光照无从谈起（GBufferPass 必须先执行）
         builder.requires_pass<GBufferPass>();
-        builder.reads(RGResource::GBuffer);      // 采样 G-Buffer 三附件
-        builder.reads(RGResource::ShadowMap);    // 采样阴影（无 ShadowPass 时悬空警告为预期第二道保险）
-        builder.writes(RGResource::SceneColor);  // 输出 HDR 场景色（供 Skybox/Transparent/PostProcess 读改写）
+        builder.reads(RGResourceName::GBuffer);      // 采样 G-Buffer 三附件
+        builder.reads(RGResourceName::ShadowMap);    // 采样阴影（无 ShadowPass 时悬空警告为预期第二道保险）
+        builder.writes(RGResourceName::SceneColor);  // 输出 HDR 场景色（供 Skybox/Transparent/PostProcess 读改写）
     }
 
     void LightingPass::ensure_resources()
@@ -121,7 +123,13 @@ namespace ID
             // CSM 选层需要主相机 view（延迟路径无顶点着色器提供，勿漏！）
             IDRCmd::set_param(m_pipeline, "u_view", ctx.camera.get_view_matrix());
         }
-        // 无阴影帧：UBO 已由 ShadowPass 上传 enabled=0 的块，shader 端跳过阴影计算，无需额外动作
+        else if (ctx.shadow_ubo.is_valid())
+        {
+            // 无阴影帧：仍 bind UBO（enabled=0 块，由 ShadowPass 上传或 Renderer 注入禁用 UBO），
+            // 防 binding 0 残留上帧 enabled=1 数据 → 关闭阴影后阴影残留
+            IDRCmd::bind_uniform_buffer(ctx.shadow_ubo, 0);
+            IDRCmd::set_param(m_pipeline, "u_view", ctx.camera.get_view_matrix());
+        }
 
         // 相机 + 环境光
         IDRCmd::set_param(m_pipeline, "u_camera_pos", ctx.camera.get_pose().position);
@@ -144,7 +152,11 @@ namespace ID
         for (uint32_t i = 0; i < light_count; ++i)
         {
             const Light& light = *(ctx.lights[i].light);
-            Vec3 color = light.color * light.intensity;
+            // 光色为 sRGB 空间用户输入：先 pow 线性化再乘 intensity（与 RenderPass::set_frame_uniforms 逐字一致）
+            Vec3 color{
+                std::pow(light.color[0], 2.2f) * light.intensity,
+                std::pow(light.color[1], 2.2f) * light.intensity,
+                std::pow(light.color[2], 2.2f) * light.intensity };
 
             const std::string dir_name  = "u_light_dirs[" + std::to_string(i) + "]";
             const std::string pos_name  = "u_light_positions[" + std::to_string(i) + "]";

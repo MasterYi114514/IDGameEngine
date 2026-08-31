@@ -14,6 +14,7 @@ namespace
             case ID::TextureFormat::RGBA8:      return GL_RGBA8;
             case ID::TextureFormat::RGBA16F:    return GL_RGBA16F;
             case ID::TextureFormat::Depth:      return GL_DEPTH_COMPONENT24;
+            case ID::TextureFormat::SRGB8_ALPHA8: return GL_SRGB8_ALPHA8;
             default:                            return GL_RGBA8;
         }
     }
@@ -28,6 +29,7 @@ namespace
             case ID::TextureFormat::RGBA8:      return GL_RGBA;
             case ID::TextureFormat::RGBA16F:    return GL_RGBA;
             case ID::TextureFormat::Depth:      return GL_DEPTH_COMPONENT;
+            case ID::TextureFormat::SRGB8_ALPHA8: return GL_RGBA;
             default:                            return GL_RGBA;
         }
     }

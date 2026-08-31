@@ -18,7 +18,7 @@ namespace ID
     {
         // 顺序由 SceneColor 的 RAW/WAW/WAR 边保证：Forward 或 Lighting 写入后本 Pass 才读改写；
         // 深度取自当前绑定的场景 FBO（前向 = ForwardPass 写入，延迟 = LightingPass 从 G-Buffer blit）
-        builder.read_writes(RGResource::SceneColor);   // 深度 LessEqual 填充背景，不清屏
+        builder.read_writes(RGResourceName::SceneColor);   // 深度 LessEqual 填充背景，不清屏
     }
 
     bool SkyboxPass::load_cubemap(const std::string& dir)

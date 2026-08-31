@@ -46,8 +46,8 @@ namespace ID
         // 内部：AudioManager::load(AudioDir + name)
         static AudioID   load_audio(const std::string& name);
 
-        // 内部：TextureManager::load_texture(TextureDir + name)
-        static TextureID load_texture(const std::string& name);  
+        // 内部：TextureManager::load_texture(TextureDir + name)；默认 srgb=false（面板预览语义）
+        static TextureID load_texture(const std::string& name, bool srgb = false);  
 
         // 内部：ShaderManager::create(ShaderDir + name + ".vsl", ShaderDir + name + ".fsl")
         static ShaderID  load_shader(const std::string& name);   

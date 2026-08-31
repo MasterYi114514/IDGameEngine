@@ -9,7 +9,7 @@ namespace
 
 namespace ID
 {
-    TextureID TextureManager::load_texture(const std::string& path)
+    TextureID TextureManager::load_texture(const std::string& path, bool srgb)
     {
         AssetPtr<TextureData> asset = AssetLibrary::load_texture(path);
         if(!asset.is_valid())
@@ -18,11 +18,18 @@ namespace ID
             return TextureID::invalid_id();
         }
 
+        // 格式选择：float 像素（.hdr）→ RGBA16F（数据本就线性，忽略 srgb 解码）；
+        // byte 像素：srgb=true → SRGB8_ALPHA8（采样时硬件解码到线性域，albedo 语义），
+        //            srgb=false → RGBA8（预览用途，ImGui 直接显示解码后值会偏暗）
+        const ID::TextureFormat fmt = asset->data.is_float ? ID::TextureFormat::RGBA16F
+                                    : (srgb ? ID::TextureFormat::SRGB8_ALPHA8
+                                            : ID::TextureFormat::RGBA8);
         TextureCreateInfo info
         { 
             static_cast<uint32_t>(asset->data.width), 
             static_cast<uint32_t>(asset->data.height), 
-            asset->data.pixels.get() 
+            asset->data.pixels.get(),
+            fmt
         };
         
         TextureID texture_id = ::TextureManager::create(info);

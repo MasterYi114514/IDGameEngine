@@ -14,7 +14,7 @@ namespace ID
 
     void GBufferPass::setup(RenderPassBuilder& builder)
     {
-        builder.writes(RGResource::GBuffer);   // 输出 ctx.gbuffer_fb（MRT：3 颜色附件 + 深度）
+        builder.writes(RGResourceName::GBuffer);   // 输出 ctx.gbuffer_fb（MRT：3 颜色附件 + 深度）
     }
 
     void GBufferPass::ensure_resources()

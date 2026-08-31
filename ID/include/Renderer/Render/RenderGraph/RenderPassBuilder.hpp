@@ -30,13 +30,13 @@ namespace ID
     {
     public:
         /** 读取资源（RAW 边：依赖该资源当前版本的写入者） */
-        void reads(RGResource res);
+        void reads(RGResourceName res);
 
         /** 写入资源（WAW 边：依赖前一版本写入者；WAR 边：依赖之前的读者），版本 +1 */
-        void writes(RGResource res);
+        void writes(RGResourceName res);
 
         /** 读改写（= reads + writes），如 Skybox/Transparent 对 SceneColor */
-        void read_writes(RGResource res);
+        void read_writes(RGResourceName res);
 
         /** 显式顺序依赖（逃生舱：无资源关系的副作用排序，如 "Clear 必须最先"） */
         void after(const RenderPass& target);

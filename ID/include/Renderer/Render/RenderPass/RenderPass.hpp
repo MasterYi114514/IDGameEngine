@@ -34,7 +34,7 @@ namespace ID
          *  声明阶段：声明本 Pass 读/写哪些资源（在 add_pass 时由 RenderGraph 调用）
          *  禁止在此做任何 GPU 操作——只做依赖声明
          */
-        virtual void setup(RenderPassBuilder& builder) { /* 默认无资源依赖 */ }
+        virtual void setup(RenderPassBuilder& builder) { /* 基类当然无资源依赖 */ }
 
         virtual void on_begin_frame() { }
         virtual void on_end_frame()   { }

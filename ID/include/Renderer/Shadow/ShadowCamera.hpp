@@ -15,7 +15,7 @@ namespace ID
         Mat4 view = Math::get_identity_mat4();         // 光源视图矩阵
         Mat4 proj = Math::get_identity_mat4();         // 光源投影矩阵
         float far_bound = 0.0f;                        // 本层视锥远边界（视空间距离，正数；shader 选层用）
-        float bias_scale = 1.0f;                       // 本层 AABB 宽度 / 层 0 宽度（texel 尺寸维度 bias 缩放；单级联恒 1.0）
+        float bias_scale = 1.0f;                       // 本层 AABB 宽度 / 层 0 宽度
     };
 
     class ShadowCamera

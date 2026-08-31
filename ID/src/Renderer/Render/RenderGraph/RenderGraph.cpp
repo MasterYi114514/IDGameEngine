@@ -8,11 +8,11 @@ namespace
     */
     void reset_resources(std::vector<ID::RGResourceNode>& resources)
     {
-        resources.assign(static_cast<size_t>(ID::RGResource::Count), ID::RGResourceNode{});
-        resources[static_cast<size_t>(ID::RGResource::ShadowMap)].name      = "ShadowMap";
-        resources[static_cast<size_t>(ID::RGResource::GBuffer)].name        = "GBuffer";
-        resources[static_cast<size_t>(ID::RGResource::SceneColor)].name     = "SceneColor";
-        resources[static_cast<size_t>(ID::RGResource::ViewportTarget)].name = "ViewportTarget";
+        resources.assign(static_cast<size_t>(ID::RGResourceName::Count), ID::RGResourceNode{});
+        resources[static_cast<size_t>(ID::RGResourceName::ShadowMap)].name      = "ShadowMap";
+        resources[static_cast<size_t>(ID::RGResourceName::GBuffer)].name        = "GBuffer";
+        resources[static_cast<size_t>(ID::RGResourceName::SceneColor)].name     = "SceneColor";
+        resources[static_cast<size_t>(ID::RGResourceName::ViewportTarget)].name = "ViewportTarget";
     }
 
     /*
@@ -321,7 +321,7 @@ namespace ID
             for(const RGHandle& h : node.reads)
             {
                 if(!h.is_valid()) continue;
-                const RGResource res = static_cast<RGResource>(h.slot);
+                const RGResourceName res = static_cast<RGResourceName>(h.slot);
                 if(std::find(view.reads.begin(), view.reads.end(), res) == view.reads.end())
                 {
                     view.reads.push_back(res);
@@ -330,7 +330,7 @@ namespace ID
             for(const RGHandle& h : node.writes)
             {
                 if(!h.is_valid()) continue;
-                const RGResource res = static_cast<RGResource>(h.slot);
+                const RGResourceName res = static_cast<RGResourceName>(h.slot);
                 if(std::find(view.writes.begin(), view.writes.end(), res) == view.writes.end())
                 {
                     view.writes.push_back(res);

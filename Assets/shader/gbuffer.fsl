@@ -30,7 +30,8 @@ uniform float u_shininess;          // 高光指数
 void main()
 {
     vec4 tex_color = texture(texture_sampler, v_uv);
-    vec3 albedo    = tex_color.rgb * u_color;
+    // u_color 为 sRGB 空间用户输入，写入 G-Buffer 前线性化（纹理由 sRGB 内部格式硬件解码）
+    vec3 albedo    = tex_color.rgb * pow(u_color, vec3(2.2));
 
     GBuffer0 = vec4(albedo, u_ambient_strength);
     GBuffer1 = vec4(v_world_pos, u_spec_strength);

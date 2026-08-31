@@ -36,6 +36,15 @@ namespace ID
         uint32_t cascade_count       = 1;         // 1 = 关闭 CSM
         float    cascade_lambda      = 0.75f;     // PSSM 分割系数（0 均匀 / 1 对数）
         float    cascade_far_override = 0.0f;     // 0 = 跟随相机 far_z；>0 手动收紧
+
+        // ── 后处理 / HDR（PostProcessPass 每帧读取；DevGUI 即改即生效，不触发管线重装配）──
+        bool     post_bloom        = true;    // Bloom 效果位
+        bool     post_tone_mapping = true;    // ACES ToneMapping 效果位
+        bool     post_gamma        = true;    // Gamma 2.2 输出校正效果位
+        float    bloom_threshold   = 1.0f;    // 亮部提取阈值（HDR 亮度）
+        float    bloom_strength    = 0.8f;    // composite 叠加强度
+        float    bloom_radius      = 1.0f;    // 模糊步长倍率（Phase 4 生效，先接线）
+        uint32_t bloom_mips        = 5;       // 降采样级数（Phase 4 生效，先接线）
     };
 
     /**

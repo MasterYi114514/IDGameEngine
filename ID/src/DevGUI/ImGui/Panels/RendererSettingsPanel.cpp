@@ -218,6 +218,40 @@ namespace ID
             apply_pipeline();
         }
 
+        // Post Processing 参数组（从属显示：管线开关开启才展示；组内效果位直连 RendererSettings，
+        // 每帧读取、即改即生效，不触发管线重装配——与 Shadow 参数组的 "直接读写" 模式一致）
+        if(m_post_processing)
+        {
+            ImGui::Indent();
+            ImGui::Separator();
+            ImGui::Text("Post Process Effects:");
+            {
+                RendererSettings& settings = get_renderer_settings();
+                ImGui::Checkbox("Bloom",            &settings.post_bloom);
+                ImGui::Checkbox("Tone Mapping (ACES)", &settings.post_tone_mapping);
+                ImGui::Checkbox("Gamma Correction", &settings.post_gamma);
+
+                if(settings.post_bloom)
+                {
+                    ImGui::SetNextItemWidth(360.0f);
+                    ImGui::DragFloat("Bloom Threshold", &settings.bloom_threshold, 0.01f, 0.0f, 4.0f, "%.2f");
+                    ImGui::SetNextItemWidth(360.0f);
+                    ImGui::DragFloat("Bloom Strength",  &settings.bloom_strength,  0.01f, 0.0f, 2.0f, "%.2f");
+                    ImGui::SetNextItemWidth(360.0f);
+                    ImGui::DragFloat("Bloom Radius", &settings.bloom_radius, 0.05f, 0.5f, 4.0f, "%.2f");
+                    ImGui::SetNextItemWidth(360.0f);
+                    int mips = static_cast<int>(settings.bloom_mips);
+                    if(ImGui::SliderInt("Bloom Mip Levels", &mips, 2, 6))
+                    {
+                        settings.bloom_mips = static_cast<uint32_t>(mips);
+                    }
+                    ImGui::TextDisabled("threshold: HDR 亮度阈值；mips 变化将重建 bloom 金字塔（下一帧自动）");
+                }
+                ImGui::TextDisabled("Post Processing = 管线装配开关（触发重建）；效果位每帧读取，不重建");
+            }
+            ImGui::Unindent();
+        }
+
         ImGui::Separator();
 
         // Lighting Model：直接读写 RendererSettings（无面板本地副本，即改即生效）

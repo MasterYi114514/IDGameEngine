@@ -303,7 +303,7 @@ void main()
     int   shadow_enabled     = int(u_shadow_misc.z);     // 0 = 本帧无阴影
     float shadow_bias        = u_shadow_misc.x;          // 深度偏移（防自阴影）
 
-    // 从 G-Buffer 重组 per-pixel 输入（附件布局见 gbuffer.fsl 顶部注释）
+    // 从 G-Buffer 重组 per-pixel 输入
     vec4 albedo_ambient = texture(u_gbuffer_albedo, v_uv);
     vec4 pos_spec       = texture(u_gbuffer_pos, v_uv);
     vec4 normal_shin    = texture(u_gbuffer_normal, v_uv);
@@ -315,8 +315,8 @@ void main()
     vec3  normal           = normalize(normal_shin.xyz);
     float shininess        = normal_shin.a;
 
-    // 环境光（与 geometry.fsl 一致；PBR 金属度工作流：金属表面无漫反射环境光）
-    vec3 ambient = calc_ambient(ambient_strength, u_ambient) * albedo;
+    // 环境光（与 geometry.fsl 一致；PBR 金属度工作流：金属表面无漫反射环境光）；u_ambient 为 sRGB 输入，先线性化
+    vec3 ambient = calc_ambient(ambient_strength, pow(u_ambient, vec3(2.2))) * albedo;
     if (u_lighting_model == 2)
     {
         ambient *= (1.0 - u_metallic);

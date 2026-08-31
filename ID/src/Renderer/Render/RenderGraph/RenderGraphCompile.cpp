@@ -63,7 +63,7 @@ namespace ID
         // 死 Pass 剔除：从最终输出（ViewportTarget 写入者）沿 preds 反向可达性分析
         //     显式 after 边也在 preds 中，"after 链可达的副作用节点"因此自动保留；
         //     ViewportTarget 无写入者时保守跳过剔除（未声明输出的装配不剔除任何 Pass）
-        const RGResourceNode& output = m_resources[static_cast<size_t>(RGResource::ViewportTarget)];
+        const RGResourceNode& output = m_resources[static_cast<size_t>(RGResourceName::ViewportTarget)];
         if(output.last_writer >= 0)
         {
             std::vector<uint8_t> reachable(m_nodes.size(), 0);

@@ -10,6 +10,8 @@
 #include "Renderer/Render/RenderPass/SkyboxPass.hpp"
 #include "Renderer/Render/RenderPass/TransparentPass.hpp"
 #include "Renderer/Render/RenderPass/PostProcessPass.hpp"
+#include "Renderer/Render/FullscreenQuad.hpp"
+#include "Renderer/Render/RendererSettings.hpp"
 #include "Renderer/Mesh/Model.hpp"
 #include "Renderer/Mesh/Mesh.hpp"
 #include "Scene/Component/LightComponent.hpp"
@@ -200,6 +202,62 @@ namespace
         return s_enabled;
     }
 
+    // ── 回退呈现管线（无后处理装配时：scene_fb → tone map + gamma → viewport_fb）──
+    // 复用 postprocess.vsl/fsl（u_mode=3 composite，无 bloom），替代裸 blit：
+    // HDR→LDR 转换不丢失；tone map / gamma 效果位与 PostProcessPass 同源读 RendererSettings。
+    // 进程级懒创建，随进程生命周期存活（与 ensure_*_fb 模式一致）。
+    ID::ShaderID& present_shader()
+    {
+        static ID::ShaderID s_shader = ID::ShaderID::invalid_id();
+        if (!s_shader.is_valid())
+        {
+            std::string vs = ID::ShaderSourceLoader::load_shader_source("../Assets/shader/postprocess.vsl");
+            std::string fs = ID::ShaderSourceLoader::load_shader_source("../Assets/shader/postprocess.fsl");
+            s_shader = ShaderManager::create(ID::ShaderCreateInfo(vs, fs));
+            if (!s_shader.is_valid())
+            {
+                ID_ERROR("Renderer: 回退呈现 shader（postprocess.vsl / .fsl）加载失败");
+            }
+        }
+        return s_shader;
+    }
+
+    ID::PipelineID& present_pipeline()
+    {
+        static ID::PipelineID s_pipeline = ID::PipelineID::invalid_id();
+        if (!s_pipeline.is_valid())
+        {
+            // 全屏呈现：关深度测试/写入/混合（覆盖整个屏幕）
+            ID::PipelineState state;
+            state.depth_test  = false;
+            state.depth_write = false;
+            state.cull_mode   = ID::CullMode::None;
+            state.blend       = false;
+            s_pipeline = PipelineManager::create(
+                ID::PipelineCreateInfo(present_shader(), ID::FullscreenQuad::layout(), state));
+        }
+        return s_pipeline;
+    }
+
+    /*
+    *   disabled_shadow_ubo：无 ShadowPass 装配帧的禁用阴影 UBO（320B 全零，misc.z = enabled = 0）。
+    *   ShadowPass 不在管线时无人上传 enabled=0 块，binding 0 残留旧帧 enabled=1 数据
+    *   （旧 MVP + enabled=1）→ 关闭阴影后阴影残留。此 UBO 交给消费点 bind，保证跳过阴影。
+    */
+    ID::UniformBufferID& disabled_shadow_ubo()
+    {
+        static ID::UniformBufferID s_ubo = ID::UniformBufferID::invalid_id();
+        if (!s_ubo.is_valid())
+        {
+            // ShadowBlockGPU 布局（std140，与 shader ShadowBlock 一致）：共 320B；全零即 enabled=0
+            s_ubo = UBManager::create(
+                ID::UniformBufferCreateInfo(320, 0, ID::BufferUsageHint::DynamicDraw));
+            const unsigned char zero_block[320] = {};
+            IDRCmd::update_uniform_buffer(s_ubo, zero_block, sizeof(zero_block));
+        }
+        return s_ubo;
+    }
+
     struct GBufferFBState
     {
         ID::FrameBufferID fb = ID::FrameBufferID::invalid_id();
@@ -266,8 +324,8 @@ namespace
     }
 
     /*
-    *   rebuild_pipeline：按当前渲染路径装配视觉管线（Forward / Deferred 分支）。
-    *   set_visual_pipeline 与 set_render_path 共用此入口，避免两处复制装配代码。
+    *   rebuild_pipeline：按当前渲染路径装配视觉管线（Forward / Deferred 分支）
+    *   set_visual_pipeline 与 set_render_path 共用此入口，避免两处复制装配代码
     */
     void rebuild_pipeline(bool shadow, bool skybox, bool post_process)
     {
@@ -464,14 +522,35 @@ namespace ID::Renderer
                 scene_fb,
                 viewport_fb
             };
+
+            // ShadowPass 未装配：注入禁用阴影 UBO（320B 全零，enabled=0），防 binding 0 残留
+            // 旧帧 enabled=1 块（旧 MVP）→ 关闭阴影后阴影残留；消费点无条件 bind 此 UBO
+            if(!pipeline_flags_state().shadow && !ctx.shadow_ubo.is_valid())
+            {
+                ctx.shadow_ubo = disabled_shadow_ubo();
+            }
+
             get_render_graph().execute(ctx);
 
-            // 无后处理时 PostProcessPass 不参与渲染，需把 HDR 场景 FBO 直接拷贝到显示 FBO
+            // 无后处理时 PostProcessPass 不参与渲染：回退呈现管线做 tone map + gamma（替代裸 blit，
+            // 保证 HDR→LDR 转换不丢失；tone map / gamma 效果位与 PostProcessPass 同源读 RendererSettings）
             if(!post_process_enabled_flag()
                 && scene_fb.is_valid() && viewport_fb.is_valid())
             {
-                RenderCommand::blit_framebuffer(scene_fb, viewport_fb,
-                    window_width, window_height);
+                IDRCmd::bind_framebuffer_color(scene_fb, 0, 0);    // HDR 场景 → slot 0
+                IDRCmd::unbind_sampler(0);   // 解绑残留 sampler（回退纹理 ClampToEdge，同 PostProcessPass）
+                IDRCmd::set_param(present_pipeline(), "u_input", 0);
+                IDRCmd::set_param(present_pipeline(), "u_mode", 3);   // composite（无 bloom）
+                IDRCmd::set_param(present_pipeline(), "u_has_bloom", 0);
+                IDRCmd::unbind_texture(1);
+                const RendererSettings& settings = get_renderer_settings();
+                IDRCmd::set_param(present_pipeline(), "u_tone_mapping", settings.post_tone_mapping ? 1 : 0);
+                IDRCmd::set_param(present_pipeline(), "u_gamma", settings.post_gamma ? 1 : 0);
+
+                IDRCmd::bind_framebuffer(viewport_fb);
+                IDRCmd::set_viewport(0, 0, window_width, window_height);
+                IDRCmd::draw_arrays(present_pipeline(), FullscreenQuad::vertex_buffer());
+                ID_RS_INC_DRAW_CALLS(ctx);
             }
 
             // 显示 FBO → 默认 framebuffer（窗口可见）

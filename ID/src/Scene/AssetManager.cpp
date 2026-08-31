@@ -79,7 +79,9 @@ namespace ID
 
     std::vector<std::string> AssetManager::list_textures()
     {
-        return list_files_by_extensions(TextureDir, { ".png", ".jpg", ".jpeg", ".bmp", ".tga" });
+        // .hdr：Radiance RGBE 浮点纹理（Phase 5；加载后为 RGBA16F 线性 HDR）
+        return list_files_by_extensions(TextureDir,
+            { ".png", ".jpg", ".jpeg", ".bmp", ".tga", ".hdr" });
     }
 
     std::vector<std::string> AssetManager::list_material_libraries()
@@ -97,9 +99,9 @@ namespace ID
         return AudioManager::load(std::string(AudioDir) + name);
     }
 
-    TextureID AssetManager::load_texture(const std::string& name)
+    TextureID AssetManager::load_texture(const std::string& name, bool srgb)
     {
-        return TextureManager::load_texture(std::string(TextureDir) + name);
+        return TextureManager::load_texture(std::string(TextureDir) + name, srgb);
     }
 
     ShaderID AssetManager::load_shader(const std::string& name)
@@ -140,7 +142,8 @@ namespace ID
             return TextureID::invalid_id();
         }
 
-        TextureID tex = TextureManager::load_texture(desc->texture_path);
+        // 渲染用途（albedo）：显式 sRGB 内部格式，采样时硬件自动解码到线性域
+        TextureID tex = TextureManager::load_texture(desc->texture_path, true);
         if(!tex.is_valid())
         {
             ID_ERROR("AssetManager::load_mesh_texture：纹理加载失败: {}", desc->texture_path);

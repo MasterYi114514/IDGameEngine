@@ -91,7 +91,7 @@ namespace ID
         void     derive_edges(RGPassNode& node);                    // RAW/WAW/WAR 规则
 
         std::vector<RGPassNode>                         m_nodes;          // Pass 节点（声明序）
-        std::vector<RGResourceNode>                     m_resources;      // 资源版本时间线（大小 = RGResource::Count）
+        std::vector<RGResourceNode>                     m_resources;      // 资源版本时间线（大小 = RGResourceName::Count）
         std::vector<uint32_t>                           m_order;          // 编译后的拓扑序（节点索引）
         std::unordered_map<const RenderPass*, uint32_t> m_pass_to_node;   // pass 指针 → 节点索引（after() 解析用）
         std::vector<std::string>                        m_execution_order; // 编译产物（pass 名列表）

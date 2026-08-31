@@ -21,6 +21,20 @@ namespace
             return data;
         }
 
+        // .hdr（Radiance RGBE）：float 像素，req_comp=4 强制 RGBA 交错（RGBA16F 内部格式 + GL_RGBA 数据格式要求 4 分量）
+        if(stbi_is_hdr(path.c_str()))
+        {
+            float* raw_floats = stbi_loadf(path.c_str(), &data.width, &data.height, &data.channels, 4);
+            if(!raw_floats)
+            {
+                IDASSET_ERROR("TextureLoader::load：加载 HDR 纹理失败: {}", path);
+                return data;
+            }
+            data.is_float = true;
+            data.pixels = PixPtr(reinterpret_cast<unsigned char*>(raw_floats), stbi_image_free);
+            return data;
+        }
+
         unsigned char* raw_pixels = stbi_load(path.c_str(), &data.width, &data.height, &data.channels, 0);
         if(!raw_pixels)
         {

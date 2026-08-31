@@ -12,7 +12,7 @@ namespace
     using ID::RGEdgeView;
     using ID::RGPassView;
     using ID::RGGraphView;
-    using ID::RGResource;
+    using ID::RGResourceName;
     using ID::RenderGraphEditorWidget;
 
     /*
@@ -44,10 +44,17 @@ namespace
     /*
     *   make_pin_id：PinId 编码（计划书 Step 7）
     *   serial：reads 用 0..7，writes 用 8..15
+    *   ⚠️ ID 数值空间必须与 NodeId 分离：node-editor 内部以 "%p(ID数值)" 作为节点/pin
+    *   InvisibleButton 的 label，NodeId 与 PinId 数值相同即同 ImGui ID；而 pin 物理嵌套在
+    *   节点矩形内 → hover pin 时两个同 ID item 同时命中 → ImGui 报 conflicting ID。
+    *   区段：实节点 id = i+1（小整数）/ ghost = 0x10000000+；pin = 0x00100000+（1M 区）；
+ *   link = 0x00200000+（2M 区）
     */
     uintptr_t make_pin_id(uint32_t pass_index, uint32_t serial, bool is_output)
     {
-        return (static_cast<uintptr_t>(pass_index) * 16u + serial) * 2u + (is_output ? 1u : 0u) + 1u;
+        constexpr uintptr_t PIN_ID_BASE = 0x00100000u;
+        return PIN_ID_BASE + (static_cast<uintptr_t>(pass_index) * 16u + serial) * 2u
+             + (is_output ? 1u : 0u);
     }
 
     /*
@@ -69,13 +76,13 @@ namespace
     /*
     *   resource_color / edge_color：Pin 与边着色（资源三色 / 边类型五色）
     */
-    ImVec4 resource_color(RGResource res)
+    ImVec4 resource_color(RGResourceName res)
     {
         switch(res)
         {
-            case RGResource::ShadowMap:      return ImVec4(0.35f, 0.50f, 0.95f, 1.0f);   // 蓝：阴影贴图
-            case RGResource::SceneColor:     return ImVec4(0.95f, 0.72f, 0.25f, 1.0f);   // 橙：场景颜色
-            case RGResource::ViewportTarget: return ImVec4(0.35f, 0.85f, 0.45f, 1.0f);   // 绿：视口目标
+            case RGResourceName::ShadowMap:      return ImVec4(0.35f, 0.50f, 0.95f, 1.0f);   // 蓝：阴影贴图
+            case RGResourceName::SceneColor:     return ImVec4(0.95f, 0.72f, 0.25f, 1.0f);   // 橙：场景颜色
+            case RGResourceName::ViewportTarget: return ImVec4(0.35f, 0.85f, 0.45f, 1.0f);   // 绿：视口目标
             default:                         return ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
         }
     }
@@ -96,7 +103,7 @@ namespace
     /*
     *   resource_name：槽位名（"ShadowMap" 等），越界兜底 "?"
     */
-    const char* resource_name(const RGGraphView& view, RGResource res)
+    const char* resource_name(const RGGraphView& view, RGResourceName res)
     {
         const size_t idx = static_cast<size_t>(res);
         if(idx < view.resource_names.size()) return view.resource_names[idx].c_str();
@@ -146,9 +153,9 @@ namespace
             return true;
         }
 
-        const std::vector<RGResource>* to_res   = (type == RGEdgeType::RAW || type == RGEdgeType::Order)
+        const std::vector<RGResourceName>* to_res   = (type == RGEdgeType::RAW || type == RGEdgeType::Order)
             ? &to.reads : &to.writes;
-        const std::vector<RGResource>* from_res = (type == RGEdgeType::RAW || type == RGEdgeType::WAW)
+        const std::vector<RGResourceName>* from_res = (type == RGEdgeType::RAW || type == RGEdgeType::WAW)
             ? &from.writes : &from.reads;
 
         for(size_t ti = 0; ti < to_res->size(); ++ti)
@@ -178,14 +185,14 @@ namespace
     {
         ImGui::PushID("rg_legend");
         ImGui::TextUnformatted("资源:");
-        for(int r = 0; r < static_cast<int>(RGResource::Count); ++r)
+        for(int r = 0; r < static_cast<int>(RGResourceName::Count); ++r)
         {
             ImGui::SameLine();
             ImGui::PushID(r);
-            ImGui::ColorButton("", resource_color(static_cast<RGResource>(r)),
+            ImGui::ColorButton("", resource_color(static_cast<RGResourceName>(r)),
                 ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoPicker, ImVec2(10.0f, 10.0f));
             ImGui::SameLine();
-            ImGui::TextUnformatted(resource_name(view, static_cast<RGResource>(r)));
+            ImGui::TextUnformatted(resource_name(view, static_cast<RGResourceName>(r)));
             ImGui::PopID();
         }
         ImGui::TextUnformatted("边:");
@@ -394,7 +401,7 @@ namespace ID
                 ax::NodeEditor::PinId from_pin;
                 ax::NodeEditor::PinId to_pin;
                 if(!resolve_link_pins(from, to, e.type, from_pin, to_pin)) continue;
-                ax::NodeEditor::Link(ax::NodeEditor::LinkId(static_cast<uintptr_t>(ei + 1u)),
+                ax::NodeEditor::Link(ax::NodeEditor::LinkId(static_cast<uintptr_t>(0x00200000u + ei)),
                     from_pin, to_pin, edge_color(e.type), 2.0f);
             }
         }

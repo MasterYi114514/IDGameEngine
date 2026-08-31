@@ -15,7 +15,7 @@ namespace ID
         ~TextureManager() = delete;
 
     public:
-        static TextureID load_texture(const std::string& path);
+        static TextureID load_texture(const std::string& path, bool srgb = true);
         static std::string get_texture_path(TextureID texture_id);
     };
 } // namespace ID

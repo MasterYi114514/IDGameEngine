@@ -15,10 +15,14 @@ namespace ID
         int     width       = 0;
         int     height      = 0;
         int     channels    = 0;
-        PixPtr  pixels      = { nullptr, nullptr };  
+        bool    is_float    = false;                     // true = float 像素（.hdr；元素为 float 而非 byte）
+        PixPtr  pixels      = { nullptr, nullptr };      // 字节容器语义；is_float 时按 float 解释
 
         bool is_valid() const { return pixels && width > 0 && height > 0; }
-        size_t byte_size() const { return pixels ? width * height * channels : 0; }
+        size_t byte_size() const
+        {
+            return pixels ? size_t(width) * size_t(height) * size_t(channels) * (is_float ? 4 : 1) : 0;
+        }
     };
 
     // 特化

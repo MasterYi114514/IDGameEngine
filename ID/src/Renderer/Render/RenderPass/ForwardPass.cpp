@@ -14,8 +14,8 @@ namespace ID
 
     void ForwardPass::setup(RenderPassBuilder& builder)
     {
-        builder.reads(RGResource::ShadowMap);    // 采样阴影（无 ShadowPass 时悬空警告为预期第二道保险）
-        builder.writes(RGResource::SceneColor);
+        builder.reads(RGResourceName::ShadowMap);    // 采样阴影（无 ShadowPass 时悬空警告为预期第二道保险）
+        builder.writes(RGResourceName::SceneColor);
     }
 
     void ForwardPass::execute(RenderContext& ctx)

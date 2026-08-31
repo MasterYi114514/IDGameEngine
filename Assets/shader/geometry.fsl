@@ -33,7 +33,7 @@ uniform sampler2DArray u_shadow_map;   // 阴影深度贴图 array raw（ShadowP
 uniform sampler2DArrayShadow u_shadow_map_cmp;  // 同纹理 cmp 槽（slot 2；硬件比较采样，Hard/PCF 用）
 uniform mat4  u_view;                   // 主相机 view（CSM 选层用；前向由 set_frame_uniforms 设置）
 
-// ── 阴影数据块（std140 UBO，binding = 0；ShadowPass 每帧一次 glBufferSubData 上传，P9）──
+// 阴影数据块（std140 UBO，binding = 0；ShadowPass 每帧一次 glBufferSubData 上传）
 // std140 布局：mat4[4] = 256B（0~255）+ vec4 × 4 = 64B（256~319），共 320B，与 C++ ShadowBlockGPU 一一对应
 layout(std140, binding = 0) uniform ShadowBlock
 {
@@ -44,12 +44,14 @@ layout(std140, binding = 0) uniform ShadowBlock
     vec4 u_shadow_misc;           // x = bias, y = light_index, z = enabled, w = 未用
 };
 
-// 光照模型 / PBR 全局参数（RendererSettings 驱动）
+// 光照模型选择
 uniform int   u_lighting_model;   // 0 = Phong, 1 = Blinn-Phong, 2 = PBR
-uniform float u_metallic;         // PBR（Phase 3 使用，先接线）
-uniform float u_roughness;        // PBR（Phase 3 使用，先接线）
 
-// phong 光照模型参数
+// PBR 参数
+uniform float u_metallic;         // 金属度
+uniform float u_roughness;        // 粗糙度
+
+// phong/Blinn-Phong 光照模型参数
 uniform float u_ambient_strength;           // 环境光强度系数
 uniform float u_spec_strength;              // 镜面反射系数
 uniform float u_shininess;                  // 高光指数
@@ -79,7 +81,26 @@ vec3 calc_spec_blinn_phong(vec3 normal, vec3 light_dir, vec3 view_dir, float ks,
     return spec * ks * light_color;
 }
 
-// ── PBR（Cook-Torrance，metallic-roughness，参数为全局 uniform）──
+// beckmann 分布函数
+float distribution_beckmann(vec3 N, vec3 H, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+
+    float NdotH = max(dot(N, H), 0.0);
+    if(NdotH <= 1e-6)
+        return 0.0;
+
+    float NdotH2 = NdotH * NdotH;
+    float tan2ThetaH = (1.0 - NdotH2) / NdotH2;
+
+    float exp_term = exp(- tan2ThetaH / a2);
+    float denom = 3.14159265 * a2 * NdotH2 * NdotH2;
+
+    return exp_term / max(denom, 1e-5);
+}
+
+// GGX 分布函数
 float distribution_ggx(vec3 N, vec3 H, float roughness)
 {
     float a  = roughness * roughness;
@@ -128,14 +149,13 @@ vec3 calc_light_pbr(vec3 N, vec3 V, vec3 L, vec3 radiance, vec3 albedo,
     return (diffuse + specular) * radiance * NdotL;
 }
 
-// ── 阴影滤波辅助：噪声 + 采样盘 ──
-// Interleaved Gradient Noise（Jimenez 2014）：低差异噪声（p 取屏幕像素坐标或 tile 坐标）
+// 交错梯度噪声
 float ign(vec2 p)
 {
     return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
 }
 
-// 2D 旋转（用 IGN 角度旋转 Poisson 盘，消除带状 banding）
+// 2D 旋转
 vec2 rotate2d(vec2 p, float angle)
 {
     float c = cos(angle);
@@ -143,7 +163,7 @@ vec2 rotate2d(vec2 p, float angle)
     return vec2(c * p.x - s * p.y, s * p.x + c * p.y);
 }
 
-// 16 点 Poisson disk（固定表，单位圆内）
+// 16 点 泊松圆盘采样
 const vec2 POISSON_DISK[16] = vec2[16](
     vec2(-0.94201624, -0.39906216), vec2( 0.94558609, -0.76890725),
     vec2(-0.09418410, -0.92958840), vec2( 0.34495938,  0.29387760),
@@ -152,17 +172,17 @@ const vec2 POISSON_DISK[16] = vec2[16](
     vec2( 0.44323325, -0.97511554), vec2( 0.53742981, -0.47373420),
     vec2(-0.26496911, -0.41893023), vec2( 0.79197514,  0.19090188),
     vec2(-0.24188840,  0.99706507), vec2(-0.81409955,  0.91437590),
-    vec2( 0.19984126,  0.78641367), vec2( 0.14383161, -0.14100790));
+    vec2( 0.19984126,  0.78641367), vec2( 0.14383161, -0.14100790)
+);
 
-// ── CSM 选层与采样辅助（P8）──
-// 选层：视空间距离（正数）与各层远边界比较；
-// u_cascade_splits[i] = 层 i 远边界（视空间距离正数，语义与 C++ ShadowBlockGPU 注释互引）
+// CSM 选层，判断一个点落在第几级级联 split
+// 与 ShadowBlockGPU 维持一致
 int pick_cascade(vec3 world_pos)
 {
-    int cascade_count = int(u_shadow_params.x);   // u_shadow_params.x = cascade_count（1 = 单级联）
-    if (cascade_count <= 1) return 0;
+    int cascade_count = int(u_shadow_params.x);   // u_shadow_params.x = cascade_count
+    if(cascade_count <= 1) return 0;             // cascade_count = 1 即单级联
     float dist = -(u_view * vec4(world_pos, 1.0)).z;
-    for (int i = cascade_count - 1; i >= 1; --i)
+    for(int i = cascade_count - 1; i >= 1; --i)
     {
         if (dist > u_cascade_splits[i - 1]) return i;   // vec4 分量 = 各层远边界
     }
@@ -180,16 +200,16 @@ float sample_cmp(int layer, vec2 uv, float ref)
     return texture(u_shadow_map_cmp, vec4(uv, float(layer), ref));
 }
 
-// ── 阴影三分派（均返回亮度系数：0.0 = 全阴影，1.0 = 全亮）──
+// 计算阴影系数 0.0 -> 全阴影， 1.0 -> 全亮
 
-// Hard：单采样（slope_bias = 常量 bias × slope 缩放，由 main 统一计算；
-//        最终 bias = slope_bias × u_cascade_bias_scales[layer]，双维缩放）
+// 硬阴影计算
 float compute_shadow_hard(vec3 world_pos, float slope_bias)
 {
     if (int(u_shadow_misc.z) == 0) return 1.0;   // u_shadow_misc.z = shadow_enabled
 
     int layer = pick_cascade(world_pos);
-    // bias 双维缩放：slope（角度维度，main 计算）× texel 尺寸（级联维度，远层 texel 世界尺寸更大）
+
+    // bias 双维缩放：slope× texel 尺寸
     float layer_bias = slope_bias * u_cascade_bias_scales[layer];
 
     vec4 sc = u_light_space_mvps[layer] * vec4(world_pos, 1.0);
@@ -198,17 +218,19 @@ float compute_shadow_hard(vec3 world_pos, float slope_bias)
     if (proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0
      || proj.z < 0.0 || proj.z > 1.0) return 1.0;
 
-    // 硬件比较采样：一次访问 = 2×2 深度比较双线性（ref = 已减 bias 的 proj.z）
+    // 硬件比较采样：一次访问 = 2×2 深度比较双线性
+    // proj.z 这里已经减去了 bias
     return sample_cmp(layer, proj.xy, proj.z);
 }
 
-// PCF：方形网格（radius 来自 u_shadow_params.y = pcf_radius）+ 硬件 2×2 双线性比较
+// PCF：方形网格
 float compute_shadow_pcf(vec3 world_pos, float slope_bias)
 {
     if (int(u_shadow_misc.z) == 0) return 1.0;   // u_shadow_misc.z = shadow_enabled
 
     int layer = pick_cascade(world_pos);
-    // bias 双维缩放（同 Hard）
+
+    // bias 双维缩放
     float layer_bias = slope_bias * u_cascade_bias_scales[layer];
 
     vec4 sc = u_light_space_mvps[layer] * vec4(world_pos, 1.0);
@@ -226,10 +248,7 @@ float compute_shadow_pcf(vec3 world_pos, float slope_bias)
     {
         for (int y = -radius; y <= radius; ++y)
         {
-            // 规则网格 + 硬件 2×2 双线性比较已提供亚 texel 平滑；
-            // per-pixel 抖动会引入屏幕空间周期图案（斜纹），已移除
             vec2 offset = vec2(float(x), float(y)) * texel_size;
-            // 硬件 2×2 双线性比较：每 tap 直接返回亮度系数（同 tap 数覆盖面积 ×4）
             shadow += sample_cmp(layer, proj.xy + offset, proj.z);
             samples++;
         }
@@ -238,13 +257,14 @@ float compute_shadow_pcf(vec3 world_pos, float slope_bias)
 }
 
 // PCSS：blocker search（Poisson 16 点 + IGN 旋转）→ 半影宽度 → Poisson PCF
-// ⚠ blocker search 与半影滤波都在同一层内进行（不跨层搜索）
+// blocker search 与半影滤波都在同一层内进行（不跨层搜索）
 float compute_shadow_pcss(vec3 world_pos, float slope_bias)
 {
     if (int(u_shadow_misc.z) == 0) return 1.0;   // u_shadow_misc.z = shadow_enabled
 
     int layer = pick_cascade(world_pos);
-    // bias 双维缩放（同 Hard）
+
+    // bias 双维缩放
     float layer_bias = slope_bias * u_cascade_bias_scales[layer];
 
     vec4 sc = u_light_space_mvps[layer] * vec4(world_pos, 1.0);
@@ -254,14 +274,13 @@ float compute_shadow_pcss(vec3 world_pos, float slope_bias)
      || proj.z < 0.0 || proj.z > 1.0) return 1.0;
 
     vec2 texel_size = 1.0 / vec2(textureSize(u_shadow_map, 0).xy);
-    // 旋转角按 8×8 像素 tile 固定：tile 内共享旋转盘，避免 per-pixel 旋转引入屏幕空间周期图案
+
+    // 旋转角按 8×8 像素 tile 固定：tile 内共享旋转盘
     float angle = ign(floor(gl_FragCoord.xy / 8.0)) * 6.2831853;
 
-    // 1. blocker search：16 点 Poisson 动态半径（texel 单位，同一层内）
-    // ⚠ CSM 下 texel 世界尺寸随层变化（远层 AABB 宽 → texel 粗）：搜索范围是世界尺度，
-    //   须 / u_cascade_bias_scales[layer] 归一化回层 0 基准，保底 1 texel 防远层退化为单点
+    // 1. blocker search：16 点 Poisson 动态半径
     float search_radius = min(8.0, 2.0 + float(u_shadow_params.y) * 2.0)   // y = pcf_radius
-                        / u_cascade_bias_scales[layer];
+                        / u_cascade_bias_scales[layer];     // 归一化为层 0 的 texel 尺寸
     search_radius = max(search_radius, 1.0);
     float blocker_depth_sum = 0.0;
     int blocker_count = 0;
@@ -281,13 +300,10 @@ float compute_shadow_pcss(vec3 world_pos, float slope_bias)
     float avg_blocker = blocker_depth_sum / float(blocker_count);
 
     // 2. 半影宽度（面光源尺寸 u_shadow_params.w = light_size，texel 单位）
-    // ⚠ 半影是物理量（世界尺度）：penumbra 公式与层无关，直接当 texel 数用会在远层
-    //   高估（16 texel × 粗 texel = 巨大世界半径 → 采样盘甩出阴影边界 → 阴影散成点雾），
-    //   同样 / u_cascade_bias_scales[layer] 归一化；单级联该值为 1.0，行为不变
     float penumbra = (proj.z - avg_blocker) * u_shadow_params.w / max(avg_blocker, 1e-4)
                    / u_cascade_bias_scales[layer];
 
-    // 3. Poisson 16 点滤波（同一层内；IGN 旋转盘；cmp tap 硬件比较）
+    // 3. Poisson 16 点滤波
     float pcf_radius = clamp(penumbra, 1.0, 16.0);
     float shadow = 0.0;
     for (int i = 0; i < 16; ++i)
@@ -301,17 +317,18 @@ float compute_shadow_pcss(vec3 world_pos, float slope_bias)
 void main()
 {
     vec4 tex_color = texture(texture_sampler, v_uv);
-    vec3 base_color = tex_color.rgb * u_color;
+    // u_color 为 sRGB 空间用户输入，进入光照前线性化（纹理由 sRGB 内部格式硬件解码，无需处理）
+    vec3 base_color = tex_color.rgb * pow(u_color, vec3(2.2));
     vec3 N = normalize(v_normal);
 
-    // ShadowBlock 标量别名（UBO 成员取用；main 内每帧常量，语义见 ShadowBlock 声明）
+    // ShadowBlock 标量别名
     int   shadow_filter      = int(u_shadow_params.z);   // 0 = Hard, 1 = PCF, 2 = PCSS
     int   shadow_light_index = int(u_shadow_misc.y);     // 主方向光下标（-1 = 无阴影）
     int   shadow_enabled     = int(u_shadow_misc.z);     // 0 = 本帧无阴影
     float shadow_bias        = u_shadow_misc.x;          // 深度偏移（防自阴影）
 
-    // 环境光（PBR 金属度工作流：金属表面无漫反射环境光）
-    vec3 ambient = calc_ambient(u_ambient_strength, u_ambient) * base_color;
+    // 环境光（PBR 金属度工作流：金属表面无漫反射环境光）；u_ambient 同为 sRGB 输入，先线性化
+    vec3 ambient = calc_ambient(u_ambient_strength, pow(u_ambient, vec3(2.2))) * base_color;
     if (u_lighting_model == 2)
     {
         ambient *= (1.0 - u_metallic);
@@ -347,8 +364,6 @@ void main()
         }
 
         // 阴影（仅主方向光；滤波三分派）
-        // slope-scaled bias：表面深度斜率 ∝ 1/N·L（掠射时每 texel 深度增量超过常量
-        // bias → 周期性 acne 带即"斜条纹"）；正对光源时退化为常量 bias，上限 ×10
         float shadow = 1.0;
         if (i == shadow_light_index && shadow_enabled == 1)
         {

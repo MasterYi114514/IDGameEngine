@@ -211,7 +211,7 @@ namespace ID
             }
             else
             {
-                TextureID id = AssetManager::load_texture(selected);
+                TextureID id = AssetManager::load_texture(selected, false);
                 if(id.is_valid())
                 {
                     add_loaded_asset("texture", selected,
@@ -222,6 +222,12 @@ namespace ID
                     ID_ERROR("AssetPanel：纹理加载失败: {}", selected);
                 }
             }
+        }
+
+        // .hdr 选中时提示预览特性（float 值直接 Image 显示会 clamp，属预期非 bug）
+        if(selected.size() > 4 && selected.substr(selected.size() - 4) == ".hdr")
+        {
+            ImGui::TextDisabled("HDR 预览为 clamp 后近似（>1 值截断到显示域）");
         }
 
         render_drag_list("ASSET_TEXTURE", files, "texture");

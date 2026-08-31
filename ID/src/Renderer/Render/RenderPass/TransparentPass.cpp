@@ -15,8 +15,8 @@ namespace ID
         // 顺序由 SceneColor 的 RAW/WAW/WAR 边保证：
         // 透明混合需要场景已有不透明内容（不透明+深度），该语义由资源边表达；
         // 深度取自当前绑定的场景 FBO（前向 = ForwardPass 写入，延迟 = LightingPass 从 G-Buffer blit）
-        builder.read_writes(RGResource::SceneColor);
-        builder.reads(RGResource::ShadowMap);         // 透明物体采样阴影（可选增强，悬空警告覆盖提示）
+        builder.read_writes(RGResourceName::SceneColor);
+        builder.reads(RGResourceName::ShadowMap);         // 透明物体采样阴影（可选增强，悬空警告覆盖提示）
     }
 
     void TransparentPass::execute(RenderContext& ctx)

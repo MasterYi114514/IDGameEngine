@@ -7,6 +7,8 @@
 
 #include "Log/Log.hpp"
 
+#include <cmath>
+
 namespace
 {
     const char* light_dir_name[8] = 
@@ -79,7 +81,11 @@ namespace ID
         for(uint32_t i = 0; i < light_count; ++i)
         {
             const Light& light = *(ctx.lights[i].light);
-            Vec3 color = light.color * light.intensity;
+            // 光色为 sRGB 空间用户输入：先 pow 线性化再乘 intensity（shader 侧 pow 会把 intensity 一起 gamma 掉）
+            Vec3 color{
+                std::pow(light.color[0], 2.2f) * light.intensity,
+                std::pow(light.color[1], 2.2f) * light.intensity,
+                std::pow(light.color[2], 2.2f) * light.intensity };
 
             
             if(light.type == LightType::Directional)
@@ -128,6 +134,11 @@ namespace ID
             // 替代 P8 的 10+ 次逐元素 set_param；u_view 已由 set_frame_uniforms 设置）
             IDRCmd::bind_uniform_buffer(ctx.shadow_ubo, 0);
         }
-        // 无阴影帧：UBO 已由 ShadowPass 上传 enabled=0 的块，shader 端跳过阴影计算，无需额外动作
+        else if(ctx.shadow_ubo.is_valid())
+        {
+            // 无阴影帧：仍 bind UBO（enabled=0 块，由 ShadowPass 上传或 Renderer 注入禁用 UBO），
+            // 防 binding 0 残留上帧 enabled=1 数据 → 关闭阴影后阴影残留
+            IDRCmd::bind_uniform_buffer(ctx.shadow_ubo, 0);
+        }
     }
 } // namespace ID

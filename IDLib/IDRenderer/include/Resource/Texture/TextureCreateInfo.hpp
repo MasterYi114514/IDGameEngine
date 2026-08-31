@@ -13,7 +13,8 @@ namespace ID
         RGB8    = 3,
         RGBA8   = 4,
         RGBA16F = 5,
-        Depth   = 6
+        Depth   = 6,
+        SRGB8_ALPHA8 = 7    // 颜色纹理 sRGB 编码（采样时硬件自动解码到线性）
     };
 
     enum class TextureFilter : uint8_t

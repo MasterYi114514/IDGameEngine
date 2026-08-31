@@ -22,7 +22,7 @@ namespace
         "u_sun_dir", "u_sun_intensity",
         "u_use_cubemap", "u_cubemap", "u_top_color", "u_horizon_color", "u_bottom_color",
         "u_input", "u_mode", "u_tone_mapping", "u_gamma", "u_threshold",
-        "u_bloom", "u_bloom_strength", "u_has_bloom"
+        "u_bloom", "u_bloom_strength", "u_has_bloom", "u_bloom_radius"
     };
 
     std::string to_lower(const std::string& text)

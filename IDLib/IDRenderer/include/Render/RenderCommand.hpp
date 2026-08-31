@@ -32,7 +32,7 @@ namespace ID::RenderCommand
     void IDR_API bind_framebuffer_depth(const FrameBufferID framebuffer, uint32_t slot);
 
     // 将外部纹理的第 layer 层 attach 到 framebuffer 的深度附件（array 深度纹理逐层渲染用）。
-    // 语义：只改 FBO 当前深度附件指向，FBO 不持有该纹理所有权——生命周期由调用方管理。
+    // 只改 FBO 当前深度附件指向，FBO 不持有该纹理所有权——生命周期由调用方管理。
     void IDR_API attach_framebuffer_depth_layer(const FrameBufferID framebuffer,
         const TextureID texture, uint32_t layer);
 

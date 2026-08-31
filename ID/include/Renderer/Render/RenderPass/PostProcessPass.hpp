@@ -18,42 +18,33 @@ namespace ID
     };
 
     /**
-     *  PostProcessPass：链式后处理 Pass（Phase 4 新增）
+     *  PostProcessPass：链式后处理 Pass（Phase 4 升级：多级降采样金字塔 Bloom）
      *
      *  输入：ctx.scene_fb（ForwardPass 输出的 HDR 场景，RGBA16F）
-     *  输出：m_output_fb（无效 = 默认屏幕）
+     *  输出：m_output_fb（无效 = ctx.viewport_fb / 默认屏幕）
      *
-     *  每个效果是一个全屏三角形 Pass：
-     *    [Bloom]  extract:  输入 → bloom_a（亮部提取，阈值截取）
-     *    [Bloom]  blur_h:   bloom_a → bloom_b（5-tap 高斯，水平）
-     *    [Bloom]  blur_v:   bloom_b → bloom_a（垂直）
-     *    composite:         输入 + bloom_a → 输出（含 ACES ToneMapping + Gamma，按位控制）
+     *  Bloom 金字塔（N = clamp(settings.bloom_mips, 2, MAX_BLOOM_MIPS)，各级 1/2 逐级减半）：
+     *    extract:   scene → A0                    （亮部提取，阈值 ← settings）
+     *    首级补模糊: A0 → B0 → A0                 （blur_h + blur_v）
+     *    for i=1..N-1:  A[i] = blur_v(blur_h(down(A[i-1])))   （逐级降采样 + 模糊）
+     *    B[N-1] = A[N-1]；for i=N-2..0: B[i] = A[i] + upsample_tent(B[i+1])（反向累加）
+     *    composite: scene + B0 × strength →（可选 ACES）→（可选 gamma）→ 输出
      *
-     *  bloom 中间缓冲为 1/4 分辨率 RGBA16F，窗口 resize 时自动重建。
+     *  ⚠️ 效果位与参数的唯一事实来源是 RendererSettings（get_renderer_settings()），
+     *     本类不持有任何效果状态；DevGUI 直接读写 settings 即改即生效，不触发管线重装配。
      */
     class ID_API PostProcessPass : public RenderPass
     {
     public:
         /**
-         *  @param output_fb        输出目标（无效 = 默认屏幕）
-         *  @param effects          效果位组合，默认 ToneMapping | Gamma（画面"正确"的最低配置）
-         *  @param bloom_threshold  亮部提取亮度阈值
-         *  @param bloom_strength   泛光强度（composite 时叠加系数）
+         *  @param output_fb  输出目标（无效 = ctx.viewport_fb / 默认屏幕）
          */
-        PostProcessPass(FrameBufferID output_fb = FrameBufferID::invalid_id(),
-            uint32_t effects = PostProcessEffect_ToneMapping | PostProcessEffect_Gamma,
-            float bloom_threshold = 1.0f, float bloom_strength = 0.8f);
+        PostProcessPass(FrameBufferID output_fb = FrameBufferID::invalid_id());
         virtual ~PostProcessPass() override = default;
 
     public:
         void set_output_fb(FrameBufferID fb) { m_output_fb = fb; }
         FrameBufferID get_output_fb() const { return m_output_fb; }
-
-        void set_effects(uint32_t effects) { m_effects = effects; }
-        uint32_t get_effects() const { return m_effects; }
-
-        void set_bloom_threshold(float threshold) { m_bloom_threshold = threshold; }
-        void set_bloom_strength(float strength) { m_bloom_strength = strength; }
 
     public:
         // 声明依赖：读 SceneColor（输入场景 HDR）；写 ViewportTarget（ctx.viewport_fb，最终呈现目标）
@@ -62,28 +53,31 @@ namespace ID
         virtual void execute(RenderContext& ctx) override;
 
     private:
-        // 懒创建：postprocess shader + pipeline + bloom 中间 FBO（1/4 分辨率，resize 重建）
+        // 懒创建：postprocess shader + pipeline + bloom 金字塔 FBO 链（级数/窗口尺寸变化时重建）
         void ensure_resources(uint32_t window_w, uint32_t window_h);
         // 绑定目标 + 视口，绘制全屏三角形
         void render_fullscreen(PipelineID pipeline, FrameBufferID target, uint32_t w, uint32_t h);
 
-        // 子步骤
-        void bloom_extract(RenderContext& ctx, FrameBufferID src);
-        void bloom_blur(RenderContext& ctx, FrameBufferID src, FrameBufferID dst, bool horizontal);
+        // 子步骤（尺寸随 mip 变化，均带参；函数体在 .cpp）
+        void bloom_extract(RenderContext& ctx, FrameBufferID src);                  // scene → A0
+        void bloom_blur(RenderContext& ctx, FrameBufferID src, FrameBufferID dst,   // 5-tap 高斯
+            uint32_t w, uint32_t h, bool horizontal);
+        void bloom_down(RenderContext& ctx, FrameBufferID src, FrameBufferID dst,   // 4-tap box 降采样
+            uint32_t src_w, uint32_t src_h, uint32_t dst_w, uint32_t dst_h);
+        void bloom_up(RenderContext& ctx, FrameBufferID src, FrameBufferID up_src,  // tent 9-tap 累加
+            FrameBufferID dst, uint32_t dst_w, uint32_t dst_h, uint32_t up_w, uint32_t up_h);
         void composite(RenderContext& ctx, FrameBufferID src, FrameBufferID bloom_src, FrameBufferID dst);
 
     private:
         FrameBufferID  m_output_fb;                 // 输出目标（无效 = 默认屏幕）
-        uint32_t       m_effects;                   // 效果位组合
-        float          m_bloom_threshold = 1.0f;
-        float          m_bloom_strength  = 0.8f;
 
         ShaderID       m_shader   = ShaderID::invalid_id();
         PipelineID     m_pipeline = PipelineID::invalid_id();
 
-        FrameBufferID  m_bloom_a;                   // bloom 中间缓冲（1/4 分辨率）
-        FrameBufferID  m_bloom_b;
-        uint32_t       m_bloom_w = 0;
-        uint32_t       m_bloom_h = 0;
+        static constexpr uint32_t MAX_BLOOM_MIPS = 6;   // 上限（settings.bloom_mips 可在 2~6 调）
+        std::vector<FrameBufferID> m_bloom_a;   // A 链：extract / 各级降采样+模糊结果
+        std::vector<FrameBufferID> m_bloom_b;   // B 链：反向累加结果（末级复用 A 链句柄）
+        std::vector<uint32_t> m_mip_w;          // 各级宽度
+        std::vector<uint32_t> m_mip_h;          // 各级高度
     };
 } // namespace ID

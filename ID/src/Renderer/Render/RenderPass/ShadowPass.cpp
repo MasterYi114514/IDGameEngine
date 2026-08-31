@@ -14,9 +14,7 @@
 namespace ID
 {
     // ShadowBlockGPU — 与 shader 端 ShadowBlock（std140, binding 0）一一对应，勿改顺序
-    // ⚠ 矩阵不用 IDMath::Mat4：其成员含 AbstractRow 元数据 + m_data 指针（sizeof = 88B），
-    //   不符合 std140 mat4（64B）——用 ID::Array<float,16>（IDArray.hpp，布局 = 裸 float[16]，
-    //   列优先）存储，填充时经 Array(const T*) 构造 memcpy
+    // 矩阵用 Array<float,16> 存储
     // 布局：mat4[4] = 256B（0~255）+ vec4 × 4 = 64B（256~319），共 320B
     struct ShadowBlockGPU
     {
@@ -39,7 +37,7 @@ namespace ID
 
     void ShadowPass::setup(RenderPassBuilder& builder)
     {
-        builder.writes(RGResource::ShadowMap);
+        builder.writes(RGResourceName::ShadowMap);
     }
 
     // ── 辅助：获取 ShadowMap 的 FBO ──
@@ -95,7 +93,7 @@ namespace ID
         {
             if (m_shadow_map_id.is_valid())
             {
-                // ⚠ 销毁顺序：ShadowMap::destroy 内部先 FBO 后纹理
+                // 销毁顺序：ShadowMap::destroy 内部先 FBO 后纹理
                 ShadowManager::destroy_shadow_map(m_shadow_map_id);
             }
             m_shadow_map_id = ShadowManager::create(map_size, m_shadow_layer_count);

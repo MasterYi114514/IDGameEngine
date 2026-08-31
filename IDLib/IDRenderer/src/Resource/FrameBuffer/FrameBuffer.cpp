@@ -21,6 +21,12 @@ namespace ID
 
             bool hdr = (create_info.color_formats[i] == TextureFormat::RGBA16F);
 
+            if(create_info.color_formats[i] == TextureFormat::SRGB8_ALPHA8)
+            {
+                // 渲染到 sRGB 附件会触发隐式编码，后处理链不需要；sRGB 仅用于采样侧纹理
+                IDR_WARN("FrameBuffer：颜色附件使用 SRGB8_ALPHA8 属误用（渲染到 sRGB 附件会隐式编码），建议改用 RGBA8/RGBA16F");
+            }
+
             if (create_info.samples > 1)
             {
                 glTexImage2DMultisample

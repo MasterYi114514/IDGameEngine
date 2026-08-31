@@ -3,22 +3,26 @@
 // ============================================================================
 //  PostProcessPass 片段着色器
 //  单个 shader 通过 u_mode 分派多个后处理子步骤：
-//    u_mode = 0  EXTRACT   亮部提取（Bloom 第一步）
-//    u_mode = 1  BLUR_H    水平 5-tap 高斯模糊
-//    u_mode = 2  BLUR_V    垂直 5-tap 高斯模糊
-//    u_mode = 3  COMPOSITE 合成：HDR + Bloom →（可选 ACES Tonemapping）→（可选 Gamma）
+//    u_mode = 0  EXTRACT    亮部提取（Bloom 第一步）
+//    u_mode = 1  BLUR_H     水平 5-tap 高斯模糊（步长 × u_bloom_radius）
+//    u_mode = 2  BLUR_V     垂直 5-tap 高斯模糊（步长 × u_bloom_radius）
+//    u_mode = 3  COMPOSITE  合成：HDR + Bloom →（可选 ACES Tonemapping）→（可选 Gamma）
+//    u_mode = 4  DOWNSAMPLE 降采样（4-tap box，半像素偏移；u_texel_size = 1/源纹理尺寸）
+//    u_mode = 5  UPSAMPLE   升采样累加：本级模糊(u_input) + 上级泛光(u_bloom，tent 9-tap；
+//                          u_texel_size = 1/上级纹理尺寸）
 // ============================================================================
 
 in vec2 v_uv;
 out vec4 FragColor;
 
 uniform sampler2D u_input;          // 输入纹理（场景 HDR 或 bloom 中间缓冲）
-uniform sampler2D u_bloom;          // composite 时的 bloom 图
+uniform sampler2D u_bloom;          // composite 时的 bloom 图；upsample 时的上级泛光
 uniform int       u_has_bloom;      // composite 时是否有 bloom 输入
-uniform int       u_mode;           // 0=extract 1=blur_h 2=blur_v 3=composite
-uniform vec2      u_texel_size;     // 1 / 纹理宽高（模糊步长）
+uniform int       u_mode;           // 0=extract 1=blur_h 2=blur_v 3=composite 4=down 5=up
+uniform vec2      u_texel_size;     // 1 / 纹理宽高（模糊步长；down=源尺寸 / up=上级尺寸）
 uniform float     u_threshold;      // 亮部提取阈值
 uniform float     u_bloom_strength; // 泛光叠加强度
+uniform float     u_bloom_radius;   // 泛光模糊/升采样步长倍率（DevGUI 可调）
 uniform int       u_tone_mapping;   // 是否 ACES Tonemapping
 uniform int       u_gamma;          // 是否 Gamma 校正
 
@@ -51,11 +55,37 @@ void main()
     }
     else if (u_mode == 1)   // ── 水平模糊 ──
     {
-        FragColor = vec4(gaussian_blur(u_input, v_uv, vec2(u_texel_size.x, 0.0)), 1.0);
+        FragColor = vec4(gaussian_blur(u_input, v_uv, vec2(u_texel_size.x * u_bloom_radius, 0.0)), 1.0);
     }
     else if (u_mode == 2)   // ── 垂直模糊 ──
     {
-        FragColor = vec4(gaussian_blur(u_input, v_uv, vec2(0.0, u_texel_size.y)), 1.0);
+        FragColor = vec4(gaussian_blur(u_input, v_uv, vec2(0.0, u_texel_size.y * u_bloom_radius)), 1.0);
+    }
+    else if (u_mode == 4)   // ── 降采样（4-tap box，半像素偏移）──
+    {
+        vec2 ts = u_texel_size;    // = 1/源纹理尺寸（C++ 传入）
+        vec3 c = texture(u_input, v_uv + ts * vec2( 0.5,  0.5)).rgb
+               + texture(u_input, v_uv + ts * vec2(-0.5,  0.5)).rgb
+               + texture(u_input, v_uv + ts * vec2( 0.5, -0.5)).rgb
+               + texture(u_input, v_uv + ts * vec2(-0.5, -0.5)).rgb;
+        FragColor = vec4(c * 0.25, 1.0);
+    }
+    else if (u_mode == 5)   // ── 升采样累加：本级模糊 + 上级泛光 ──
+    {
+        // u_input(slot0) = 本级 Ai；u_bloom(slot1) = 上级 B[i+1]
+        vec2 ts = u_texel_size * u_bloom_radius;   // 采样步长（源 = 上级）
+        vec3 up = vec3(0.0);
+        // 3x3 tent 权重（角 1/16 边 2/16 中心 4/16），双线性硬件放大
+        const float w[3] = float[3](1.0, 2.0, 1.0);
+        for(int x = 0; x < 3; ++x)
+        for(int y = 0; y < 3; ++y)
+        {
+            vec2 off = vec2(float(x - 1), float(y - 1)) * ts;
+            up += texture(u_bloom, v_uv + off).rgb * (w[x] * w[y] / 16.0);
+        }
+        // Unity HDRP 式混合累加：B[i] = lerp(tent(B[i+1]), A[i], 0.5)
+        // 上级泛光逐级指数衰减（0.5^4 ≈ 6%），光晕主体保留，外圈快速回落
+        FragColor = vec4(mix(up, texture(u_input, v_uv).rgb, 0.5), 1.0);
     }
     else                    // ── 合成 ──
     {

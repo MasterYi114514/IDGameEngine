@@ -68,26 +68,29 @@ namespace ID
             return sv;
         }
 
-        // ── PSSM 分割（count > 1）──
-        // split[i] = 层 i 远边界（视空间距离，正数）；层 0 近边界 = 相机 near
-        //   mix(均匀分割, 对数分割, lambda)
+        // PSSM 分割（count > 1）
         const ProjectionParams& proj_params = main_camera.get_projection();
         const float near_z = proj_params.near_z;
         const float far_z  = (settings.cascade_far_override > 0.0f)
             ? settings.cascade_far_override : proj_params.far_z;
 
+        // split(i) 即第i层的远平面
         auto split = [&](uint32_t i) -> float
         {
             const float t = static_cast<float>(i + 1) / static_cast<float>(count);
             const float uniform  = near_z + (far_z - near_z) * t;
             const float logarith = near_z * std::pow(far_z / near_z, t);
-            return uniform + (logarith - uniform) * settings.cascade_lambda;
+
+            const float lambda = settings.cascade_lambda;
+            const float oml = 1.0f - lambda;    // 1 - λ
+
+            return uniform * oml + logarith * lambda;
         };
 
         const float layer_near = (index == 0) ? near_z : split(index - 1);
         const float layer_far  = split(index);
 
-        // ── 主相机视锥第 index 段 8 角点（视空间；OpenGL 右手系，相机看向 -z）──
+        // 主相机视锥第 index 段 8 角点（视空间；OpenGL 右手系，相机看向 -z）
         const float tan_half_fov = std::tan(Math::radians(proj_params.persp.fov_y) * 0.5f);
         const float y_near = tan_half_fov * layer_near;
         const float x_near = y_near * proj_params.persp.aspect;
@@ -129,7 +132,7 @@ namespace ID
             max_z = std::max(max_z, light[2]);
         }
 
-        // 正交投影：光源看向 -z，近远平面外扩 1 世界单位防边缘裁剪（抗边界闪烁的简易版）
+        // 正交投影：光源看向 -z，近远平面外扩 1 世界单位防边缘裁剪
         constexpr float z_pad = 1.0f;
         const float proj_near = -(max_z + z_pad);
         const float proj_far  = -(min_z - z_pad);
