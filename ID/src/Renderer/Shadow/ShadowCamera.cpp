@@ -45,9 +45,9 @@ namespace ID
             return ShadowView{};
         }
 
-        // ── 单级联（CSM 关闭）：保持旧行为——以相机为锚点、ortho_extent 固定视锥 ──
-        //    （回退铁律：cascade_count=1 时画面必须与基线逐像素一致；8 角点包围盒方案
-        //     会让贴图覆盖范围暴涨到相机 far 平面，texel 密度崩盘 + IGN 抖动图案可见）
+        // 单级联（CSM 关闭）：保持旧行为——以相机为锚点、ortho_extent 固定视锥
+        // （回退铁律：cascade_count=1 时画面必须与基线逐像素一致；8 角点包围盒方案
+        //  会让贴图覆盖范围暴涨到相机 far 平面，texel 密度崩盘 + IGN 抖动图案可见）
         if (count == 1)
         {
             const Pos3 cam_pos = main_camera.get_pose().position;
@@ -119,7 +119,7 @@ namespace ID
         float min_z = std::numeric_limits<float>::max();
         float max_z = -std::numeric_limits<float>::max();
 
-        for (const Vec3& c : corners_view)
+        for(const Vec3& c : corners_view)
         {
             const Vec4 world = inv_view * Vec4(c, 1.0f);
             const Vec4 light = light_view * world;

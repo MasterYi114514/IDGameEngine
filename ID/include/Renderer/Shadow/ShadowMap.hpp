@@ -18,7 +18,7 @@ namespace ID
     *
     *   layer_count = 1 亦走 array 路径（统一形态；cascade_count=1 只用层 0）。
     *
-    *   ⚠ 生命周期：析构先 destroy FBO 再 destroy 纹理 —— FBO 通过
+    *   生命周期：析构先 destroy FBO 再 destroy 纹理 —— FBO 通过
     *   attach_framebuffer_depth_layer 引用外部 array 纹理，顺序反了会在
     *   GL 名字回收机制下产生悬空附件（未定义采样行为）。
     */

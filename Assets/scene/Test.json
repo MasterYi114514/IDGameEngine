@@ -50,7 +50,7 @@
                             "texture_overrides": {
                                 "texture_sampler": {
                                     "slot": 0,
-                                    "tex_path": "../Assets/texture/1.png"
+                                    "tex_path": "../Assets/texture/2.png"
                                 }
                             },
                             "parent_name": "geoMaterial"
@@ -273,7 +273,7 @@
                             "texture_overrides": {
                                 "texture_sampler": {
                                     "slot": 0,
-                                    "tex_path": "../Assets/texture/1.png"
+                                    "tex_path": "../Assets/texture/3.png"
                                 }
                             },
                             "parent_name": "geoMaterial"

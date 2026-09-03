@@ -39,7 +39,7 @@ layout(std140, binding = 0) uniform ShadowBlock
 {
     mat4 u_light_space_mvps[4];   // 各层光源 VP（64B × 4）
     vec4 u_cascade_splits;        // xyzw = 层 0~3 远边界（视空间距离，正数；语义与 C++ ShadowBlockGPU 注释互引）
-    vec4 u_cascade_bias_scales;   // xyzw = 层 0~3 bias 缩放（texel 尺寸维度；斜条纹修复的 CSM 补完）
+    vec4 u_cascade_bias_scales;   // xyzw = 层 0~3 bias 缩放（texel 尺寸维度）
     vec4 u_shadow_params;         // x = cascade_count, y = pcf_radius, z = filter, w = light_size
     vec4 u_shadow_misc;           // x = bias, y = light_index, z = enabled, w = 未用
 };
@@ -155,7 +155,7 @@ float ign(vec2 p)
     return fract(52.9829189 * fract(dot(p, vec2(0.06711056, 0.00583715))));
 }
 
-// 2D 旋转
+// p 逆时针旋转 angle 角(单位是弧度制)
 vec2 rotate2d(vec2 p, float angle)
 {
     float c = cos(angle);
@@ -189,20 +189,28 @@ int pick_cascade(vec3 world_pos)
     return 0;
 }
 
-// 采样辅助：层号进 vec3.z / vec4.z（raw 读原始深度；cmp 硬件比较采样）
+// 获取阴影贴图的深度值
 float sample_raw(int layer, vec2 uv)
 {
     return texture(u_shadow_map, vec3(uv, float(layer))).r;
 }
 
+// 硬件比较采样
+// 内部硬件自动计算 ref <= depth ? 1.0 : 0.0
+// 取周围四个 texel 的上述计算的比较结果，进行双线性差值
 float sample_cmp(int layer, vec2 uv, float ref)
 {
     return texture(u_shadow_map_cmp, vec4(uv, float(layer), ref));
 }
 
+// ====================================
 // 计算阴影系数 0.0 -> 全阴影， 1.0 -> 全亮
+// 最终片元颜色的计算为 ambient + diffuse * base_color * shadow + specular;
+// ====================================
 
-// 硬阴影计算
+/**
+*   计算硬阴影的阴影系数
+*/
 float compute_shadow_hard(vec3 world_pos, float slope_bias)
 {
     if (int(u_shadow_misc.z) == 0) return 1.0;   // u_shadow_misc.z = shadow_enabled
@@ -239,12 +247,17 @@ float compute_shadow_pcf(vec3 world_pos, float slope_bias)
     if (proj.x < 0.0 || proj.x > 1.0 || proj.y < 0.0 || proj.y > 1.0
      || proj.z < 0.0 || proj.z > 1.0) return 1.0;
 
+    /**
+        texel_size 即一个 texel 对应的 uv 步长
+    */
     vec2 texel_size = 1.0 / vec2(textureSize(u_shadow_map, 0).xy);
 
-    int radius = int(u_shadow_params.y);   // u_shadow_params.y = pcf_radius（0→1×1, 1→3×3, 2→5×5, 3→7×7）
+    // u_shadow_params.y = pcf_radius（0: 1×1, 1: 3×3, 2: 5×5, 3: 7×7）
+    int radius = int(u_shadow_params.y);
+
     float shadow = 0.0;
     int samples = 0;
-    for (int x = -radius; x <= radius; ++x)
+    for(int x = -radius; x <= radius; ++x)
     {
         for (int y = -radius; y <= radius; ++y)
         {
@@ -256,7 +269,7 @@ float compute_shadow_pcf(vec3 world_pos, float slope_bias)
     return samples > 0 ? shadow / float(samples) : 1.0;
 }
 
-// PCSS：blocker search（Poisson 16 点 + IGN 旋转）→ 半影宽度 → Poisson PCF
+// PCSS：blocker search（Poisson 16 点 + IGN 旋转） -> 半影宽度 -> Poisson PCF
 // blocker search 与半影滤波都在同一层内进行（不跨层搜索）
 float compute_shadow_pcss(vec3 world_pos, float slope_bias)
 {
@@ -284,18 +297,18 @@ float compute_shadow_pcss(vec3 world_pos, float slope_bias)
     search_radius = max(search_radius, 1.0);
     float blocker_depth_sum = 0.0;
     int blocker_count = 0;
-    for (int i = 0; i < 16; ++i)
+    for(int i = 0; i < 16; ++i)
     {
         vec2 offset = rotate2d(POISSON_DISK[i], angle) * search_radius * texel_size;
         float depth = sample_raw(layer, proj.xy + offset);
-        if (depth < proj.z)
+        if(depth < proj.z)
         {
             blocker_depth_sum += depth;
             blocker_count++;
         }
     }
 
-    // 无遮挡 → 全亮
+    // 无遮挡 -> 全亮
     if (blocker_count == 0) return 1.0;
     float avg_blocker = blocker_depth_sum / float(blocker_count);
 
@@ -317,20 +330,22 @@ float compute_shadow_pcss(vec3 world_pos, float slope_bias)
 void main()
 {
     vec4 tex_color = texture(texture_sampler, v_uv);
-    // u_color 为 sRGB 空间用户输入，进入光照前线性化（纹理由 sRGB 内部格式硬件解码，无需处理）
+
+    // u_color 为 sRGB 空间的输入，先线性化再乘材质纹理
     vec3 base_color = tex_color.rgb * pow(u_color, vec3(2.2));
     vec3 N = normalize(v_normal);
 
-    // ShadowBlock 标量别名
+    // ShadowBlock 标量
     int   shadow_filter      = int(u_shadow_params.z);   // 0 = Hard, 1 = PCF, 2 = PCSS
     int   shadow_light_index = int(u_shadow_misc.y);     // 主方向光下标（-1 = 无阴影）
     int   shadow_enabled     = int(u_shadow_misc.z);     // 0 = 本帧无阴影
     float shadow_bias        = u_shadow_misc.x;          // 深度偏移（防自阴影）
 
-    // 环境光（PBR 金属度工作流：金属表面无漫反射环境光）；u_ambient 同为 sRGB 输入，先线性化
+    // u_ambient 也为 sRGB 输入，先线性化
     vec3 ambient = calc_ambient(u_ambient_strength, pow(u_ambient, vec3(2.2))) * base_color;
     if (u_lighting_model == 2)
     {
+        // 金属度对环境光折射的影响
         ambient *= (1.0 - u_metallic);
     }
     vec3 result = ambient;
@@ -371,11 +386,11 @@ void main()
             float slope_scale = clamp(1.0 / max(ndotl, 0.1), 1.0, 10.0);
             float slope_bias  = shadow_bias * slope_scale;
 
-            if (shadow_filter == 0)
+            if(shadow_filter == 0)
             {
                 shadow = compute_shadow_hard(v_world_pos, slope_bias);
             }
-            else if (shadow_filter == 1)
+            else if(shadow_filter == 1)
             {
                 shadow = compute_shadow_pcf(v_world_pos, slope_bias);
             }
@@ -386,7 +401,7 @@ void main()
         }
 
         // 光照模型分派：PBR 走 Cook-Torrance，其余走 diffuse + specular
-        if (u_lighting_model == 2)
+        if(u_lighting_model == 2)
         {
             result += calc_light_pbr(N, view_dir, L, u_light_colors[i], base_color,
                                      u_metallic, u_roughness) * shadow;

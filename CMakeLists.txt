@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.1.0)
 
-project(OpenGL)
+project(IDGameEngine)
 
 set(BIN_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(VENDOR_DIR ${CMAKE_SOURCE_DIR}/ThirdParty)
