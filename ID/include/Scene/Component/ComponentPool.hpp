@@ -46,6 +46,25 @@ namespace ID
         /// 基类指针访问 owner 的组件（类型擦除遍历用），不存在返回 nullptr
         virtual Component*       get_component_base(EntityID owner)       = 0;
         virtual const Component* get_component_base(EntityID owner) const = 0;
+
+        /// 整池遍历（类型擦除，on_update / on_event 传播用）：fn(owner, comp) 逐组件调用
+        virtual void   for_each(const std::function<void(EntityID, Component&)>& fn) = 0;
+
+        /// 遍历防护（坑 B）：进入/退出遍历期间 emplace / erase 触发 Debug 断言
+        virtual void   begin_iteration() = 0;
+        virtual void   end_iteration()   = 0;
+
+        /// RAII 遍历守卫（配合 begin_iteration / end_iteration，异常安全）
+        struct IterationScope
+        {
+            explicit IterationScope(IComponentPool& pool) : m_pool(pool) { m_pool.begin_iteration(); }
+            IterationScope(const IterationScope&)            = delete;
+            IterationScope& operator=(const IterationScope&) = delete;
+            ~IterationScope() { m_pool.end_iteration(); }
+
+        private:
+            IComponentPool& m_pool;
+        };
     };
 
     /**
@@ -72,32 +91,8 @@ namespace ID
         static_assert(std::is_base_of_v<Component, T>, "ComponentPool 的模板参数必须是 Component 的子类");
 
     public:
-        /// m_sparse 的"无组件"哨兵值
+        /// m_sparse 的“无组件”哨兵值
         static constexpr uint32_t NULL_INDEX = static_cast<uint32_t>(-1);
-
-        /**
-         *  @brief 遍历守卫（RAII）
-         *
-         *  进入池遍历前构造，离开作用域自动解除；遍历期间 emplace / erase
-         *  会触发 Debug 断言（迭代器失效防护）。
-         */
-        class IterationGuard
-        {
-        public:
-            explicit IterationGuard(ComponentPool& pool) : m_pool(pool)
-            {
-                assert(!m_pool.m_iterating && "禁止嵌套进入同一组件池的遍历");
-                m_pool.m_iterating = true;
-            }
-
-            IterationGuard(const IterationGuard&)            = delete;
-            IterationGuard& operator=(const IterationGuard&) = delete;
-
-            ~IterationGuard() { m_pool.m_iterating = false; }
-
-        private:
-            ComponentPool& m_pool;
-        };
 
     public:
         /**
@@ -199,6 +194,22 @@ namespace ID
 
         Component*       get_component_base(EntityID owner) override       { return find(owner); }
         const Component* get_component_base(EntityID owner) const override { return find(owner); }
+
+        void for_each(const std::function<void(EntityID, Component&)>& fn) override
+        {
+            for (size_t i = 0; i < m_components.size(); ++i)
+            {
+                fn(m_owners[i], m_components[i]);
+            }
+        }
+
+        void begin_iteration() override
+        {
+            assert(!m_iterating && "禁止嵌套进入同一组件池的遍历");
+            m_iterating = true;
+        }
+
+        void end_iteration() override { m_iterating = false; }
 
     private:
         /// owner → dense 下标，越界或无组件返回 NULL_INDEX

@@ -105,10 +105,6 @@ namespace ID
         template<typename ComponentType>
         void remove_component();
 
-    public:
-        void on_update(Timestep ts);
-        void on_event(Event& event);
-
     private:
         Scene*      m_scene = nullptr;          // 所属场景
         ID          m_id = INVALID_ID;          // GameObject ID

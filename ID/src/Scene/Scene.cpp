@@ -123,29 +123,34 @@ namespace ID
     {
         if (!m_is_running) return;
 
-        // 物理系统先于 GameObject 更新（物理驱动 → 组件响应）
+        // 物理系统先于组件更新（物理驱动 → 组件响应）
         m_physics_system.on_update(ts);
 
-        for (const auto& game_object_ptr : m_game_objects)
+        // 按池遍历调用组件 on_update（坑 E：传播顺序为池 TypeID 序，现有组件无顺序依赖；
+        // 坑 B：遍历期间禁止结构性修改，由 IterationScope 断言防护）
+        m_component_registry.for_each_component([&](EntityID owner, Component& component)
         {
-            if (game_object_ptr && game_object_ptr->is_active())
-            {
-                game_object_ptr->on_update(ts);
-            }
-        }
+            if (!is_game_object_valid(owner)) return;       // 防御：正常不触发（GO 销毁时组件已出池）
+            const GameObject& go = get_game_object(owner);
+            if (!go.is_active() || !component.is_active()) return;
+            component.on_update(ts);
+        });
     }
 
     void Scene::on_event(Event& event)
     {
         if (!m_is_running) return;
-        
-        for (const auto& game_object_ptr : m_game_objects)
+
+        // 按池遍历传播事件（is_handled 短路：已被处理的事件不再向后传递；
+        // 跨池顺序为 TypeID 升序：Transform → MeshRenderer → Light → RigidBody → AudioSource → AudioListener）
+        m_component_registry.for_each_component([&](EntityID owner, Component& component)
         {
-            if (game_object_ptr && game_object_ptr->is_active())
-            {
-                game_object_ptr->on_event(event);
-            }
-        }
+            if (event.is_handled()) return;
+            if (!is_game_object_valid(owner)) return;
+            const GameObject& go = get_game_object(owner);
+            if (!go.is_active() || !component.is_active()) return;
+            component.on_event(event);
+        });
     }
 
     Json Scene::serialize(ArenaID arena) const

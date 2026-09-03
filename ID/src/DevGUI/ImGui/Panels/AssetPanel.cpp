@@ -351,12 +351,16 @@ namespace ID
                 const std::string mat_name = mat->get_name();
 
                 // 删除前检查场景引用：有物体使用该材质时拒绝删除，避免 MaterialInstance::m_parent 悬垂
-                const Scene& scene = SceneManager::get_current_scene();
-                const std::vector<GameObject::ID> users = scene.find_game_objects_with_component<MeshRendererComponent>();
+                // （按 MeshRenderer 池遍历，避免全场景扫描）
+                Scene& scene = SceneManager::get_current_scene();
+                auto& mesh_pool = scene.get_component_registry().pool<MeshRendererComponent>();
                 bool in_use = false;
-                for(GameObject::ID id : users)
+                for (size_t i = 0; i < mesh_pool.size(); ++i)
                 {
-                    const auto* mesh = scene.get_game_object(id).get_component<MeshRendererComponent>();
+                    GameObject::ID go_id = mesh_pool.owners()[i];
+                    if (!scene.is_game_object_valid(go_id)) continue;
+
+                    const auto* mesh = scene.get_game_object(go_id).get_component<MeshRendererComponent>();
                     if(mesh && mesh->get_model().get_material().get_parent() == mat)
                     {
                         in_use = true;

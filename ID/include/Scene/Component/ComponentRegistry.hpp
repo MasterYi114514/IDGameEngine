@@ -143,6 +143,24 @@ namespace ID
             }
         }
 
+        /**
+         *  @brief 类型擦除遍历所有池的全部组件（on_update / on_event 传播用）
+         *
+         *  按 TypeID 升序逐池、按 dense 下标顺序调用 fn(owner, comp)。
+         *  每池遍历期间启用迭代防护（坑 B）：fn 中禁止 emplace / erase；
+         *  fn 内的组件引用仅当次有效（坑 C）。
+         */
+        template<typename Fn>
+        void for_each_component(Fn&& fn)
+        {
+            for (auto& slot : m_pools)
+            {
+                if (!slot) continue;
+                IComponentPool::IterationScope guard(*slot);
+                slot->for_each([&fn](EntityID owner, Component& comp) { fn(owner, comp); });
+            }
+        }
+
     private:
         /// T 的池数组下标（TypeID 从 1 开始，数组从 0 开始）
         template<typename T>

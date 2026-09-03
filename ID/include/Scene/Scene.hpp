@@ -56,14 +56,6 @@ namespace ID
         GameObject& get_game_object(GameObject::ID id) { return *m_game_objects.at(id); }
         const GameObject& get_game_object(GameObject::ID id) const { return *m_game_objects.at(id); }
 
-        /**
-         *  @brief 查找具有指定组件的 GameObject
-         *  @tparam ComponentType 要查找的组件类型
-         *  @return 返回具有指定组件的 GameObject 的 ID 列表
-         */
-        template<typename ComponentType>
-        std::vector<GameObject::ID> find_game_objects_with_component() const;
-
         // 获取有效的 GameObject 数量
         size_t get_game_object_count() const { return m_game_objects.size() - m_freed_ids.size(); }
 
@@ -117,20 +109,4 @@ namespace ID
         ComponentRegistry                           m_component_registry;   // 组件池（坑 D：见 ~Scene 显式清理顺序）
         PhysicsSystem m_physics_system;
     };
-
-    template<typename ComponentType>
-    std::vector<GameObject::ID> Scene::find_game_objects_with_component() const
-    {
-        static_assert(std::is_base_of<Component, ComponentType>::value, "传入的类型必须是 Component 的子类");
-
-        std::vector<GameObject::ID> result;
-        for (const auto& game_object_ptr : m_game_objects)
-        {
-            if (game_object_ptr && game_object_ptr->has_component<ComponentType>())
-            {
-                result.push_back(game_object_ptr->get_id());
-            }
-        }
-        return result;
-    }
 } // namespace ID

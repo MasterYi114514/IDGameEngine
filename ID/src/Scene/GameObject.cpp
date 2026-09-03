@@ -57,37 +57,6 @@ namespace ID
         return m_scene->get_game_object(m_parent_id);
     }
 
-    void GameObject::on_update(Timestep ts)
-    {
-        if (!m_is_active) return;
-
-        // 按池顺序（TypeID 升序）遍历本 GO 的组件（池化后遍历顺序与旧链表顺序不同，
-        // 现有组件无顺序依赖，见迁移计划坑 E）
-        get_registry().for_each_component_of(m_id,
-            [ts](Component::TypeID, Component& component)
-            {
-                if (component.is_active())
-                {
-                    component.on_update(ts);
-                }
-            });
-    }
-
-    void GameObject::on_event(Event& event)
-    {
-        if (!m_is_active) return;
-
-        get_registry().for_each_component_of(m_id,
-            [&event](Component::TypeID, Component& component)
-            {
-                if (event.is_handled()) return;      // 事件已被处理则不再传递
-                if (component.is_active())
-                {
-                    component.on_event(event);
-                }
-            });
-    }
-
     Json GameObject::serialize(ArenaID arena_id) const
     {
         Json result = Json::create_object(arena_id);
