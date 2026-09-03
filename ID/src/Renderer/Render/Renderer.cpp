@@ -415,20 +415,24 @@ namespace ID::Renderer
     {
         reset_statistics();     // 清理统计信息，确保每帧统计独立
 
-        // 如果 scene 非空，自动收集场景内的 MeshRendererComponent / LightComponent
+        // 如果 scene 非空，自动收集场景内的 MeshRendererComponent / LightComponent（按池遍历，下标循环只读）
         if(scene != nullptr)
         {
-            for(GameObject::ID id : scene->find_game_objects_with_component<MeshRendererComponent>())
+            auto& mesh_pool = scene->get_component_registry().pool<MeshRendererComponent>();
+            for (size_t i = 0; i < mesh_pool.size(); ++i)
             {
-                GameObject& go = scene->get_game_object(id);
+                GameObject::ID go_id = mesh_pool.owners()[i];
+                if (!scene->is_game_object_valid(go_id)) continue;    // 防御：正常不触发（GO 销毁时组件已出池）
+
+                GameObject& go = scene->get_game_object(go_id);
                 if (!go.is_active())
                 {
                     continue;
                 }
-                MeshRendererComponent* mrc = go.get_component<MeshRendererComponent>();
-                
+                MeshRendererComponent& mrc = mesh_pool.components()[i];
+
                 // 未激活的 MeshRendererComponent 不参与渲染
-                if (mrc == nullptr || !mrc->is_active())
+                if (!mrc.is_active())
                 {
                     continue;
                 }
@@ -441,23 +445,27 @@ namespace ID::Renderer
                 }
                 else if(transform_comp->is_active())
                 {
-                    submit(mrc->get_model(), transform_comp->get_world_matrix());
+                    submit(mrc.get_model(), transform_comp->get_world_matrix());
                 }
                 // else：TransformComponent 未激活，跳过渲染（静默，属于正常状态）
             }
 
-            for(GameObject::ID id : scene->find_game_objects_with_component<LightComponent>())
+            auto& light_pool = scene->get_component_registry().pool<LightComponent>();
+            for (size_t i = 0; i < light_pool.size(); ++i)
             {
-                GameObject& go = scene->get_game_object(id);
+                GameObject::ID go_id = light_pool.owners()[i];
+                if (!scene->is_game_object_valid(go_id)) continue;
+
+                GameObject& go = scene->get_game_object(go_id);
                 if (!go.is_active())
                 {
                     continue;
                 }
-                LightComponent* lc = go.get_component<LightComponent>();
+                LightComponent& lc = light_pool.components()[i];
                 // 未激活的 LightComponent 不参与渲染
-                if (lc != nullptr && lc->is_active() && lc->get_light().enabled)
+                if (lc.is_active() && lc.get_light().enabled)
                 {
-                    submit(lc->get_light());
+                    submit(lc.get_light());
                 }
             }
 
