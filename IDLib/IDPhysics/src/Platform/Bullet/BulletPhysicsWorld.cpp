@@ -128,8 +128,14 @@ RigidBodyID PhysicsWorld::add_rigid_body(const RigidBodyCreateInfo& info)
 {
     btCollisionShape* bt_shape = m_impl->create_bt_shape(info.shape);
 
+    // 静态/运动学刚体必须以 mass=0 交给 Bullet：
+    // CF_STATIC_OBJECT / CF_KINEMATIC_OBJECT 标记只豁免重力与积分，
+    // 碰撞求解器以 invMass（= 1/mass）分配冲量——mass≠0 的“静态”刚体
+    // 会被碰撞对象一步步压进地下（表现为球减速挤穿地面）
+    const bool is_dynamic = (info.type == RigidBodyType::Dynamic && info.mass > 0.0f);
+
     btVector3 local_inertia(0.0f, 0.0f, 0.0f);
-    if (info.type == RigidBodyType::Dynamic && info.mass > 0.0f)
+    if (is_dynamic)
         bt_shape->calculateLocalInertia(info.mass, local_inertia);
 
     btTransform bt_start;
@@ -139,7 +145,7 @@ RigidBodyID PhysicsWorld::add_rigid_body(const RigidBodyCreateInfo& info)
 
     btDefaultMotionState* ms = new btDefaultMotionState(bt_start);
 
-    btRigidBody::btRigidBodyConstructionInfo bt_info(info.mass, ms, bt_shape, local_inertia);
+    btRigidBody::btRigidBodyConstructionInfo bt_info(is_dynamic ? info.mass : 0.0f, ms, bt_shape, local_inertia);
     bt_info.m_friction        = info.material.friction;
     bt_info.m_restitution     = info.material.restitution;
     bt_info.m_rollingFriction = info.material.rolling_friction;
