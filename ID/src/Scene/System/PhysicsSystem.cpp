@@ -88,51 +88,36 @@ namespace ID
 
         RigidBody& body = m_physics_world.get_rigid_body(rigid_body);
 
-        // Static / Kinematic：推送 Transform → 物理引擎
-        if (body.is_static() || body.is_kinematic())
+        // 从 RigidBodyComponent 池反查持有该刚体的组件（下标遍历：owners 与 components 同下标）
+        auto& pool = m_scene->get_component_registry().pool<RigidBodyComponent>();
+        for (size_t i = 0; i < pool.size(); ++i)
         {
-            // 需要从 Component 中找到对应的 TransformComponent
-            auto go_ids = m_scene->find_game_objects_with_component<RigidBodyComponent>();
-            for (GameObject::ID go_id : go_ids)
-            {
-                GameObject& go = m_scene->get_game_object(go_id);
-                RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
-                if (comp && comp->m_rigid_body == rigid_body)
-                {
-                    // 未激活的 GameObject / 组件不参与物理同步
-                    if (!go.is_active() || !comp->is_active()) break;
+            RigidBodyComponent& comp = pool.components()[i];
+            if (comp.m_rigid_body != rigid_body) continue;
 
-                    TransformComponent* transform = go.get_component<TransformComponent>();
-                    if (transform && transform->is_active())
-                    {
-                        body.set_transform(transform->get_position(), transform->get_orientation());
-                    }
-                    break;
+            GameObject::ID go_id = pool.owners()[i];
+            if (!m_scene->is_game_object_valid(go_id)) break;
+
+            GameObject& go = m_scene->get_game_object(go_id);
+
+            // 未激活的 GameObject / 组件不参与物理同步
+            if (!go.is_active() || !comp.is_active()) break;
+
+            TransformComponent* transform = go.get_component<TransformComponent>();
+            if (transform && transform->is_active())
+            {
+                // Static / Kinematic：推送 Transform → 物理引擎；Dynamic：拉取 物理引擎 → Transform
+                if (body.is_static() || body.is_kinematic())
+                {
+                    body.set_transform(transform->get_position(), transform->get_orientation());
+                }
+                else
+                {
+                    transform->set_position(body.get_position());
+                    transform->set_orientation(body.get_rotation());
                 }
             }
-        }
-        // Dynamic：拉取 物理引擎 → Transform
-        else if (body.is_dynamic())
-        {
-            auto go_ids = m_scene->find_game_objects_with_component<RigidBodyComponent>();
-            for (GameObject::ID go_id : go_ids)
-            {
-                GameObject& go = m_scene->get_game_object(go_id);
-                RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
-                if (comp && comp->m_rigid_body == rigid_body)
-                {
-                    // 未激活的 GameObject / 组件不参与物理同步
-                    if (!go.is_active() || !comp->is_active()) break;
-
-                    TransformComponent* transform = go.get_component<TransformComponent>();
-                    if (transform && transform->is_active())
-                    {
-                        transform->set_position(body.get_position());
-                        transform->set_orientation(body.get_rotation());
-                    }
-                    break;
-                }
-            }
+            break;      // 找到即退出（每刚体至多对应一个组件）
         }
     }
 
@@ -140,12 +125,15 @@ namespace ID
 
     void PhysicsSystem::sync_rigid_bodies()
     {
-        auto go_ids = m_scene->find_game_objects_with_component<RigidBodyComponent>();
-        for (GameObject::ID go_id : go_ids)
+        // 按池遍历（下标循环：本函数只修改 PhysicsWorld 与组件字段，不做池结构性修改）
+        auto& pool = m_scene->get_component_registry().pool<RigidBodyComponent>();
+        for (size_t i = 0; i < pool.size(); ++i)
         {
+            GameObject::ID go_id = pool.owners()[i];
+            if (!m_scene->is_game_object_valid(go_id)) continue;    // 防御：正常不触发（GO 销毁时组件已出池）
+
             GameObject& go = m_scene->get_game_object(go_id);
-            RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
-            if (!comp) continue;
+            RigidBodyComponent* comp = &pool.components()[i];
 
             // GameObject 或组件未激活：不参与物理模拟，移除已存在的刚体（若刚被停用）
             if (!go.is_active() || !comp->is_active())
@@ -217,12 +205,16 @@ namespace ID
 
     void PhysicsSystem::push_transforms()
     {
-        auto go_ids = m_scene->find_game_objects_with_component<RigidBodyComponent>();
-        for (GameObject::ID go_id : go_ids)
+        // 按池遍历（下标循环：本函数只读组件池，不做结构性修改）
+        auto& pool = m_scene->get_component_registry().pool<RigidBodyComponent>();
+        for (size_t i = 0; i < pool.size(); ++i)
         {
+            GameObject::ID go_id = pool.owners()[i];
+            if (!m_scene->is_game_object_valid(go_id)) continue;
+
             GameObject& go = m_scene->get_game_object(go_id);
-            RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
-            if (!comp || !comp->m_rigid_body.is_valid()) continue;
+            RigidBodyComponent* comp = &pool.components()[i];
+            if (!comp->m_rigid_body.is_valid()) continue;
             if (!go.is_active() || !comp->is_active()) continue;      // 未激活：不推送
 
             TransformComponent* transform = go.get_component<TransformComponent>();
@@ -250,12 +242,16 @@ namespace ID
 
     void PhysicsSystem::pull_transforms()
     {
-        auto go_ids = m_scene->find_game_objects_with_component<RigidBodyComponent>();
-        for (GameObject::ID go_id : go_ids)
+        // 按池遍历（下标循环：本函数只读组件池，不做结构性修改）
+        auto& pool = m_scene->get_component_registry().pool<RigidBodyComponent>();
+        for (size_t i = 0; i < pool.size(); ++i)
         {
+            GameObject::ID go_id = pool.owners()[i];
+            if (!m_scene->is_game_object_valid(go_id)) continue;
+
             GameObject& go = m_scene->get_game_object(go_id);
-            RigidBodyComponent* comp = go.get_component<RigidBodyComponent>();
-            if (!comp || !comp->m_rigid_body.is_valid()) continue;
+            RigidBodyComponent* comp = &pool.components()[i];
+            if (!comp->m_rigid_body.is_valid()) continue;
             if (!go.is_active() || !comp->is_active()) continue;      // 未激活：不拉取
 
             RigidBody& body = m_physics_world.get_rigid_body(comp->m_rigid_body);
