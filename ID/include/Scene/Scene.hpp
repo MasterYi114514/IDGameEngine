@@ -3,6 +3,7 @@
 #include "IDpch.hpp"
 #include "Scene/SceneID.hpp"
 #include "Scene/Component/Component.hpp"
+#include "Scene/Component/ComponentRegistry.hpp"
 #include "Scene/GameObject.hpp"
 #include "Scene/System/PhysicsSystem.hpp"
 
@@ -93,6 +94,10 @@ namespace ID
         void on_update(Timestep ts);
         void on_event(Event& event);
 
+        /// 组件池注册中心（组件按类型池化存储，见 ComponentPool.hpp）
+        ComponentRegistry&       get_component_registry()       { return m_component_registry; }
+        const ComponentRegistry& get_component_registry() const { return m_component_registry; }
+
     public:
         Json serialize(ArenaID arena) const override;
         void deserialize(const Json& json) override;
@@ -109,6 +114,7 @@ namespace ID
         bool m_is_running = false;
         std::vector<std::unique_ptr<GameObject>>    m_game_objects;
         std::unordered_set<GameObject::ID>          m_freed_ids;        // 已释放的 GameObject ID
+        ComponentRegistry                           m_component_registry;   // 组件池（坑 D：见 ~Scene 显式清理顺序）
         PhysicsSystem m_physics_system;
     };
 

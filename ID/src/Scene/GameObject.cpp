@@ -10,20 +10,22 @@ namespace ID
 {
     GameObject GameObject::default_game_object{nullptr, GameObject::INVALID_ID, "Default GameObject"};
 
-    GameObject::~GameObject()
-    {
-        for (auto& component : m_components)
-        {
-            if (component)
-            {
-                component->on_detach();
-            }
-        }
-        m_components.clear();
-    }
+    // 组件由 Scene 的 ComponentRegistry 持有，本类不再拥有/释放组件
+    // （销毁路径：Scene::destroy_game_object / ~Scene 先 erase_all_of 触发 on_detach）
+    GameObject::~GameObject() { }
 
     GameObject::GameObject(Scene* scene, ID id, const std::string& name)
         : m_scene(scene), m_id(id), m_name(name), m_is_active(false) { }
+
+    ComponentRegistry& GameObject::get_registry()
+    {
+        return m_scene->get_component_registry();
+    }
+
+    const ComponentRegistry& GameObject::get_registry() const
+    {
+        return m_scene->get_component_registry();
+    }
 
     void GameObject::set_parent(ID parent_id)
     {
@@ -59,35 +61,31 @@ namespace ID
     {
         if (!m_is_active) return;
 
-        // transform 没有 update 逻辑
-        // m_transform.on_update(ts);
-
-        for (auto& component : m_components)
-        {
-            // 未激活的组件不参与更新
-            if (component && component->is_active())
+        // 按池顺序（TypeID 升序）遍历本 GO 的组件（池化后遍历顺序与旧链表顺序不同，
+        // 现有组件无顺序依赖，见迁移计划坑 E）
+        get_registry().for_each_component_of(m_id,
+            [ts](Component::TypeID, Component& component)
             {
-                component->on_update(ts);
-            }
-        }
+                if (component.is_active())
+                {
+                    component.on_update(ts);
+                }
+            });
     }
 
     void GameObject::on_event(Event& event)
     {
         if (!m_is_active) return;
 
-        // transform 没有 event 逻辑
-        // m_transform.on_event(event);
-
-        for (auto& component : m_components)
-        {
-            if(event.is_handled()) break;       // 如果事件已经被处理，则不再传递给其他组件
-            // 未激活的组件不接收事件
-            if (component && component->is_active())
+        get_registry().for_each_component_of(m_id,
+            [&event](Component::TypeID, Component& component)
             {
-                component->on_event(event);
-            }
-        }
+                if (event.is_handled()) return;      // 事件已被处理则不再传递
+                if (component.is_active())
+                {
+                    component.on_event(event);
+                }
+            });
     }
 
     Json GameObject::serialize(ArenaID arena_id) const
@@ -96,15 +94,13 @@ namespace ID
         result.insert("name", Json::create_string(m_name, arena_id));
         result.insert("is_active", Json(m_is_active));
 
-        // 序列化 Components
+        // 序列化 Components（按池顺序，即 TypeID 升序；旧存档按 type 字段反序列化，双向兼容）
         Json components_array = Json::create_array(arena_id);
-        for (const auto& component : m_components)
-        {
-            if (component)
+        get_registry().for_each_component_of(m_id,
+            [&](Component::TypeID, const Component& component)
             {
-                components_array.push_back(component->serialize(arena_id));
-            }
-        }
+                components_array.push_back(component.serialize(arena_id));
+            });
         result.insert("components", components_array);
 
         // 序列化子节点
@@ -125,11 +121,10 @@ namespace ID
         m_name = json["name"].as_cstr();
         m_is_active = json["is_active"].as_bool();
 
-        // 清空旧的组件（防御性，确保反序列化可重复调用）
-        m_components.clear();
-        m_component_index.clear();
+        // 组件由 Scene 的 ComponentRegistry 持有：本函数不重复清空旧组件，
+        // 重复反序列化同一 GO 前应由调用方保证组件已清理（Scene::deserialize 全量重建场景）
 
-        // 反序列化 Components
+        // 反序列化 Components：Creator 内部完成入池 + 反序列化（重复类型会被跳过）
         const Json& components_array = json["components"];
         if (components_array.is_array())
         {
@@ -138,24 +133,9 @@ namespace ID
                 const Json& component_json = components_array[i];
                 std::string type_name = component_json["type"].as_cstr();
 
-                auto component = ComponentFactory::create(type_name);
-                if (component)
+                if (!ComponentFactory::create(type_name, *this, component_json))
                 {
-                    component->deserialize(component_json);
-                    component->on_attach(this);
-
-                    // 索引表：该类型尚无记录时写入，保证 get_component O(1)
-                    Component::TypeID type_id = component->get_type_id();
-                    if (m_component_index.find(type_id) == m_component_index.end())
-                    {
-                        m_component_index[type_id] = component.get();
-                    }
-
-                    m_components.push_back(std::move(component));
-                }
-                else
-                {
-                    ID_ERROR("无法创建组件类型: {}", type_name);
+                    ID_ERROR("无法创建组件类型: {}（未注册或该 GO 已持有同类型组件）", type_name);
                 }
             }
         }

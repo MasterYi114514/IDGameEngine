@@ -23,19 +23,25 @@ namespace ID
         return true;
     }
 
-    std::unique_ptr<Component> ComponentFactory::create(const std::string& name)
+    bool ComponentFactory::create(const std::string& name, GameObject& game_object, const Json& json)
     {
         auto& registry = get_registry();
         auto it = registry.find(name);
         if (it != registry.end())
         {
-            return it->second();
+            return it->second(game_object, json);
         }
         else
         {
             ID_WARN("ComponentFactory::create：尝试创建未注册的组件，名称: {}", name);
-            return nullptr;
+            return false;
         }
+    }
+
+    void ComponentFactory::report_duplicate_component(const std::string& game_object_name)
+    {
+        ID_WARN("ComponentFactory：GameObject '{}' 的存档中存在重复组件类型，跳过后续条目（池化后单实例）",
+                game_object_name);
     }
 
     bool ComponentFactory::is_registered(const std::string& name)

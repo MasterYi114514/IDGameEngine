@@ -42,6 +42,10 @@ namespace ID
 
         /// 按 GameObject 容量扩容稀疏数组（create_game_object 时调用）
         virtual void   reserve_for_game_objects(size_t capacity) = 0;
+
+        /// 基类指针访问 owner 的组件（类型擦除遍历用），不存在返回 nullptr
+        virtual Component*       get_component_base(EntityID owner)       = 0;
+        virtual const Component* get_component_base(EntityID owner) const = 0;
     };
 
     /**
@@ -192,6 +196,9 @@ namespace ID
 
         /// dense 归属 GO 数组（下标与 components() 一一对应）
         std::span<const EntityID> owners() const { return m_owners; }
+
+        Component*       get_component_base(EntityID owner) override       { return find(owner); }
+        const Component* get_component_base(EntityID owner) const override { return find(owner); }
 
     private:
         /// owner → dense 下标，越界或无组件返回 NULL_INDEX

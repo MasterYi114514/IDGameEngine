@@ -36,12 +36,22 @@ namespace ID
 
     Scene::~Scene()
     {
-        // ⚠️ 必须在 PhysicsSystem 析构前释放 GameObject：
-        // 成员按声明逆序析构，m_physics_system 先于 m_game_objects 销毁；
-        // 若此时 GameObject 析构，其 RigidBodyComponent 会调用 m_world->remove_rigid_body()，
-        // 访问已销毁的 PhysicsWorld，构成 use-after-free。
-        // 在析构体内显式 clear，保证组件析构时物理世界仍然存活。
-        const size_t game_object_count = m_game_objects.size();
+        // ⚠️ 坱 D：显式清理顺序，禁止依赖成员声明顺序的隐式析构。
+        // 成员按声明逆序析构时 m_physics_system 先于 m_game_objects / m_component_registry 销毁；
+        // 而组件 on_detach 会访问 PhysicsWorld（如 RigidBodyComponent 释放刚体），
+        // 因此必须在此处（物理系统仍存活时）先逐池释放全部组件：
+        // ① 对每个存活 GO 逐池 erase（触发各组件 on_detach，释放物理/音频句柄）
+        // ② 清空 GameObject 容器（GO 不再拥有组件，析构无副作用）
+        // ③ 组件池随 m_component_registry 成员析构自动释放（此时池已空）
+        size_t game_object_count = 0;
+        for (const auto& go : m_game_objects)
+        {
+            if (go)
+            {
+                ++game_object_count;
+                m_component_registry.erase_all_of(go->get_id());
+            }
+        }
         m_game_objects.clear();
 
         ID_INFO("[Scene] 场景 '{}' (id={}) 销毁：{} 个 GameObject 及其组件已释放，物理系统随后销毁",
@@ -64,6 +74,9 @@ namespace ID
             id = static_cast<GameObject::ID>(m_game_objects.size());
             m_game_objects.push_back(std::unique_ptr<GameObject>(new GameObject(this, id, name)));
         }
+
+        // 稀疏数组随 GO 容量增长（只增不减，复用槽位时容量未变无需扩容）
+        m_component_registry.reserve_for_game_objects(m_game_objects.size());
         return id;
     }
 
@@ -91,6 +104,10 @@ namespace ID
             auto& siblings = parent.get_children();
             siblings.erase(std::remove(siblings.begin(), siblings.end(), id), siblings.end());
         }
+
+        // 销毁全部组件（逐池 erase，触发各组件 on_detach 释放物理/音频句柄；
+        // 此时本 Scene 的 PhysicsSystem 仍存活，on_detach 访问 PhysicsWorld 安全）
+        m_component_registry.erase_all_of(game_object.get_id());
 
         // 销毁 GameObject
         m_game_objects[id].reset();
@@ -153,6 +170,17 @@ namespace ID
     void Scene::deserialize(const Json& json)
     {
         m_name = json["name"].as_cstr();
+
+        // 先显式释放现存组件：旧实现 clear() 经 ~GameObject 触发 on_detach，
+        // 池化后组件由 Registry 持有，必须逐池 erase 复刻此行为（物理系统仍存活）
+        for (const auto& go : m_game_objects)
+        {
+            if (go)
+            {
+                m_component_registry.erase_all_of(go->get_id());
+            }
+        }
+
         m_game_objects.clear();
         m_freed_ids.clear();
 

@@ -931,11 +931,12 @@ namespace ID
             return;
         }
 
-        // 已存在的组件类型置灰（s_allow_multiple=false 的类型只允许挂载一个）
+        // 已存在的组件类型置灰（池化后每 GO 每类型至多一个实例）
         const bool has_transform = go.has_component<TransformComponent>();
         const bool has_mesh     = go.has_component<MeshRendererComponent>();
         const bool has_light    = go.has_component<LightComponent>();
         const bool has_rigid    = go.has_component<RigidBodyComponent>();
+        const bool has_audio    = go.has_component<AudioSourceComponent>();
         const bool has_listener = go.has_component<AudioListenerComponent>();
 
         if(ImGui::MenuItem("Transform", nullptr, false, !has_transform))
@@ -955,7 +956,7 @@ namespace ID
         {
             go.add_component<RigidBodyComponent>().make_active();
         }
-        if(ImGui::MenuItem("AudioSource", nullptr, false, true))  // 允许多个
+        if(ImGui::MenuItem("AudioSource", nullptr, false, !has_audio))  // 池化后退化为单实例（迁移计划 R2）
         {
             go.add_component<AudioSourceComponent>().make_active();
         }
