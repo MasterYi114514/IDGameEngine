@@ -36,6 +36,12 @@ namespace ID
         }
     } // namespace detail
 
+    /**
+     *  @brief 组件基类
+     *
+     *  组件由 Scene 的 ComponentRegistry 按类型池化持有（ComponentPool<T>），
+     *  不再依附 GameObject 内部链表；生命周期与释放顺序见 ComponentPool.hpp。
+     */
     class ID_API Component : public SerializableBase
     {
     public:
@@ -53,10 +59,6 @@ namespace ID
         virtual void on_event(Event& event) { }
 
         GameObject* get_owner() const { return m_owner; }
-
-        bool            is_tail() const { return m_next == nullptr; }
-        Component*      get_next() const { return m_next; }
-        void            set_next(Component* next) { m_next = next; }
 
         bool is_active() const { return m_is_active; }
         void make_inactive() { m_is_active = false; }
@@ -101,8 +103,6 @@ namespace ID
 
     protected:
         GameObject* m_owner = nullptr;              // 组件所属的 GameObject
-
-        Component* m_next = nullptr;                // 用于 Component 链表的指针
 
         bool m_is_active = false;                    // 组件是否激活，新组件默认不激活
     };

@@ -21,7 +21,9 @@ namespace ID
 
         TypeID      get_type_id() const override { return get_static_type_id<AudioSourceComponent>(); }
         std::string get_component_type_name() const override { return "AudioSourceComponent"; }
-        static constexpr bool s_allow_multiple = true;  // 多个音源叠加
+        // 池化后退化为单实例（迁移计划 R2 决策）：同一 GO 至多一个音源，Add Component 菜单已同步置灰；
+        // s_allow_multiple 保留原值仅供旧代码兼容，未来需要多音源时再扩展池的多槽支持
+        static constexpr bool s_allow_multiple = true;
 
     public:
 

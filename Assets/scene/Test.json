@@ -11,14 +11,14 @@
                     ],
                     "m_pose": {
                         "ori(Quat)": [
-                            0.0,
-                            0.0,
-                            0.0,
-                            1.0
+                            0.037621986120939255,
+                            0.41299498081207275,
+                            0.51787501573562622,
+                            0.74821466207504272
                         ],
                         "position": [
                             0.0,
-                            0.0,
+                            5.0,
                             0.0
                         ]
                     },
@@ -67,6 +67,24 @@
                     },
                     "is_active": true,
                     "type": "MeshRendererComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.0,
+                        "friction": 0.5
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "radius": 0.5,
+                        "type": 1
+                    },
+                    "mass": 1.0,
+                    "rigid_body_type": 1,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
                 }
             ],
             "is_active": true,
@@ -164,6 +182,28 @@
                     },
                     "is_active": true,
                     "type": "MeshRendererComponent"
+                },
+                {
+                    "material": {
+                        "rolling_friction": 0.0,
+                        "restitution": 0.0,
+                        "friction": 0.5
+                    },
+                    "angular_damping": 0.0,
+                    "allow_sleep": true,
+                    "linear_damping": 0.0,
+                    "collider_shape": {
+                        "half_extents": [
+                            5.0,
+                            0.5,
+                            5.0
+                        ],
+                        "type": 0
+                    },
+                    "mass": 1.0,
+                    "rigid_body_type": 0,
+                    "is_active": true,
+                    "type": "RigidBodyComponent"
                 }
             ],
             "is_active": true,

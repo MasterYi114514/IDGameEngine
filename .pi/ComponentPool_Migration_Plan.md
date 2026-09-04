@@ -448,3 +448,36 @@ namespace ID
 | R4 | Scene 析构 UAF 复发 | Step 2 | 坑 D 显式清理顺序，注释写明教训 |
 | R5 | JSON 组件顺序变化导致某处隐式依赖 | Step 2 | 反序列化按 type 分发，理论无影响；验收 5 覆盖 |
 | R6 | 跨 DLL TypeID 退化 | 全局 | 不引入任何运行时类型计数器；继续用现有 consteval 列表做池索引 |
+
+---
+
+## 6. 实施记录（迁移完成后追加）
+
+> 各步实际 commit 与偏离计划的改动记录。基线 commit：`d7db7fd`。
+
+| Step | Commit | 说明 |
+|------|--------|------|
+| 0 | `27f2237` | 基线快照（计划书入库 + 分支建立） |
+| 1 | `d9d559d` | 新增 `ComponentPool.hpp`（sparse set + IterationGuard） |
+| 2 | `9d8197a` | Registry 接入 + GameObject 四入口切换 + 序列化改造 + AudioSource 单实例 UI 适配 |
+| — | `7169d9b` | **计划外**：修复 Bullet 后端 Static/Kinematic 刚体 mass≠0 导致 invMass≠0、静态地面被碰撞求解器压入地下的既有 bug（排查穿地时发现，基线同样存在） |
+| 3 | `79c463a` | PhysicsSystem 5 处同步循环改池遍历 |
+| 4 | `acee3c6` | Renderer MeshRenderer/Light 收集改池遍历 |
+| 5 | `02f5fb0` | on_update/on_event 按池传播、删 GameObject 层组件驱动、AssetPanel 池遍历、删 `find_game_objects_with_component` |
+| 6 | （本次）| 删 Component 链表残留、追加本记录 |
+
+### 偏离计划的改动及原因
+
+1. **新增 `GameObject::adopt_component`（Step 2）**：计划书 Creator 设计为 `add_component<T>()` 后 `deserialize`，但 `AudioSourceComponent` 实际依赖"deserialize 先于 on_attach"的顺序（`m_pending_activate` 机制），故改为预构造 + adopt（入池拷贝 + on_attach），行为与旧实现一致。
+2. **新增 `GameObject::get_registry()` 桥接（Step 2）**：Scene ↔ GameObject 循环依赖，头文件内模板实现无法使用前向声明的 Scene，改经非模板成员（实现在 .cpp）转发。
+3. **`Scene::deserialize` 补显式清理（Step 2）**：旧实现 `m_game_objects.clear()` 经 `~GameObject` 触发组件 `on_detach`；池化后组件由 Registry 持有，需显式 `erase_all_of` 复刻该语义（计划书仅列 `~Scene` / `destroy_game_object`）。
+4. **`GameObject::on_update/on_event` 中间态改造提前（Step 2）**：删除 `m_components` 容器后编译上必须同步改造；Step 5 时整体搬至 Scene 并删除 GO 层函数。
+5. **`default_creator` 重复条目跳过（Step 2）**：旧存档多音源（`s_allow_multiple=true` 时代）反序列化时跳过重复类型并告警，避免池 emplace 断言崩溃（R2 决策配套）。
+6. **Step 1 的模板内 `IterationGuard` 在 Step 5 移除**：统一为 `IComponentPool::begin/end_iteration + IterationScope`（类型擦除路径无法构造模板内 Guard）。
+7. **`default_game_object` 保留（Step 6）**：计划书要求"若确认无引用则删"，实际 `get_parent()` 错误分支仍引用，保留。
+8. **已知问题（不修，用户决策）**：`RigidBodyComponent::set_collider_shape` 修改形状只标记 `m_need_sync`，sync 分支不同步 shape（Bullet 形状不可变）——运行时拖动 Collider 尺寸不生效，需重载场景。
+
+### 迁移结果
+
+- 总验收清单（第 4 节）全部通过：渲染/物理/音频/序列化/DevGUI/ID 复用/性能与基线一致或更好。
+- 全场景扫描（每帧 5 次 Physics + 2 次 Renderer + AssetPanel）全部消除，组件按类型连续存储。
