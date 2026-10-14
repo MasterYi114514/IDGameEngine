@@ -42,13 +42,32 @@
 
 ---
 
-## 3. 目录结构与构建约定
+## 3. 三层平级目录结构与构建约定 (Three-Tier Peer Directory Layout)
 
-- `ID/CMakeLists.txt`：引擎主 CMake 入口，统一将 `ID/include` 设为全局公共头文件搜索目录，并管理编译选项与 `id_add_plugin()` 构建原语。
-- `ID/include/`：全局统一公共头文件目录（与 `ID/README.md` 保持一致）。
-  - `ID/include/Kernel/`：微内核对外头文件（如 `#include "Kernel/CoreTypes.hpp"`、`#include "Kernel/Memory.hpp"`）。
-  - `ID/include/<PluginName>/`：各插件对外头文件（如 `#include "Math/Vec4.hpp"`、`#include "Physics/PhysicsAPI.hpp"`）。
-- `ID/Kernel/src/`：微内核实现源码（Tier 0）。
-- `ID/PluginStub/src/`：每个插件强制私链的全局内存分配重载与注册桩源码（Tier 0）。
-- `ID/Plugins/<PluginName>/src/`：所有引擎插件的实现源码（按 Tier 1 / Tier 2 / Tier 3 组织）。
-- `bin/`：构建产物统一输出目录（已配置在 `.gitignore` 中忽略，切勿提交二进制产物）。
+整个仓库采用 **`ID`（微内核底座） + `IDPlugin`（插件大本营与植入桩） + `Sandbox`（测试与游戏宿主）** 的顶层三层平级物理隔离架构：
+
+```text
+IDGameEngine/
+├── CMakeLists.txt                   # 顶层构建入口：依次编排 ID -> IDPlugin -> Sandbox
+├── ID/                              # 【第一层：纯粹微内核仓库】仅产出微内核库 ID (.dll / .a)
+│   ├── CMakeLists.txt               # 微内核编译配置，将 ID/include 暴露为 PUBLIC 头文件目录
+│   ├── include/
+│   │   ├── Common/                  # 零状态编译期基础设施 (Core.hpp, templates/Singleton.hpp, tools/LinearArena.hpp, tools/SlabSpan.hpp)
+│   │   └── Kernel/                  # 微内核核心接口 (CoreTypes.hpp, BootstrapLog.hpp, Memory.hpp, Plugin.hpp)
+│   └── src/
+│       └── Kernel/                  # 微内核核心实现 (BootstrapLog.cpp, Memory.cpp, PluginManager.cpp)
+│
+├── IDPlugin/                        # 【第二层：插件大本营】管理 IDPluginStub 及所有引擎/业务插件
+│   ├── CMakeLists.txt               # 构建静态劫持桩 IDPluginStub，定义 id_add_plugin() 统一插件构建宏
+│   ├── Stub/
+│   │   └── IDPluginStub.cpp         # 每个插件强制私链的全局 operator new/delete 劫持桩（路由至 ID::Memory）
+│   ├── include/                     # 插件公共头文件目录（如 IDPlugin/include/Math/..., IDPlugin/include/Physics/...）
+│   └── <PluginName>/                # 各具体插件源码目录（按 Tier 1 / Tier 2 / Tier 3 组织，如 Math/, Log/, ECS/, Physics/）
+│
+├── Sandbox/                         # 【第三层：游戏宿主与冒烟测试】
+│   ├── CMakeLists.txt               # 可执行程序目标，链接 ID + IDPluginStub + 所需插件
+│   └── src/
+│       └── main.cpp                 # 宿主入口与微内核/插件闭环测试
+│
+└── bin/                             # 构建产物统一输出目录（已配置在 .gitignore 中忽略，切勿提交二进制产物）
+```

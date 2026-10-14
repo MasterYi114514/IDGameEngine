@@ -1,0 +1,53 @@
+cmake_minimum_required(VERSION 3.20)
+
+project(IDGameEngine
+    LANGUAGES CXX
+    VERSION 0.0.1
+)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# 构建模式选项 -----------------------------------------------------------
+option(ID_MONOLITHIC_BUILD "静态归并所有插件并开启全程序优化 (LTO/LTCG)" OFF)
+option(ID_ENABLE_AVX2      "开启 AVX2/FMA SIMD 指令集优化" ON)
+# -----------------------------------------------------------------------
+
+# 可以自己设置 -----------------------------------------------------------
+set(BIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)                # 所有库文件与可执行文件的输出目录
+# -----------------------------------------------------------------------
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}/bin)
+
+# 统一极限性能编译参数封装函数
+function(id_apply_performance_flags TARGET_NAME)
+    if(MSVC)
+        target_compile_options(${TARGET_NAME} PRIVATE
+            /W4 /GR- /EHs-c-
+            $<$<CONFIG:Release>:/O2 /Oi /Ot /Ob3 /Gw /Gy /fp:fast>
+        )
+        if(ID_ENABLE_AVX2)
+            target_compile_options(${TARGET_NAME} PRIVATE /arch:AVX2)
+        endif()
+    else()
+        target_compile_options(${TARGET_NAME} PRIVATE
+            -Wall -Wextra -fno-rtti -fno-exceptions
+            $<$<CONFIG:Release>:-O3 -ffast-math -fomit-frame-pointer>
+        )
+        if(ID_ENABLE_AVX2)
+            target_compile_options(${TARGET_NAME} PRIVATE -mavx2 -mfma)
+        endif()
+    endif()
+
+    if(ID_MONOLITHIC_BUILD)
+        set_property(TARGET ${TARGET_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+    endif()
+endfunction()
+
+# 按三层平级架构依次加载子项目：微内核 (ID) -> 插件大本营 (IDPlugin) -> 宿主与测试 (Sandbox)
+add_subdirectory(ID)
+add_subdirectory(IDPlugin)
+add_subdirectory(Sandbox)

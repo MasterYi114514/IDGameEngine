@@ -42,26 +42,26 @@ Before creating or modifying a plugin, classify it into the correct physical tie
 
 ### Workflow 1: Creating a New Plugin
 
-Copy and follow this checklist when adding a new plugin under `ID/Plugins/<PluginName>/`:
+All plugins live in the top-level peer directory `IDPlugin/` (alongside `ID/` for the microkernel and `Sandbox/` for the host executable). Copy and follow this checklist when adding a new plugin:
 
 ```markdown
 Plugin Creation Progress:
 - [ ] Step 1: Determine plugin tier (Tier 1 Inline/Module vs Tier 2/3 Dual-Build)
-- [ ] Step 2: Create headers under `ID/include/<PluginName>/` and sources under `ID/Plugins/<PluginName>/src/`
+- [ ] Step 2: Create headers under `IDPlugin/include/<PluginName>/` and sources under `IDPlugin/<PluginName>/src/`
 - [ ] Step 3: Declare `consteval` Plugin ID, dependencies, and `PluginDescriptor`
 - [ ] Step 4: Expose API (Header/Module for Tier 1; dual-mode flat API table for Tier 2/3)
-- [ ] Step 5: Register plugin target via `id_add_plugin()` in CMake
+- [ ] Step 5: Register plugin target via `id_add_plugin()` in `IDPlugin/CMakeLists.txt`
 ```
 
 1. **Determine Tier**:
    - **If called inside inner loops (Math, SIMD, Containers, Hashing)**: Use `INLINE_ONLY` in `id_add_plugin()`. Never export small hot functions across a non-inlined library boundary.
-   - **If a subsystem (Log backend, ECS, Physics, Render)**: Use standard dual-build `id_add_plugin()` so it builds as `.dll` in Dev and `.lib` with LTO in Release.
+   - **If a subsystem (Log backend, ECS, Physics, Render)**: Use standard dual-build `id_add_plugin()` so it builds as `.dll` in Dev and `.lib` with LTO in Release (privately linking `IDPluginStub` from `IDPlugin/Stub/IDPluginStub.cpp`).
 2. **Lifecycle Registration**:
    - Implement the four symmetrical lifecycle callbacks:
-     - `OnRegister() noexcept`: Register `TypeID` layouts, memory slab sizes, and publish the plugin's API function table into its fixed kernel slot.
-     - `OnInit() noexcept`: Initialize subsystem resources (guaranteed by Kernel Kahn topological sort to run *after* all declared dependencies have initialized).
-     - `OnShutdown() noexcept`: Stop worker tasks and release subsystem resources (runs in strict *reverse* topological order).
-     - `OnUnload() noexcept`: Unbind API table pointers and reset to fallback/null stubs.
+     - `on_register() noexcept`: Register `type_id` layouts, memory slab sizes, and publish the plugin's API function table into its fixed kernel slot (`PluginManager::instance().register_service(...)`).
+     - `on_init() noexcept`: Initialize subsystem resources (guaranteed by Kernel Kahn topological sort to run *after* all declared dependencies have initialized).
+     - `on_shutdown() noexcept`: Stop worker tasks and release subsystem resources (runs in strict *reverse* topological order).
+     - `on_unload() noexcept`: Unbind API table pointers and reset to fallback/null stubs.
 
 ### Workflow 2: Designing Zero-Overhead Cross-Plugin Communication
 
