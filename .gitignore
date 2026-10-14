@@ -1,0 +1,108 @@
+# =============================================================================
+# IDGameEngine .gitignore
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. 构建输出与产物目录 (Build & Output Directories)
+# -----------------------------------------------------------------------------
+[Bb]in/
+[Bb]uild/
+[Oo]ut/
+[Dd]ebug/
+[Rr]elease/
+[Rr]elWithDebInfo/
+[Mm]inSizeRel/
+x64/
+x86/
+ARM64/
+
+# -----------------------------------------------------------------------------
+# 2. CMake 生成文件 (CMake Generated Artifacts)
+# -----------------------------------------------------------------------------
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+CMakeUserPresets.json
+
+# -----------------------------------------------------------------------------
+# 3. 编译中间产物、二进制库与 C++20 模块缓存 (Compiled Binaries & C++20 BMI/IFC)
+# -----------------------------------------------------------------------------
+*.obj
+*.o
+*.lo
+*.lib
+*.a
+*.dll
+*.so
+*.dylib
+*.exe
+*.out
+*.app
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.map
+*.ipdb
+*.iobj
+*.pch
+*.gch
+# C++20 Modules precompiled interfaces (MSVC / Clang / GCC)
+*.ifc
+*.bmi
+*.pcm
+gcm.cache/
+
+# -----------------------------------------------------------------------------
+# 4. LTO / PGO 性能分析与反馈优化数据 (Profile-Guided Optimization & Crash Dumps)
+# -----------------------------------------------------------------------------
+*.pgd
+*.pgc
+*.profraw
+*.profdata
+*.dmp
+*.mdmp
+*.tracy
+
+# -----------------------------------------------------------------------------
+# 5. IDE 与编辑器本地配置 (IDE & Editor Local State)
+# -----------------------------------------------------------------------------
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# VSCode / Cursor 本地机器特定配置 (忽略包含本地绝对路径的 settings/launch，保留共享配置能力)
+.vscode/*
+!.vscode/extensions.json
+.history/
+
+# JetBrains CLion / Rider
+.idea/
+cmake-build-*/
+
+# 保留项目级 AI 规则与技能 (.cursor/skills, .cursor/rules)，忽略临时缓存
+.cursor/*
+!.cursor/skills/
+!.cursor/rules/
+
+# -----------------------------------------------------------------------------
+# 6. 操作系统临时文件 (OS Generated Files)
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
