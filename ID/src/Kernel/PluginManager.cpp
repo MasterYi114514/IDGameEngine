@@ -21,6 +21,18 @@ namespace ID
         return -1;
     }
 
+    int32_t PluginManager::find_compatible_index(const PluginDependency& dep) const noexcept
+    {
+        for (size_t i = 0; i < m_registered_count; ++i)
+        {
+            if (dep.matches(m_registered[i]->plugin_id))
+            {
+                return static_cast<int32_t>(i);
+            }
+        }
+        return -1;
+    }
+
     bool PluginManager::register_plugin(const PluginDescriptor* descriptor) noexcept
     {
         ID_KERNEL_ASSERT(descriptor != nullptr, "Cannot register a null PluginDescriptor!");
@@ -50,7 +62,7 @@ namespace ID
             return true;
         }
 
-        // 1. 校验所有依赖项是否存在且版本满足要求，同时计算每个插件节点的入度 (in_degree)
+        // 1. 校验所有依赖项（含 compatible_ids 多上游兼容白名单）是否存在且版本达标，同时计算入度 (in_degree)
         uint32_t in_degree[kMaxPlugins] = { 0 };
 
         for (size_t i = 0; i < m_registered_count; ++i)
@@ -58,21 +70,34 @@ namespace ID
             const PluginDescriptor* desc = m_registered[i];
             for (const PluginDependency& dep : desc->dependencies)
             {
-                int32_t dep_idx = find_plugin_index(dep.plugin_id);
-                if (dep_idx < 0) [[unlikely]]
+                int32_t matched_count = 0;
+                for (size_t j = 0; j < m_registered_count; ++j)
+                {
+                    if (dep.matches(m_registered[j]->plugin_id))
+                    {
+                        if (m_registered[j]->version < dep.min_version) [[unlikely]]
+                        {
+                            char msg[256];
+                            std::snprintf(msg, sizeof(msg), "Plugin '%.*s' requires upstream '%.*s' >= v%u (found v%u)!",
+                                static_cast<int>(desc->name.size()), desc->name.data(),
+                                static_cast<int>(m_registered[j]->name.size()), m_registered[j]->name.data(),
+                                dep.min_version, m_registered[j]->version);
+                            ID_KERNEL_LOG(Log::Level::Fatal, msg);
+                            return false;
+                        }
+                        ++matched_count;
+                        ++in_degree[i];
+                    }
+                }
+
+                if (matched_count == 0) [[unlikely]]
                 {
                     char msg[256];
-                    std::snprintf(msg, sizeof(msg), "Plugin '%.*s' is missing required dependency (ID: 0x%llX)!",
-                        static_cast<int>(desc->name.size()), desc->name.data(), static_cast<unsigned long long>(dep.plugin_id));
+                    std::snprintf(msg, sizeof(msg), "Plugin '%.*s' cannot be assembled: no compatible upstream plugin registered (slot=%u)!",
+                        static_cast<int>(desc->name.size()), desc->name.data(), static_cast<uint32_t>(dep.slot));
                     ID_KERNEL_LOG(Log::Level::Fatal, msg);
                     return false;
                 }
-                if (m_registered[dep_idx]->version < dep.min_version) [[unlikely]]
-                {
-                    ID_KERNEL_LOG(Log::Level::Fatal, "Plugin dependency version mismatch!");
-                    return false;
-                }
-                ++in_degree[i];
             }
         }
 
@@ -96,7 +121,7 @@ namespace ID
             const PluginDescriptor* u_desc = m_registered[u_idx];
             m_topo_order[sorted_count++] = u_desc;
 
-            // 遍历所有依赖了 u_desc 的下游插件 v，将其入度减 1
+            // 遍历所有依赖了 u_desc（含在 compatible_ids 白名单中命中 u_desc）的下游插件 v，将其入度减 1
             for (size_t v_idx = 0; v_idx < m_registered_count; ++v_idx)
             {
                 if (in_degree[v_idx] == 0)
@@ -106,7 +131,7 @@ namespace ID
                 const PluginDescriptor* v_desc = m_registered[v_idx];
                 for (const PluginDependency& dep : v_desc->dependencies)
                 {
-                    if (dep.plugin_id == u_desc->plugin_id)
+                    if (dep.matches(u_desc->plugin_id))
                     {
                         if (--in_degree[v_idx] == 0)
                         {

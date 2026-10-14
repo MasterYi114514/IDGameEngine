@@ -28,9 +28,10 @@
 1. **微内核架构（Microkernel Only）**：
    - `ID.Kernel` 只保留最小且必要的底层基石：插件 DAG 管理系统、全局统一无锁内存分配器（含 TLS 帧分配器）、编译期 `TypeID` / 固定槽位服务注册表、以及极简自举钩子（Bootstrap Sink）。
    - 严禁把具体业务逻辑或具体子系统塞入微内核。
-2. **一切皆插件（Everything is a Plugin）**：
-   - 所有的底层与业务模块（数学 `Math`、容器 `Containers`、日志 `Log`、任务系统 `JobSystem`、数据底座 `ECS`、物理 `Physics`、渲染 `Render` 等）全部定义为插件，允许插件之间声明有向无环（DAG）依赖关系。
-   - 插件生命周期严格遵循微内核拓扑排序对称四阶段：正序 `OnRegister -> OnInit`，逆序 `OnShutdown -> OnUnload`。
+2. **一切皆插件（Everything is a Plugin）与多后端可插拔兼容**：
+   - 所有的底层与业务模块（数学 `Math`、容器 `Containers`、日志 `Log`、任务系统 `JobSystem`、数据底座 `ECS`、物理 `Physics`、渲染 `Render` 等）全部定义为插件，每个插件在 `IDPlugin/<PluginName>/` 下拥有独立的子目录、`CMakeLists.txt`、`include/` 与专属 `Core.hpp` 导出宏。
+   - **一槽多后端与下游显式兼容（方式 B）**：同一功能层面允许多个插件并存（如 `IDMath_SIMD` vs `IDMath_Fixed`、`IDRender_Vulkan` vs `IDRender_DX12`）。`id_add_plugin()` 自动向自身及所有下游公开注入 `ID_USE_PLUGIN_<UPPER_NAME>=1` 身份宏与 `ROLE_ALIAS` 角色别名；下游插件通过 `#if defined(ID_USE_PLUGIN_XXX) ... #elif ... #else static_assert(false)` 针对不同上游插件发挥各自独门优势，并在 `PluginDependency::compatible_ids` 中声明兼容白名单，不兼容的组合在编译期与微内核组装期双重拦截。
+   - 插件生命周期严格遵循微内核拓扑排序对称四阶段：正序 `on_register -> on_init`，逆序 `on_shutdown -> on_unload`。
 3. **极致运行效率优先（Zero Runtime Overhead over Compile Time）**：
    - **不怕编译时间长，想方设法把运行时开销降到最低**。
    - **物理分层 + 双模构建**：高频基础插件（`Math`、`Containers`）采用 C++20 Module / Header-Only 强制内联；系统插件采用 `id_add_plugin()` 双模构建——开发态支持 DLL 热重载，发布态（`ID_MONOLITHIC_BUILD=ON`）全部转为静态库并开启 `/GL` + `/LTCG`（或 `-flto=full`）实现跨所有插件的全程序内联优化。
@@ -57,12 +58,15 @@ IDGameEngine/
 │   └── src/
 │       └── Kernel/                  # 微内核核心实现 (BootstrapLog.cpp, Memory.cpp, PluginManager.cpp)
 │
-├── IDPlugin/                        # 【第二层：插件大本营】管理 IDPluginStub 及所有引擎/业务插件
-│   ├── CMakeLists.txt               # 构建静态劫持桩 IDPluginStub，定义 id_add_plugin() 统一插件构建宏
+├── IDPlugin/                        # 【第二层：插件大本营】管理 IDPluginStub 及所有独立自治插件子工程
+│   ├── CMakeLists.txt               # 构建 IDPluginStub，定义 id_add_plugin()（含自动注入 ID_USE_PLUGIN_XXX 与 ROLE_ALIAS），按配置挂载子插件
 │   ├── Stub/
 │   │   └── IDPluginStub.cpp         # 每个插件强制私链的全局 operator new/delete 劫持桩（路由至 ID::Memory）
-│   ├── include/                     # 插件公共头文件目录（如 IDPlugin/include/Math/..., IDPlugin/include/Physics/...）
-│   └── <PluginName>/                # 各具体插件源码目录（按 Tier 1 / Tier 2 / Tier 3 组织，如 Math/, Log/, ECS/, Physics/）
+│   └── <PluginName>/                # 每个插件独立自治文件夹（如 IDMath/, IDLog/, IDECS/, IDPhysics/）
+│       ├── CMakeLists.txt           # 插件自身构建脚本，调用 id_add_plugin()
+│       ├── include/
+│       │   └── <PluginName>/        # 插件自身头文件与专属 Core.hpp (定义 ID_<NAME>_API)
+│       └── src/                     # 插件自身实现源码
 │
 ├── Sandbox/                         # 【第三层：游戏宿主与冒烟测试】
 │   ├── CMakeLists.txt               # 可执行程序目标，链接 ID + IDPluginStub + 所需插件

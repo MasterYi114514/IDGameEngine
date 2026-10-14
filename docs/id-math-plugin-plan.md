@@ -5,7 +5,7 @@
 ## 1. 设计目标与核心定位
 
 1. **架构分层定位**：属于 **Tier 1（高频内联插件）+ Tier 2（SoA 批量加速服务插件）混合架构**。
-   - **单对象/局部算子（Tier 1 形态）**：`Vec2`、`Vec3`、`Vec4`、`Quat`、`Mat4` 的全部基础运算通过 `IDPlugin/include/Math/*.hpp` 纯头文件提供，强制使用 `ID_FORCEINLINE` + `ID_VECTORCALL` + `noexcept`，在调用方编译单元内 **100% 展开为原生 `XMM` / `YMM` 寄存器指令**，实现 **0 函数调用栈帧开销、0 跨 DLL 跳转开销**。
+   - **单对象/局部算子（Tier 1 形态）**：通用向量 `Vector<T, Dimension>`、四元数 `Quat`、矩阵 `Mat4` 的全部基础运算通过 `IDPlugin/include/Math/*.hpp` 纯头文件提供。`float` 的 2、3、4 维向量以及 `Quat`、`Mat4` 强制使用 `ID_FORCEINLINE` + `ID_VECTORCALL` + `noexcept`，在调用方编译单元内展开为原生 `XMM` / `YMM` 寄存器指令，实现 0 函数调用栈帧开销、0 跨 DLL 跳转开销。其它元素类型和维度走同一套接口的标量实现。
    - **批量数据流内核（Tier 2 插件形态）**：`ID.Math` 具备完整的微内核 `PluginDescriptor` 身份（`plugin_id = ID::hash_fnv_1a64("ID.Math")`），在 `on_register()` 阶段通过硬件 `cpuid` 检测当前 CPU 的指令集支持情况（SSE4.1 / AVX2+FMA），将面向 `ID.ECS` 与 `ID.Physics` 的 **SoA（Structure of Arrays）批量并行计算函数表**绑定到 `ID::ServiceSlot::Math` 槽位。
 2. **严守引擎编码红线**：
    - 全局禁用异常与 RTTI（所有函数标记 `noexcept`）。
@@ -30,7 +30,7 @@
 
 列主序存储（Column-Major）+ 列向量右乘（`v' = M · v`）。
 
-`Mat4` 由 4 个 `Vec4` 列向量 `m_cols[0..3]` 组成，连续占 64 字节（1 个 CPU 缓存行）：
+`Mat4` 由 4 个 `Vector<float, 4>` 列向量 `m_cols[0..3]` 组成，连续占 64 字节（1 个 CPU 缓存行）：
 
 ```text
 M = [ c0 | c1 | c2 | c3 ]
@@ -40,33 +40,64 @@ M = [ c0 | c1 | c2 | c3 ]
     | 0    0    0    1  |
 ```
 
-选择列主序 + 4 个 `Vec4` 列寄存器的原因：
+选择列主序 + 4 个 `Vector<float, 4>` 列寄存器的原因：
 
 1. **平移分量 `T = (tx, ty, tz, 1)` 恰好完整地落在第 4 列 `m_cols[3]` 的一个 `__m128` 寄存器中**。提取或修改物体的世界坐标只需 1 条寄存器读写指令，无需跨行拼凑。
 2. 与 GLSL / SPIR-V（Vulkan 默认 `column_major`）的内存布局 **100% 二进制兼容**，向 GPU Constant Buffer / Push Constants 拷贝矩阵时可直接 `memcpy`，无需转置。
 3. 当计算矩阵乘列向量 `v' = M · v = vx*c0 + vy*c1 + vz*c2 + vw*c3` 时，只需将 `v` 的 4 个分量分别广播（Shuffle）后与 `c0, c1, c2, c3` 做 **3 次 FMA（乘加指令 `_mm_fmadd_ps`）**，完全没有水平加法（Horizontal Add，在 SIMD 中极慢）。
 
-## 3. 目录结构与文件职责
+## 3. 独立自治目录结构、多后端可插拔与下游 `#if` 兼容规范
 
-在 `IDPlugin/` 下构建以下文件结构：
+### 3.1 `IDPlugin/IDMath/` 独立自治目录结构
+
+每个插件作为 `IDPlugin/` 下的独立自治文件夹存在，拥有自己的 `CMakeLists.txt`、`include/IDMath/Core.hpp`（定义 `ID_MATH_API`）与 `src/`：
 
 ```text
 IDPlugin/
-├── CMakeLists.txt                       # 注册 IDMath 插件目标，导出头文件目录
-├── include/
-│   └── Math/
-│       ├── MathTypes.hpp                # [模块 1] SIMD 头文件引入、数学常量、标量快速运算与位操作
-│       ├── Vec2.hpp                     # [模块 2] 8B 紧凑 2D 向量 (x, y)
-│       ├── Vec3.hpp                     # [模块 3] 12B 紧凑存储型 3D 向量（专用于顶点缓冲与数组存储）
-│       ├── Vec4.hpp                     # [模块 4] 16B 对齐 SIMD 向量 (__m128)，含 3D/4D 向量全部硬件算子
-│       ├── Quat.hpp                     # [模块 5] 16B 对齐 SIMD 四元数 (x, y, z, w)，含旋转、Slerp 与矩阵互转
-│       ├── Mat4.hpp                     # [模块 6] 64B (1 CacheLine) 对齐 4x4 矩阵，含 FMA 矩阵乘法、求逆、LookAtRH、PerspectiveRH_ZO
-│       ├── BatchMath.hpp                # [模块 7] AVX2 (256-bit 8路并行) SoA 批量算子声明与内联实现
-│       └── MathPlugin.hpp               # [模块 8] MathApiTable 服务表定义、CPU 特性结构与插件描述符声明
-└── Math/
+├── CMakeLists.txt                           # 定义 id_add_plugin()，通过配置变量选择挂载的数学插件（如 add_subdirectory(IDMath)）
+├── Stub/
+│   └── IDPluginStub.cpp                     # 全局 new/delete 劫持桩
+└── IDMath/                                  # 【独立自治的 IDMath 插件工程】
+    ├── CMakeLists.txt                       # 调用 id_add_plugin(IDMath ROLE_ALIAS ID::Math ...)
+    ├── include/
+    │   └── IDMath/
+    │       ├── Core.hpp                     # [模块 0] 定义 ID_MATH_API 导出宏并引入 Common/Core.hpp
+    │       ├── MathTypes.hpp                # [模块 1] SIMD 头文件引入、数学常量、标量快速运算与位操作
+    │       ├── Vector.hpp                   # [模块 2] Vector<T, Dimension> 通用向量；float 的 2/3/4 维走 SIMD
+    │       ├── Quat.hpp                     # [模块 3] 16B 对齐 SIMD 四元数 (x, y, z, w)，含旋转、Slerp 与矩阵互转
+    │       ├── Mat4.hpp                     # [模块 4] 64B (1 CacheLine) 对齐 4x4 矩阵，含 FMA 矩阵乘法、求逆、LookAtRH、PerspectiveRH_ZO
+    │       ├── BatchMath.hpp                # [模块 5] AVX2 (256-bit 8路并行) SoA 批量算子声明与内联实现
+    │       └── MathPlugin.hpp               # [模块 6] MathApiTable 服务表定义、CPU 特性结构与插件描述符声明
     └── src/
-        └── MathPlugin.cpp               # [模块 8] CPUID 硬件指令集探测、ServiceSlot::Math 绑定与大批量算子实现
+        └── MathPlugin.cpp                   # [模块 6] CPUID 硬件指令集探测、ServiceSlot::Math 绑定与大批量算子实现
 ```
+
+### 3.2 多数学插件切换与下游插件 `#if` 差异化兼容（方式 B）
+
+未来在 `Math`、`Render`、`Physics`、`Gameplay` 等任意层面均可存在多个插件实现（例如 `IDMath` vs. `IDMath_Fixed` 定点数插件）。不强求多个插件削足适履统一成完全相同的 API，而是采用 **“上游各自发挥极致优势 + 下游通过 `#if` 显式适配 + 双重组装拦截”**：
+
+1. **CMake 自动注入身份宏与角色别名**：
+   - `IDMath/CMakeLists.txt` 调用 `id_add_plugin(IDMath ROLE_ALIAS ID::Math ...)` 时，`id_add_plugin` 会自动向 `IDMath` 及所有链接 `ID::Math` 的下游插件公开注入宏 `ID_USE_PLUGIN_IDMATH=1`。
+2. **下游插件通过 `#if / #elif / #else` 差异化利用上游优势（零运行时开销）**：
+   - 下游插件（如 `IDECS`、`IDPhysics`）在涉及具体上游差异处通过宏分支直接调用当前上游的最强接口，并在 `#else` 分支用 `static_assert(false, ...)` 阻止未兼容的编译组装：
+     ```cpp
+     #if defined(ID_USE_PLUGIN_IDMATH)
+         #include "IDMath/Vector.hpp"
+         using PhysicsVec3 = ID::Math::Vec3;
+     #elif defined(ID_USE_PLUGIN_IDMATH_FIXED)
+         #include "IDMathFixed/FixedVec3.hpp"
+         using PhysicsVec3 = ID::MathFixed::FixedVec3;
+     #else
+         static_assert(false, "[Assembly Error] Downstream plugin does not support the currently selected Math plugin!");
+     #endif
+     ```
+3. **微内核启动期 `compatible_ids` 白名单校验**：
+   - 下游插件在 `PluginDependency` 中声明其已兼容的所有上游 `plugin_id` 列表：
+     ```cpp
+     constexpr ID::uint64_t kCompatMathIds[] = { ID::hash_fnv_1a64("ID.Math"), ID::hash_fnv_1a64("ID.Math.Fixed") };
+     constexpr ID::PluginDependency kDeps[]  = { { kCompatMathIds, 1, ID::ServiceSlot::Math } };
+     ```
+   - 微内核 `PluginManager::initialize_all()` 在组装拓扑图时校验当前注册的插件是否命中 `compatible_ids` 白名单，未命中则直接报 Fatal 错误拒绝组装。
 
 ## 4. 各模块核心算法与底层优化
 
@@ -83,81 +114,74 @@ IDPlugin/
 - `min`、`max`、`clamp`、`lerp`、`abs`、`sign`
 - **硬件级单精度快速反平方根 `inv_sqrt_fast(float x)`**：使用 `_mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(x)))` 配合 1 次牛顿-拉弗森迭代（Newton-Raphson Iteration：`y_{n+1} = y_n * (1.5 - 0.5 * x * y_n^2)`），将相对误差控制在 `1e-6` 以内，耗时约 3 个周期。
 
-### 模块 2 与 3：`Vec2.hpp` 与 `Vec3.hpp`（紧凑存储层）
+### 模块 2：`Vector.hpp`（任意类型、任意维度，仅 float 的 2/3/4 维做 SIMD）
 
-如果将 `Vec3` 设为 `alignas(16)`，则每个 `Vec3` 末尾会有 4 字节 Padding。在存储包含 100 万个顶点的网格或 ECS 组件数组时，会白白浪费 25% 的内存容量和 L1/L2 缓存带宽。
-
-设计约束：
-
-- `Vec2`（`sizeof == 8`）与 `Vec3`（`sizeof == 12`）保持纯标量紧凑布局（`float x, y, z;`），加上 `static_assert(sizeof(Vec3) == 12)` 保护。
-- 提供常规 `constexpr` 标量算子，用于编译期常量计算和简单赋值。
-- **安全跨界加载到 SIMD（防越界 Page Fault）**：当需要把 `Vec3` 载入 `Vec4`（`__m128`）进行密集计算时，**绝不能直接对 `Vec3*` 强转调 `_mm_loadu_ps`**。如果该 `Vec3` 恰好位于 64KB 虚拟内存页的最后 12 个字节，多读 4 个字节会触发硬件访问违例。正确做法是使用 `_mm_loadl_pi` 读取前 8 字节 `(x, y)`，再用 `_mm_load_ss` 读取第 9~12 字节 `(z)` 并通过 `_mm_movelh_ps` 合并，保证 **只精确读取 12 字节且仅需 2 条指令**。
-
-### 模块 4：`Vec4.hpp`（16B 对齐 XMM 寄存器核心层）
-
-这是日常 3D/4D 几何计算的主力类型（3D 点用 `w = 1`，3D 方向向量用 `w = 0`，颜色/齐次坐标用 `(x, y, z, w)`）。
-
-数据结构：
+全引擎只有一个向量类型：
 
 ```cpp
-struct alignas(16) Vec4
+template <typename T, size_t Dimension>
+struct Vector
 {
-    union
-    {
-        __m128  m_simd;
-        struct { float x, y, z, w; };
-        float   m_data[4];
-    };
+    static_assert(Dimension > 0, "Vector dimension must be positive");
+    T m_data[Dimension];
 };
+
+using Vec2 = Vector<float, 2>;
+using Vec3 = Vector<float, 3>;
+using Vec4 = Vector<float, 4>;
 ```
 
-**传参铁律**：所有接收 `Vec4` 的函数一律**按值传参**并标注 `ID_VECTORCALL`（如 `ID_FORCEINLINE Vec4 ID_VECTORCALL vec4_add(Vec4 a, Vec4 b) noexcept`），确保参数直接在 `XMM0 ~ XMM5` 寄存器中流转，绝不落栈。
+`Vec2`、`Vec3`、`Vec4` 只是别名，不再各写一套类型。`Vector<int, 2>`、`Vector<double, 3>`、`Vector<float, 8>` 都使用同一套接口。
 
-关键 SIMD 算法：
+两条实现路径在主模板内部用 `if constexpr` 分开，调用处仍然是 `a + b`、`dot(a, b)`，编译器只保留命中的那一条：
 
-1. **四则运算与 FMA 乘加**
-   - `+`、`-`、`*`、`/`：单条 `_mm_add_ps`、`_mm_sub_ps`、`_mm_mul_ps`、`_mm_div_ps`。
-   - `vec4_madd(Vec4 a, Vec4 b, Vec4 c)`：当开启 AVX2/FMA 时编译为单条 `_mm_fmadd_ps(a.m_simd, b.m_simd, c.m_simd)`（计算 `a * b + c`）。
-2. **点积（Dot Product）**
-   - 3D 点积 `vec3_dot(Vec4 a, Vec4 b)`：使用 SSE4.1 硬件指令 `_mm_dp_ps(a.m_simd, b.m_simd, 0x7F)`（掩码 `0111_1111`：只计算前三个分量之和并广播到 4 个通道）。
-   - 4D 点积 `vec4_dot(Vec4 a, Vec4 b)`：使用 `_mm_dp_ps(a.m_simd, b.m_simd, 0xFF)`。
-3. **3D 叉积（Cross Product，3 指令法）**
+| 实例 | 存储 | 运算 |
+|---|---|---|
+| `Vector<float, 2>` | 8 字节紧凑 `float[2]` | 载入 `__m128` 后做 SSE/FMA，结果只写回前 2 个分量 |
+| `Vector<float, 3>` | 12 字节紧凑 `float[3]`，禁止 `alignas(16)` | 安全加载 12 字节到 `__m128` 后做 SSE/FMA |
+| `Vector<float, 4>` | 16 字节，`alignas(16)` | 对齐 `_mm_load_ps` / `_mm_store_ps`，按值 + `ID_VECTORCALL` 走 XMM 寄存器 |
+| 其它 `T` 或其它 `Dimension` | `sizeof(T) * Dimension` 紧凑数组 | 按编译期已知的 `Dimension` 展开的标量循环，支持 `constexpr` |
 
-   计算 `a × b = (ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx, 0)`：
+`Vector<float, 3>` 不能改成 16 字节对齐。网格和组件数组里每个顶点多出的 4 字节会浪费约 25% 的内存带宽。把它载入 SIMD 时也不能对 `float*` 直接 `_mm_loadu_ps`：对象若落在 64KB 页的最后 12 字节，多读 4 字节会触发缺页。正确做法是 `_mm_loadl_pi` 读前 8 字节，`_mm_load_ss` 读最后 4 字节，再合并进 `__m128`。
+
+`float` 的 2、3、4 维共用下面这些硬件算子，函数按值传递并标记 `ID_VECTORCALL`：
+
+1. **四则运算与 FMA**：`+`、`-`、`*`、`/` 对应 `_mm_add_ps`、`_mm_sub_ps`、`_mm_mul_ps`、`_mm_div_ps`。乘加 `madd` 在开启 FMA 时是一条 `_mm_fmadd_ps`。2 维和 3 维在运算前把未使用通道清零，写回时不碰多余通道。
+2. **点积**：4 维用 `_mm_dp_ps(..., 0xFF)`；3 维用掩码 `0x7F`，只累加前三个分量；2 维用掩码 `0x3F`。
+3. **叉积只对 3 维开放**。在 `(z, x, y)` 顺序上做一次 FMA 乘减，再 shuffle 归位：
 
    ```cpp
-   __m128 a_yzx = _mm_shuffle_ps(a.m_simd, a.m_simd, _MM_SHUFFLE(3, 0, 2, 1));
-   __m128 b_yzx = _mm_shuffle_ps(b.m_simd, b.m_simd, _MM_SHUFFLE(3, 0, 2, 1));
-   __m128 c = _mm_fmsub_ps(a.m_simd, b_yzx, _mm_mul_ps(a_yzx, b.m_simd));
-   return Vec4(_mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1)));
+   __m128 a_yzx = _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1));
+   __m128 b_yzx = _mm_shuffle_ps(b, b, _MM_SHUFFLE(3, 0, 2, 1));
+   __m128 c = _mm_fmsub_ps(a, b_yzx, _mm_mul_ps(a_yzx, b));
+   c = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1));
    ```
 
-   在 `(z, x, y)` 顺序上做单次 FMA 乘减，最后再 shuffle 一次归位，比传统写两次两路 shuffle 省去 2 条 shuffle 指令。
+4. **归一化**：精确版走 `_mm_sqrt_ps`；`normalize_fast` 走 `_mm_rsqrt_ps` 加一次牛顿迭代，供粒子和布料这种大批量场景使用。
+5. **分量访问**：`x()`、`y()` 在 `Dimension >= 2` 时可用，`z()` 要求 `Dimension >= 3`，`w()` 要求 `Dimension >= 4`。用 `requires` 约束，维度不够时编译失败。
 
-4. **精确归一化与极速归一化**
-   - 精确版 `vec4_normalize`：`_mm_div_ps(v, _mm_sqrt_ps(_mm_dp_ps(v, v, 0xFF)))`。
-   - 极速版 `vec4_normalize_fast`：用 `_mm_rsqrt_ps` 硬件指令配合 1 次 FMA 牛顿迭代，供粒子系统、布料模拟等大吞吐量场景使用。
+其它类型和维度不生成任何 SIMD 指令。`Dimension` 是编译期常数，小维度的标量循环会被展开成顺序的加减指令，没有运行时分支去判断“是不是该走 SIMD”。
 
-### 模块 5：`Quat.hpp`（16B 对齐 SIMD 四元数）
+### 模块 3：`Quat.hpp`（16B 对齐 SIMD 四元数）
 
 存储顺序为 `(x, y, z, w)`，其中 `(x, y, z)` 为虚部向量 `u`，`w` 为实部标量。单位四元数 `Quat::identity()` 为 `(0, 0, 0, 1)`。
 
 核心算法：
 
 1. **四元数乘法 `quat_mul(Quat a, Quat b)`**：使用 SSE 掩码异或与 FMA 指令组合，无分支完成汉密尔顿乘积。
-2. **四元数旋转三维向量 `quat_rotate_vec3(Quat q, Vec4 v)`（Rodrigue 极速双叉积公式）**：
+2. **四元数旋转三维向量 `quat_rotate_vec3(Quat q, Vector<float, 3> v)`（Rodrigue 极速双叉积公式）**：
    - 传统公式 `v' = q · v · q^{-1}` 需要两次完整的四元数乘法（32 次标量乘法）。
    - 极速公式：设 `u = (qx, qy, qz, 0)`，计算 `t = 2 (u × v)`，`v' = v + qw * t + (u × t)`。只需调用 2 次上面的 3 指令 `vec3_cross` + 2 次 `_mm_fmadd_ps`，指令数直接砍半。
 3. **球面线性插值 `quat_slerp(Quat a, Quat b, float t)`**：处理最短路径翻转（当 `dot(a, b) < 0` 时反转符号）以及夹角极小时自动退化为归一化线性插值（`nlerp`）防除零。
 
-### 模块 6：`Mat4.hpp`（64B 缓存行对齐 4×4 矩阵）
+### 模块 4：`Mat4.hpp`（64B 缓存行对齐 4×4 矩阵）
 
 数据结构：
 
 ```cpp
 struct alignas(64) Mat4
 {
-    Vec4 m_cols[4]; // 列主序：m_cols[0..2] 为旋转缩放基向量，m_cols[3] 为平移列 (tx, ty, tz, 1)
+    Vector<float, 4> m_cols[4]; // 列主序：m_cols[0..2] 为旋转缩放基向量，m_cols[3] 为平移列 (tx, ty, tz, 1)
 };
 static_assert(sizeof(Mat4) == kCacheLineSize);
 ```
@@ -166,13 +190,13 @@ static_assert(sizeof(Mat4) == kCacheLineSize);
 
 核心算法：
 
-1. **矩阵乘向量 `mat4_mul_vec4(const Mat4& m, Vec4 v)`**：4 条 `_mm_shuffle_ps` 广播 + 1 条 `_mm_mul_ps` + 3 条 `_mm_fmadd_ps`，总计 **8 条指令**完成。
+1. **矩阵乘向量 `mat4_mul_vec4(const Mat4& m, Vector<float, 4> v)`**：4 条 `_mm_shuffle_ps` 广播 + 1 条 `_mm_mul_ps` + 3 条 `_mm_fmadd_ps`，总计 **8 条指令**完成。
 2. **矩阵乘矩阵 `mat4_mul(const Mat4& a, const Mat4& b)`**：对矩阵 `b` 的每一列 `b.m_cols[i]` 执行一次 `mat4_mul_vec4(a, b.m_cols[i])`。
 3. **SIMD 分块求逆矩阵**：
    - `mat4_inverse_transform(const Mat4& m)`：针对刚体/仿射变换矩阵的极速求逆。当矩阵仅包含旋转、平移和缩放时，利用左上 `3×3` 块转置/正交性质直接求逆，耗时仅为通用求逆的约 1/4。
    - `mat4_inverse(const Mat4& m)`：通用 `4×4` 伴随 / 2×2 分块克拉默法则求逆，适用于含透视投影的任意可逆矩阵。
 4. **右手坐标系 + [0, 1] 深度专用相机矩阵**：
-   - `mat4_look_at_rh(Vec4 eye, Vec4 target, Vec4 up)`：计算相机前向轴 `f = normalize(target - eye)`，右轴 `s = normalize(f × up)`，真上轴 `u = s × f`。由于右手系相机看向 `-Z`，第三行存入 `-f`。
+   - `mat4_look_at_rh(Vector<float, 3> eye, Vector<float, 3> target, Vector<float, 3> up)`：计算相机前向轴 `f = normalize(target - eye)`，右轴 `s = normalize(f × up)`，真上轴 `u = s × f`。由于右手系相机看向 `-Z`，第三行存入 `-f`。
 
    ```text
    V_RH = | sx   sy   sz   -(s·eye) |
@@ -192,7 +216,7 @@ static_assert(sizeof(Mat4) == kCacheLineSize);
 
    验算：当点在近平面 `z = -z_near` 时，`z_clip = 0`，因此 `z_ndc = 0`；当点在远平面 `z = -z_far` 时，`w_clip = z_far`，`z_clip = z_far`，因此 `z_ndc = z_clip / w_clip = 1`。
 
-### 模块 7 与 8：`BatchMath.hpp` 与 `MathPlugin.hpp/.cpp`
+### 模块 5 与 6：`BatchMath.hpp` 与 `MathPlugin.hpp/.cpp`
 
 为了践行 **“不在循环内逐对象跨插件调用，而是以连续内存块做 SIMD 批处理”** 的设计，在 `ID.Math` 插件实体中实现 AVX2（256-bit `YMM` 寄存器，单指令同时处理 **8 个 `float`**）的批量数学内核，并通过 `ServiceSlot::Math` 暴露给全引擎。
 
@@ -219,7 +243,7 @@ struct MathApiTable
 
     // 批量矩阵变换 4D 点云：out_pts[i] = transform * in_pts[i]
     void(*batch_transform_vec4)(
-        Vec4* ID_RESTRICT out_pts, const Vec4* ID_RESTRICT in_pts,
+        Vector<float, 4>* ID_RESTRICT out_pts, const Vector<float, 4>* ID_RESTRICT in_pts,
         size_t count, const Mat4& transform) noexcept;
 
     // 批量矩阵级联乘法（骨骼动画层级矩阵合成）：out[i] = parent[i] * local[i]
@@ -238,11 +262,11 @@ struct MathApiTable
 
 按以下 5 步推进：
 
-- **Step 1**：创建 `IDPlugin/include/Math/MathTypes.hpp`、`Vec2.hpp`、`Vec3.hpp`，完成基础常量、安全 12B 加载与标量工具。
-- **Step 2**：创建 `IDPlugin/include/Math/Vec4.hpp` 与 `Quat.hpp`，实现 SSE4.1/FMA 16B 对齐寄存器算子（点积、3 指令叉积、Rodrigue 四元数旋转、Slerp）。
-- **Step 3**：创建 `IDPlugin/include/Math/Mat4.hpp`，实现 64B 缓存行对齐列主序矩阵、FMA 乘法、快速仿射求逆，以及右手系 `[0, 1]` 深度的 `mat4_look_at_rh` 与 `mat4_perspective_rh_zo`。
-- **Step 4**：创建 `IDPlugin/include/Math/BatchMath.hpp`、`MathPlugin.hpp` 与 `IDPlugin/Math/src/MathPlugin.cpp`，实现 CPUID 指令集检测、AVX2 8 路并行 SoA 批处理内核及 `ServiceSlot::Math` 服务表绑定，并在 `IDPlugin/CMakeLists.txt` 中注册 `IDMath` 目标。
-- **Step 5**：在 `Sandbox/src/main.cpp` 中接入真实的 `IDMath` 插件，验证：
+- **Step 1**：创建 `IDPlugin/IDMath/CMakeLists.txt` 与 `IDPlugin/IDMath/include/IDMath/Core.hpp`、`MathTypes.hpp`、`Vector.hpp`。主模板覆盖任意 `T` 与 `Dimension`；`Vector<float, 2/3/4>` 走 SSE/FMA，并保证 `sizeof(Vector<float, 2>) == 8`、`sizeof(Vector<float, 3>) == 12`、`sizeof(Vector<float, 4>) == 16`。
+- **Step 2**：创建 `IDPlugin/IDMath/include/IDMath/Quat.hpp`，实现 SSE4.1/FMA 四元数乘法、Rodrigue 旋转与 Slerp，旋转对象使用 `Vector<float, 3>`。
+- **Step 3**：创建 `IDPlugin/IDMath/include/IDMath/Mat4.hpp`，实现 64B 缓存行对齐列主序矩阵、FMA 乘法、快速仿射求逆，以及右手系 `[0, 1]` 深度的 `mat4_look_at_rh` 与 `mat4_perspective_rh_zo`。
+- **Step 4**：创建 `IDPlugin/IDMath/include/IDMath/BatchMath.hpp`、`MathPlugin.hpp` 与 `IDPlugin/IDMath/src/MathPlugin.cpp`，实现 CPUID 指令集检测、AVX2 8 路并行 SoA 批处理内核及 `ServiceSlot::Math` 服务表绑定，并在 `IDPlugin/CMakeLists.txt` 中通过 `add_subdirectory(IDMath)`（绑定 `ROLE_ALIAS ID::Math`）挂载。
+- **Step 5**：在 `Sandbox/CMakeLists.txt` 中链接 `ID::Math`，并在 `Sandbox/src/main.cpp` 中通过 `#if defined(ID_USE_PLUGIN_IDMATH)` 接入真实的 `IDMath` 插件，验证：
   1. 右手系透视投影矩阵将近/远平面点精确映射到 `Z_ndc = 0` 和 `1`；
   2. 四元数旋转与旋转矩阵结果误差 `< 1e-5`；
   3. 跑基准测试对比 **SIMD `Mat4` / AVX2 `BatchMath`** 与 **普通 C++ 标量循环** 的实测加速比（预期提速 **6x ~ 12x**）。

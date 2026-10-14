@@ -40,23 +40,26 @@ Before creating or modifying a plugin, classify it into the correct physical tie
 
 ## Core Workflows
 
-### Workflow 1: Creating a New Plugin
+### Workflow 1: Creating a New Self-Contained Plugin & Multi-Backend Compatibility
 
-All plugins live in the top-level peer directory `IDPlugin/` (alongside `ID/` for the microkernel and `Sandbox/` for the host executable). Copy and follow this checklist when adding a new plugin:
+All plugins live as self-contained subprojects under `IDPlugin/<PluginName>/` (alongside `ID/` for the microkernel and `Sandbox/` for the host executable). Multiple alternative plugins for the same role (e.g., `IDMath` vs. `IDMath_Fixed`, `IDRender_Vulkan` vs. `IDRender_DX12`) are switched at configure/compile time with zero runtime overhead:
 
 ```markdown
 Plugin Creation Progress:
-- [ ] Step 1: Determine plugin tier (Tier 1 Inline/Module vs Tier 2/3 Dual-Build)
-- [ ] Step 2: Create headers under `IDPlugin/include/<PluginName>/` and sources under `IDPlugin/<PluginName>/src/`
-- [ ] Step 3: Declare `consteval` Plugin ID, dependencies, and `PluginDescriptor`
-- [ ] Step 4: Expose API (Header/Module for Tier 1; dual-mode flat API table for Tier 2/3)
-- [ ] Step 5: Register plugin target via `id_add_plugin()` in `IDPlugin/CMakeLists.txt`
+- [ ] Step 1: Determine plugin tier (Tier 1 Inline/Module vs Tier 2/3 Dual-Build) and role alias (e.g., `ID::Math`)
+- [ ] Step 2: Create self-contained directory `IDPlugin/<PluginName>/` with its own `CMakeLists.txt`, `include/<PluginName>/Core.hpp`, and `src/`
+- [ ] Step 3: Declare `consteval` Plugin ID, `compatible_ids` dependency whitelist, and `PluginDescriptor`
+- [ ] Step 4: Expose API and register via `id_add_plugin(<PluginName> ROLE_ALIAS <Role> ...)`
+- [ ] Step 5: In downstream plugins, handle upstream differences via `#if defined(ID_USE_PLUGIN_<UPPER_NAME>) ... #else static_assert(false)`
 ```
 
-1. **Determine Tier**:
-   - **If called inside inner loops (Math, SIMD, Containers, Hashing)**: Use `INLINE_ONLY` in `id_add_plugin()`. Never export small hot functions across a non-inlined library boundary.
-   - **If a subsystem (Log backend, ECS, Physics, Render)**: Use standard dual-build `id_add_plugin()` so it builds as `.dll` in Dev and `.lib` with LTO in Release (privately linking `IDPluginStub` from `IDPlugin/Stub/IDPluginStub.cpp`).
-2. **Lifecycle Registration**:
+1. **Self-Contained Layout & Identity Macro**:
+   - `id_add_plugin(<PluginName>)` automatically exports `PUBLIC` compile definition `ID_USE_PLUGIN_<UPPER_NAME>=1` to the plugin and all downstream dependents, and optionally binds `ROLE_ALIAS` (e.g., `ID::Math`).
+2. **Downstream Multi-Upstream Compatibility (Method B)**:
+   - Upstream plugins are **not** forced into a lowest-common-denominator API; each plugin exposes its full hardware/algorithmic strengths.
+   - Downstream plugins (e.g., `ID.ECS`, `ID.Physics`) adapt to differences across multiple supported upstream plugins using `#if defined(ID_USE_PLUGIN_IDMATH) ... #elif defined(ID_USE_PLUGIN_IDMATH_FIXED) ... #else static_assert(false, "Unsupported upstream plugin!"); #endif`.
+   - In `PluginDependency`, downstream plugins pass `compatible_ids` (a `std::span<const uint64_t>` whitelist of all supported upstream plugin IDs). `PluginManager::initialize_all()` verifies that at least one compatible upstream is registered and meets `min_version`; otherwise assembly is rejected immediately.
+3. **Lifecycle Registration**:
    - Implement the four symmetrical lifecycle callbacks:
      - `on_register() noexcept`: Register `type_id` layouts, memory slab sizes, and publish the plugin's API function table into its fixed kernel slot (`PluginManager::instance().register_service(...)`).
      - `on_init() noexcept`: Initialize subsystem resources (guaranteed by Kernel Kahn topological sort to run *after* all declared dependencies have initialized).

@@ -77,41 +77,87 @@ target_include_directories(ID PUBLIC ${ID_DIR}/include)
 id_apply_performance_flags(ID)
 ```
 
-### 1.3 Plugin Hub `IDPlugin/CMakeLists.txt`
+### 1.3 Plugin Hub `IDPlugin/CMakeLists.txt` & Self-Contained Plugin `IDPlugin/IDMath/CMakeLists.txt`
 
 ```cmake
+# IDPlugin/CMakeLists.txt
 set(ID_PLUGIN_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-# 1. Static memory hijack stub privately linked into every plugin and executable
 add_library(IDPluginStub STATIC ${ID_PLUGIN_DIR}/Stub/IDPluginStub.cpp)
 target_include_directories(IDPluginStub PUBLIC ${ID_PLUGIN_DIR}/include)
 target_link_libraries(IDPluginStub PUBLIC ID)
 id_apply_performance_flags(IDPluginStub)
 
-# 2. Unified macro for defining an IDGameEngine plugin
 function(id_add_plugin PLUGIN_NAME)
-    cmake_parse_arguments(PLUGIN "INLINE_ONLY" "" "SOURCES;DEPENDS" ${ARGN})
+    cmake_parse_arguments(PLUGIN "INLINE_ONLY" "BUILD_MACRO;INCLUDE_DIR;ROLE_ALIAS" "SOURCES;DEPENDS" ${ARGN})
+
+    string(TOUPPER "${PLUGIN_NAME}" PLUGIN_UPPER_NAME)
+    string(REGEX REPLACE "[^A-Z0-9_]" "_" PLUGIN_UPPER_NAME "${PLUGIN_UPPER_NAME}")
+    set(PLUGIN_IDENTITY_MACRO "ID_USE_PLUGIN_${PLUGIN_UPPER_NAME}=1")
+
+    if(NOT PLUGIN_INCLUDE_DIR)
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include")
+            set(PLUGIN_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+        else()
+            set(PLUGIN_INCLUDE_DIR "${ID_PLUGIN_DIR}/include")
+        endif()
+    endif()
 
     if(PLUGIN_INLINE_ONLY)
         add_library(${PLUGIN_NAME} INTERFACE)
-        target_include_directories(${PLUGIN_NAME} INTERFACE ${ID_PLUGIN_DIR}/include)
+        target_include_directories(${PLUGIN_NAME} INTERFACE ${PLUGIN_INCLUDE_DIR})
+        target_compile_definitions(${PLUGIN_NAME} INTERFACE ${PLUGIN_IDENTITY_MACRO})
         target_link_libraries(${PLUGIN_NAME} INTERFACE ID ${PLUGIN_DEPENDS})
+        if(PLUGIN_ROLE_ALIAS)
+            add_library(${PLUGIN_ROLE_ALIAS} ALIAS ${PLUGIN_NAME})
+        endif()
         return()
     endif()
 
     if(ID_MONOLITHIC_BUILD)
         add_library(${PLUGIN_NAME} STATIC ${PLUGIN_SOURCES})
-        set_property(TARGET ${PLUGIN_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+        set_property(TARGET ${PLUGIN_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     else()
         add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
         target_compile_definitions(${PLUGIN_NAME} PRIVATE ID_PLUGIN_BUILD_DLL=1)
+        if(PLUGIN_BUILD_MACRO)
+            target_compile_definitions(${PLUGIN_NAME} PRIVATE ${PLUGIN_BUILD_MACRO}=1)
+        else()
+            target_compile_definitions(${PLUGIN_NAME} PRIVATE ID_${PLUGIN_UPPER_NAME}_BUILD_DLL=1)
+        endif()
     endif()
 
-    target_include_directories(${PLUGIN_NAME} PUBLIC ${ID_PLUGIN_DIR}/include)
+    target_include_directories(${PLUGIN_NAME} PUBLIC ${PLUGIN_INCLUDE_DIR})
+    target_compile_definitions(${PLUGIN_NAME} PUBLIC ${PLUGIN_IDENTITY_MACRO})
     id_apply_performance_flags(${PLUGIN_NAME})
     target_link_libraries(${PLUGIN_NAME} PUBLIC ID ${PLUGIN_DEPENDS})
     target_link_libraries(${PLUGIN_NAME} PRIVATE IDPluginStub)
+
+    if(PLUGIN_ROLE_ALIAS)
+        add_library(${PLUGIN_ROLE_ALIAS} ALIAS ${PLUGIN_NAME})
+    endif()
 endfunction()
+
+# Select active plugin implementation per role (can be overridden via -DID_ACTIVE_MATH_PLUGIN=...)
+set(ID_ACTIVE_MATH_PLUGIN "IDMath" CACHE STRING "Active Math plugin directory under IDPlugin/")
+if(EXISTS "${ID_PLUGIN_DIR}/${ID_ACTIVE_MATH_PLUGIN}/CMakeLists.txt")
+    add_subdirectory(${ID_ACTIVE_MATH_PLUGIN})
+endif()
+```
+
+```cmake
+# IDPlugin/IDMath/CMakeLists.txt
+file(GLOB_RECURSE ID_MATH_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
+
+id_add_plugin(IDMath
+    ROLE_ALIAS  ID::Math
+    BUILD_MACRO ID_MATH_BUILD_DLL
+    INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include
+    SOURCES     ${ID_MATH_SRC}
+)
 ```
 
 ### 1.4 Host & Test `Sandbox/CMakeLists.txt`
@@ -238,8 +284,16 @@ namespace ID
 
     struct PluginDependency
     {
-        uint64_t    plugin_id   = 0;
-        uint32_t    min_version = 1;
+        uint64_t                    plugin_id       = 0;
+        uint32_t                    min_version     = 1;
+        std::span<const uint64_t>   compatible_ids  = {};
+        ServiceSlot                 slot            = ServiceSlot::MaxSlots;
+
+        constexpr PluginDependency() noexcept = default;
+        constexpr PluginDependency(uint64_t id, uint32_t ver = 1, ServiceSlot s = ServiceSlot::MaxSlots) noexcept
+            : plugin_id(id), min_version(ver), compatible_ids{}, slot(s) { }
+        constexpr PluginDependency(std::span<const uint64_t> compat_list, uint32_t ver = 1, ServiceSlot s = ServiceSlot::MaxSlots) noexcept
+            : plugin_id(0), min_version(ver), compatible_ids(compat_list), slot(s) { }
     };
 
     struct PluginDescriptor

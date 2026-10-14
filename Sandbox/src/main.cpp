@@ -16,8 +16,12 @@
 
 namespace
 {
-    constexpr ID::uint64_t kMathPluginId    = ID::hash_fnv_1a64("ID.Math");
-    constexpr ID::uint64_t kPhysicsPluginId = ID::hash_fnv_1a64("ID.Physics");
+    constexpr ID::uint64_t kMathPluginId        = ID::hash_fnv_1a64("ID.Math");
+    constexpr ID::uint64_t kMathFixedPluginId   = ID::hash_fnv_1a64("ID.Math.Fixed");
+    constexpr ID::uint64_t kPhysicsPluginId     = ID::hash_fnv_1a64("ID.Physics");
+
+    // Physics 声明可兼容的多个上游 Math 插件白名单（演示一槽多后端兼容机制）
+    constexpr ID::uint64_t kPhysicsCompatMathIds[] = { kMathPluginId, kMathFixedPluginId };
 
     struct MathApiTable
     {
@@ -54,7 +58,7 @@ namespace
         ID_KERNEL_LOG(ID::Log::Level::Info, "[Plugin: ID.Math] on_unload -> ServiceSlot::Math unbound.");
     }
 
-    constexpr ID::PluginDependency kPhysicsDeps[] = { { kMathPluginId, 1 } };
+    constexpr ID::PluginDependency kPhysicsDeps[] = { { kPhysicsCompatMathIds, 1, ID::ServiceSlot::Math } };
 
     void physics_on_register() noexcept
     {
