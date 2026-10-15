@@ -1,5 +1,7 @@
 #pragma once
 
+#include <concepts>
+
 #include "Common/Core.hpp"
 
 /**
@@ -15,7 +17,7 @@
 
 namespace ID
 {
-    // 饿汉式模板（强制 constinit 编译期初始化，彻底杜绝静态初始化顺序灾难 SIOF）
+    // 饿汉式模板
     template <typename T>
     class SingletonEager
     {
@@ -26,24 +28,18 @@ namespace ID
     public:
         ID_FORCEINLINE static T& get_instance() noexcept
         {
-            return s_instance;
+            static_assert(requires{ T::s_instance; }, "SingletonEager requires the derived class to define a static member 's_instance'!");
+            return T::s_instance;
         }
 
         ID_FORCEINLINE static T& instance() noexcept
         {
-            return s_instance;
+            return get_instance();
         }
 
         SingletonEager(const SingletonEager&) = delete;
         SingletonEager& operator=(const SingletonEager&) = delete;
-
-    private:
-        static T s_instance;
     };
-
-    // 默认静态定义（适用于单模块内部或 Monolithic 静态 LTO 模式；跨 DLL 导出的核心单例可通过特化 s_instance 驻留在 .cpp 中）
-    template <typename T>
-    inline constinit T SingletonEager<T>::s_instance{};
 
     // 懒汉式模板（注意：仅限单模块/插件内部使用，跨 DLL 请勿直接在头文件内联 static 局部变量）
     template <typename T>

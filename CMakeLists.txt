@@ -22,11 +22,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${BIN_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BIN_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN_DIR}/bin)
 
+if(MSVC)
+    # 移除 CMake 默认注入的 /EHsc 异常处理选项，避免与 /EHs-c- 冲突
+    string(REGEX REPLACE "/EH[a-z]+" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
+
 # 统一极限性能编译参数封装函数
 function(id_apply_performance_flags TARGET_NAME)
     if(MSVC)
         target_compile_options(${TARGET_NAME} PRIVATE
-            /W4 /GR- /EHs-c-
+            /utf-8 /W4 /GR- /EHs-c-
+            /wd4251 /wd4324
             $<$<CONFIG:Release>:/O2 /Oi /Ot /Ob3 /Gw /Gy /fp:fast>
         )
         if(ID_ENABLE_AVX2)

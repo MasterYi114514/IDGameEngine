@@ -5,9 +5,8 @@
 
 namespace ID
 {
-    // 显式特化定义：在微内核数据段中以 constinit 零开销初始化唯一实例
-    template <>
-    ID_KERNEL_API constinit PluginManager SingletonEager<PluginManager>::s_instance{};
+    // 确保编译期零开销初始化唯一实例
+    constinit PluginManager PluginManager::s_instance; 
 
     int32_t PluginManager::find_plugin_index(uint64_t plugin_id) const noexcept
     {

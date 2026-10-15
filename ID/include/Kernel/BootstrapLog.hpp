@@ -59,16 +59,10 @@ namespace ID::Log
         ID_NOINLINE void report_assert(std::string_view expr, std::string_view message, std::string_view file, uint32_t line) const noexcept;
 
     private:
+        static BootstrapLog s_instance;             // 唯一实例
         std::atomic<SinkFn> m_active_sink{ &default_bootstrap_sink };
     };
 } // namespace ID::Log
-
-namespace ID
-{
-    // 显式特化声明：将 BootstrapLog 的单例静态成员导出在 ID.Kernel 动态库中，保证跨所有插件 DLL 实例唯一
-    template <>
-    ID_KERNEL_API Log::BootstrapLog SingletonEager<Log::BootstrapLog>::s_instance;
-} // namespace ID
 
 // 微内核日志与断言宏
 #define ID_KERNEL_LOG(lvl, msg) \

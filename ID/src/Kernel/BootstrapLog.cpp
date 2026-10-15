@@ -8,15 +8,11 @@
     #include <Windows.h>
 #endif
 
-namespace ID
-{
-    // 显式特化定义：在微内核数据段中以 constinit 零开销初始化唯一实例
-    template <>
-    ID_KERNEL_API constinit Log::BootstrapLog SingletonEager<Log::BootstrapLog>::s_instance{};
-} // namespace ID
-
 namespace ID::Log
 {
+    // constinit 确保编译期零开销初始化
+    constinit BootstrapLog BootstrapLog::s_instance;
+
     namespace
     {
         constexpr const char* level_to_string(Level level) noexcept

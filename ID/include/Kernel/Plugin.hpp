@@ -132,6 +132,8 @@ namespace ID
         int32_t find_compatible_index(const PluginDependency& dep) const noexcept;
 
     private:
+        static PluginManager s_instance;             // 唯一实例
+
         const void*             m_service_slots[kMaxSlots]      = { nullptr };  // 固定槽位全局服务指针数组
         const PluginDescriptor* m_registered[kMaxPlugins]       = { nullptr };  // 原始注册的插件描述符列表
         const PluginDescriptor* m_topo_order[kMaxPlugins]       = { nullptr };  // 经 Kahn 拓扑排序后的有序插件列表
@@ -139,8 +141,4 @@ namespace ID
         size_t                  m_initialized_count             = 0;            // 已成功完成 on_init 的插件数量
         bool                    m_is_initialized                = false;        // 系统是否已完成整体初始化
     };
-
-    // 显式特化声明：将 PluginManager 单例静态成员导出在微内核 DLL 中，确保跨所有插件全局唯一
-    template <>
-    ID_KERNEL_API PluginManager SingletonEager<PluginManager>::s_instance;
 } // namespace ID
