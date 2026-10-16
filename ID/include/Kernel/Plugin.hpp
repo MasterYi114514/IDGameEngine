@@ -49,7 +49,11 @@ namespace ID
         constexpr PluginDependency(std::span<const uint64_t> compat_list, uint32_t ver = 1, ServiceSlot s = ServiceSlot::MaxSlots) noexcept
             : plugin_id(0), min_version(ver), compatible_ids(compat_list), slot(s) { }
 
-        // 判断给定的上游插件 ID 是否在本依赖的兼容范围内
+        /**
+         *  @brief 判断候选插件是否落在本依赖的兼容范围内
+         *  @param candidate_id 已注册插件的编译期 ID
+         *  @return compatible_ids 非空时只认白名单；否则只认 plugin_id。本函数不看版本
+         */
         ID_FORCEINLINE constexpr bool matches(uint64_t candidate_id) const noexcept
         {
             if (!compatible_ids.empty())
@@ -95,26 +99,47 @@ namespace ID
         ~PluginManager() noexcept = default;
 
     public:
-        // 注册或注销固定槽位服务表（O(1) 零开销写入）
+        /**
+         *  @brief 把一张函数表写进固定槽位，传 nullptr 表示卸下
+         *  @param slot 必须小于 ServiceSlot::MaxSlots。MaxSlots 本身不是合法下标
+         *  @param api_table 插件 API 表地址，生命周期必须盖过槽位被占用的时间
+         *  @note 同一槽位后写覆盖先写，没有类型检查。热路径上就是一次指针存储
+         */
         ID_FORCEINLINE void register_service(ServiceSlot slot, const void* api_table) noexcept
         {
             m_service_slots[static_cast<size_t>(slot)] = api_table;
         }
 
-        // 获取指定槽位的服务函数表指针（编译期展开为 1 条数组偏移读取指令）
+        /**
+         *  @brief 按槽位取出函数表
+         *  @param slot 必须小于 ServiceSlot::MaxSlots
+         *  @return 该槽位上的表。槽位空时返回 nullptr
+         *  @note ApiTableType 必须和 register_service 时的类型一致，这里没有运行时校验
+         */
         template <typename ApiTableType>
         ID_FORCEINLINE const ApiTableType* get_service(ServiceSlot slot) const noexcept
         {
             return static_cast<const ApiTableType*>(m_service_slots[static_cast<size_t>(slot)]);
         }
 
-        // 向微内核注册插件描述符（必须在 initialize_all 之前调用）
+        /**
+         *  @brief 登记一个插件描述符
+         *  @param descriptor 不能为空，且 descriptor 本身、dependencies、compatible_ids 都要活过 shutdown_all
+         *  @return 登记成功返回 true。重复 ID、超过 128 个、或 initialize_all 之后调用，返回 false
+         */
         bool register_plugin(const PluginDescriptor* descriptor) noexcept;
 
-        // 执行兼容白名单校验、Kahn 拓扑排序、环路检测，并按拓扑正序依次执行 on_register -> on_init
+        /**
+         *  @brief 校验依赖、做 Kahn 拓扑排序，再按正序调用 on_register 和 on_init
+         *  @return 全部初始化成功返回 true。缺依赖、版本全部不够或存在环时返回 false
+         *  @note 每条依赖只算 1 点入度。compatible_ids 里任何一个版本达标的上游都能满足它，先初始化完的那个生效。版本不够的候选直接跳过，不能因为名单里还有一个旧后端就失败，也不能把命中个数都加进入度
+         */
         bool initialize_all() noexcept;
 
-        // 按严格拓扑逆序依次执行 on_shutdown -> on_unload
+        /**
+         *  @brief 按拓扑逆序调用 on_shutdown 和 on_unload，然后清空注册表
+         *  @note 只覆盖已经 on_init 成功的插件。函数结束时可以重新 register_plugin
+         */
         void shutdown_all() noexcept;
 
         ID_FORCEINLINE size_t registered_count() const noexcept
@@ -128,7 +153,19 @@ namespace ID
         }
 
     private:
+        /**
+         *  @brief 按插件 ID 查找注册下标
+         *  @param plugin_id 编译期插件 ID
+         *  @return 找到时返回下标，找不到返回 -1
+         */
         int32_t find_plugin_index(uint64_t plugin_id) const noexcept;
+
+        /**
+         *  @brief 找第一个既匹配依赖、版本也达标的已注册插件
+         *  @param dep 一条依赖。compatible_ids 非空时按白名单匹配
+         *  @return 注册顺序中的第一个合格下标。只有旧版本或完全没有候选时返回 -1
+         *  @note 返回 -1 不区分「没注册」和「版本不够」，报错前要再扫一遍旧版本
+         */
         int32_t find_compatible_index(const PluginDependency& dep) const noexcept;
 
     private:

@@ -4,37 +4,53 @@
 
 ---
 
-## 1. 已注册项目技能 (Registered Project Skills)
+## 1. Agent 分工与注册入口
 
-在开发或修改引擎内核、插件模块、构建脚本及跨模块接口时，**必须第一时间读取并遵循以下项目技能**：
+**主 Agent 负责需求、拆分、公共接口决策、交接与验收；后续所有源码、测试代码和构建脚本编写交给对应编程 SubAgent。** 主 Agent 可维护流程与项目文档，不代写编程实现。未注册的模块先注册对应专家，不把插件业务交给内核 Agent。
 
-- **`id-cpp-coding-style`**（代码风格与命名规范，写任何 C++ 代码必读）
-  - **主文件**：[`.cursor/skills/id-cpp-coding-style/SKILL.md`](.cursor/skills/id-cpp-coding-style/SKILL.md)
-  - **核心要求**：Allman 风格大括号（`{` 独占一行）、`namespace` 内部缩进 4 空格、函数/方法与变量统一使用 `snake_case`（如 `get_instance()`, `type_id<T>()`）、类型/枚举使用 `PascalCase`、静态成员使用 `s_` 前缀、指针/引用符号紧贴类型左侧（`T&`）、命名空间结尾必须带 `// namespace XXX` 注释。
+### 1.1 主 Agent 必读
 
-- **`id-engine-architecture`**（微内核与零开销插件架构规范）
-  - **主文件**：[`.cursor/skills/id-engine-architecture/SKILL.md`](.cursor/skills/id-engine-architecture/SKILL.md)
-  - **代码与构建参考模板**：[`.cursor/skills/id-engine-architecture/reference.md`](.cursor/skills/id-engine-architecture/reference.md)
-  - **适用场景**：
-    - 设计或修改微内核 `ID.Kernel`（全局内存分配器、TLS 帧分配器、服务注册表、插件 DAG 拓扑调度器、Bootstrap 自举钩子）。
-    - 新增或修改任何引擎插件（如 `ID.Math`、`ID.Containers`、`ID.Log`、`ID.JobSystem`、`ID.ECS`、`ID.Physics`、`ID.Render`、`ID.Gameplay`）。
-    - 编写或调整 `ID/CMakeLists.txt` 及各插件的构建目标（双模构建：Dev 动态库热重载 vs. Release 全程序静态内联 LTO/LTCG）。
-    - 优化跨插件调用性能、SIMD 寄存器传参（`__vectorcall`）与面向数据设计（DOD `std::span` 批处理）。
+- 本文件：公共架构、领域归属和共享状态。
+- [`id-subagent-workflow`](.codebuddy/skills/id-subagent-workflow/SKILL.md)：注册、任务路由、交接、权限与验收流程；在注册或委派时加载。
+- 本次任务的共享摘要；复杂任务放在 `docs/handoffs/`，简单任务直接交接。
+
+### 1.2 已注册 SubAgent
+
+| 名称 | 必须委派的任务 | 原生定义 | 默认领域 / 协作边界 |
+|---|---|---|---|
+| `id-kernel` | `ID` 内核 C++、内存、插件 DAG/生命周期、服务槽、TypeID、自举日志及内核构建实现 | [`.codebuddy/agents/id-kernel.md`](.codebuddy/agents/id-kernel.md) | 默认 `ID/**`；Stub、Sandbox、测试和共享 CMake 仅在交接明确授权时编辑；不实现插件业务 |
+
+每次派发明确目标、只读/计划/实施模式、允许写入路径和验收条件。Agent 定义和路线图不自动授权实施全部待办。不得让多个 Agent 并发修改同一文件。
+
+### 1.3 仅编程 SubAgent 按需读取
+
+- 编码规范唯一维护源：[`.codebuddy/subagent-skills/id-cpp-coding-style/SKILL.md`](.codebuddy/subagent-skills/id-cpp-coding-style/SKILL.md)。缩进、命名与注释细节不在本文件重复。
+- 内核实施 Skill：[`.codebuddy/subagent-skills/id-kernel-development/SKILL.md`](.codebuddy/subagent-skills/id-kernel-development/SKILL.md)，由 `id-kernel` 系统提示正文显式指定。
+- 内核内部参考与阶段计划：[内部参考](.codebuddy/subagent-skills/id-kernel-development/references/kernel-internals.md)、[`docs/subagents/id-kernel-plan.md`](docs/subagents/id-kernel-plan.md)，只读取本次工作包相关章节。
+- 旧 `.cursor/skills/` 入口只保留兼容指向；架构模板仍保留在原路径。不要再维护两份编码规范。
+
+`.codebuddy/subagent-skills/` 是专属按需加载目录，不依赖默认 Skill 自动发现，不是文件权限隔离。主 Agent 默认不加载实现细节；确需核验时可读取相关部分。
+
+### 1.4 共享状态与完成口径
+
+2026-10-15：内核仍为原型；Slab 链表头、OR 依赖计数和版本筛选已有修复，优先处理内存识别/失败契约、生命周期与服务绑定，再做资源回收和真实 DLL 验证。本轮建立流程和文档，不声称已实施剩余代码修复；详细证据由内核计划维护。
+
+原生 Agent 文件已经登记；运行时发现与调用需在当前 IDE 验证，不能把配置文件存在等同于调用通过。Skill 中的路径不代表系统自动继承。
 
 ---
 
 ## 2. 核心架构三大铁律 (Core Architectural Mandates)
 
 1. **微内核架构（Microkernel Only）**：
-   - `ID.Kernel` 只保留最小且必要的底层基石：插件 DAG 管理系统、全局统一无锁内存分配器（含 TLS 帧分配器）、编译期 `TypeID` / 固定槽位服务注册表、以及极简自举钩子（Bootstrap Sink）。
+   - `ID.Kernel` 只保留最小且必要的底层基石：插件 DAG 管理系统、全局统一内存分配器（含线程私有快路径、跨线程无锁归还与 TLS 帧分配器）、编译期 `TypeID` / 固定槽位服务注册表、以及极简自举钩子（Bootstrap Sink）。OS 与日志慢路径不承诺端到端无锁或实时有界。
    - 严禁把具体业务逻辑或具体子系统塞入微内核。
 2. **一切皆插件（Everything is a Plugin）与多后端可插拔兼容**：
    - 所有的底层与业务模块（数学 `Math`、容器 `Containers`、日志 `Log`、任务系统 `JobSystem`、数据底座 `ECS`、物理 `Physics`、渲染 `Render` 等）全部定义为插件，每个插件在 `IDPlugin/<PluginName>/` 下拥有独立的子目录、`CMakeLists.txt`、`include/` 与专属 `Core.hpp` 导出宏。
-   - **一槽多后端与下游显式兼容（方式 B）**：同一功能层面允许多个插件并存（如 `IDMath_SIMD` vs `IDMath_Fixed`、`IDRender_Vulkan` vs `IDRender_DX12`）。`id_add_plugin()` 自动向自身及所有下游公开注入 `ID_USE_PLUGIN_<UPPER_NAME>=1` 身份宏与 `ROLE_ALIAS` 角色别名；下游插件通过 `#if defined(ID_USE_PLUGIN_XXX) ... #elif ... #else static_assert(false)` 针对不同上游插件发挥各自独门优势，并在 `PluginDependency::compatible_ids` 中声明兼容白名单，不兼容的组合在编译期与微内核组装期双重拦截。
-   - 插件生命周期严格遵循微内核拓扑排序对称四阶段：正序 `on_register -> on_init`，逆序 `on_shutdown -> on_unload`。
+   - **多后端与下游显式兼容（方式 B）**：同一功能层面允许多个插件实现存在（如 `IDMath_SIMD` vs `IDMath_Fixed`、`IDRender_Vulkan` vs `IDRender_DX12`）。通过身份宏、角色别名和兼容白名单明确选择与适配；编译分支、组装依赖和实际服务提供者必须一致。单个全局槽的后写覆盖不能作为多后端选择规则，具体策略由任务确认后实施。
+   - 插件生命周期保持正序 `on_register -> on_init`、逆序 `on_shutdown -> on_unload`；失败回滚应完整覆盖已经发生的注册副作用，不能只保证成功路径对称。
 3. **极致运行效率优先（Zero Runtime Overhead over Compile Time）**：
-   - **不怕编译时间长，想方设法把运行时开销降到最低**。
-   - **物理分层 + 双模构建**：高频基础插件（`Math`、`Containers`）采用 C++20 Module / Header-Only 强制内联；系统插件采用 `id_add_plugin()` 双模构建——开发态支持 DLL 热重载，发布态（`ID_MONOLITHIC_BUILD=ON`）全部转为静态库并开启 `/GL` + `/LTCG`（或 `-flto=full`）实现跨所有插件的全程序内联优化。
+   - **不怕编译时间长，在正确性和可验证的生命周期前提下尽量降低运行时开销**。
+   - **物理分层 + 双模构建**：高频基础插件（`Math`、`Containers`）采用 C++20 Module / Header-Only；系统插件开发态采用 DLL，发布态（`ID_MONOLITHIC_BUILD=ON`）采用静态库与 LTO/LTCG。安全热重载和跨插件内联是需要实施与验证的目标，不能仅凭 SHARED/IPO 配置声称完成。
    - **编码红线**：
      - 全局禁用 RTTI（`/GR-` / `-fno-rtti`）与异常（`/EHs-c-` / `-fno-exceptions`）。
      - 严禁带有运行时逻辑的全局/静态构造函数，全局状态必须使用 `constexpr` 或 `constinit`。

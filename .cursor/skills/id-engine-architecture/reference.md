@@ -1,6 +1,8 @@
 # IDGameEngine Architecture Reference & Code Templates
 
-This file contains canonical C++20 and CMake templates for the three-tier peer repository layout (`ID/`, `IDPlugin/`, `Sandbox/`), following the project's compact Allman + `snake_case` coding standard.
+本文件保留历史 C++20/CMake 示例，仅供编程 SubAgent 理解三层目录与构建原语，**不是当前权威规范，也不能直接复制作为修复方案**。公共约束以 `AGENTS.md` 为准，实施协议以 `.codebuddy/subagent-skills/id-kernel-development/` 为准。
+
+已知历史模板缺口：普通 `operator new` 直接返回分配器结果，可能违反失败契约；PRIVATE 静态链接不证明 Stub 必然植入；共享 `bin` 输出、默认全目标 AVX2 与统一 fast-math 未解决产物隔离、硬件支持和数值契约。保留代码作为历史参考，本轮不修改其示例实现；使用前依内核计划核验并由获授权的编程 SubAgent 修订。
 
 ---
 

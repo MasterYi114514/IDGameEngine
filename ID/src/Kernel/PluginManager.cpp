@@ -24,7 +24,8 @@ namespace ID
     {
         for (size_t i = 0; i < m_registered_count; ++i)
         {
-            if (dep.matches(m_registered[i]->plugin_id))
+            const PluginDescriptor* candidate = m_registered[i];
+            if (dep.matches(candidate->plugin_id) && candidate->version >= dep.min_version)
             {
                 return static_cast<int32_t>(i);
             }
@@ -61,42 +62,56 @@ namespace ID
             return true;
         }
 
-        // 1. 校验所有依赖项（含 compatible_ids 多上游兼容白名单）是否存在且版本达标，同时计算入度 (in_degree)
+        // 1. 每条依赖只贡献 1 点入度。白名单里任何一个版本达标的上游都能满足它。
+        //    版本不够的候选跳过；一个合格的都没有才失败。按命中个数累加入度会把多后端图报成假环。
+        constexpr size_t kMaxDepsPerPlugin = 32;
         uint32_t in_degree[kMaxPlugins] = { 0 };
 
         for (size_t i = 0; i < m_registered_count; ++i)
         {
             const PluginDescriptor* desc = m_registered[i];
+            if (desc->dependencies.size() > kMaxDepsPerPlugin) [[unlikely]]
+            {
+                char msg[256];
+                std::snprintf(msg, sizeof(msg), "Plugin '%.*s' declares more than %zu dependencies!",
+                    static_cast<int>(desc->name.size()), desc->name.data(), kMaxDepsPerPlugin);
+                ID_KERNEL_LOG(Log::Level::Fatal, msg);
+                return false;
+            }
+
             for (const PluginDependency& dep : desc->dependencies)
             {
-                int32_t matched_count = 0;
+                if (find_compatible_index(dep) >= 0)
+                {
+                    ++in_degree[i];
+                    continue;
+                }
+
+                const PluginDescriptor* outdated = nullptr;
                 for (size_t j = 0; j < m_registered_count; ++j)
                 {
-                    if (dep.matches(m_registered[j]->plugin_id))
+                    if (dep.matches(m_registered[j]->plugin_id) && m_registered[j]->version < dep.min_version)
                     {
-                        if (m_registered[j]->version < dep.min_version) [[unlikely]]
-                        {
-                            char msg[256];
-                            std::snprintf(msg, sizeof(msg), "Plugin '%.*s' requires upstream '%.*s' >= v%u (found v%u)!",
-                                static_cast<int>(desc->name.size()), desc->name.data(),
-                                static_cast<int>(m_registered[j]->name.size()), m_registered[j]->name.data(),
-                                dep.min_version, m_registered[j]->version);
-                            ID_KERNEL_LOG(Log::Level::Fatal, msg);
-                            return false;
-                        }
-                        ++matched_count;
-                        ++in_degree[i];
+                        outdated = m_registered[j];
+                        break;
                     }
                 }
 
-                if (matched_count == 0) [[unlikely]]
+                char msg[256];
+                if (outdated != nullptr)
                 {
-                    char msg[256];
+                    std::snprintf(msg, sizeof(msg), "Plugin '%.*s' requires upstream '%.*s' >= v%u (found v%u)!",
+                        static_cast<int>(desc->name.size()), desc->name.data(),
+                        static_cast<int>(outdated->name.size()), outdated->name.data(),
+                        dep.min_version, outdated->version);
+                }
+                else
+                {
                     std::snprintf(msg, sizeof(msg), "Plugin '%.*s' cannot be assembled: no compatible upstream plugin registered (slot=%u)!",
                         static_cast<int>(desc->name.size()), desc->name.data(), static_cast<uint32_t>(dep.slot));
-                    ID_KERNEL_LOG(Log::Level::Fatal, msg);
-                    return false;
                 }
+                ID_KERNEL_LOG(Log::Level::Fatal, msg);
+                return false;
             }
         }
 
@@ -113,6 +128,8 @@ namespace ID
             }
         }
 
+        // 每条依赖一个 bit。同一个上游可以满足一个下游的多条依赖，第二个合格上游不能再减同一条。
+        uint32_t satisfied[kMaxPlugins] = { 0 };
         size_t sorted_count = 0;
         while (q_head < q_tail)
         {
@@ -120,7 +137,6 @@ namespace ID
             const PluginDescriptor* u_desc = m_registered[u_idx];
             m_topo_order[sorted_count++] = u_desc;
 
-            // 遍历所有依赖了 u_desc（含在 compatible_ids 白名单中命中 u_desc）的下游插件 v，将其入度减 1
             for (size_t v_idx = 0; v_idx < m_registered_count; ++v_idx)
             {
                 if (in_degree[v_idx] == 0)
@@ -128,15 +144,23 @@ namespace ID
                     continue;
                 }
                 const PluginDescriptor* v_desc = m_registered[v_idx];
+                uint32_t dep_index = 0;
                 for (const PluginDependency& dep : v_desc->dependencies)
                 {
-                    if (dep.matches(u_desc->plugin_id))
+                    const uint32_t bit = 1u << dep_index;
+                    ++dep_index;
+                    if ((satisfied[v_idx] & bit) != 0)
                     {
-                        if (--in_degree[v_idx] == 0)
-                        {
-                            queue[q_tail++] = v_idx;
-                        }
-                        break;
+                        continue;
+                    }
+                    if (!dep.matches(u_desc->plugin_id) || u_desc->version < dep.min_version)
+                    {
+                        continue;
+                    }
+                    satisfied[v_idx] |= bit;
+                    if (--in_degree[v_idx] == 0)
+                    {
+                        queue[q_tail++] = v_idx;
                     }
                 }
             }
