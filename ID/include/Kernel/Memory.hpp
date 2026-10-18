@@ -2,26 +2,52 @@
 
 #include "Common/Core.hpp"
 #include "Common/tools/LinearArena.hpp"
-#include "Common/tools/SlabSpan.hpp"
 #include "Kernel/CoreTypes.hpp"
 
 /**
- *  微内核全局统一无锁内存分配系统（ID::Memory）
- *  负责管理 OS 64KB 对齐虚拟内存页（Page Heap）、15 档无锁 SlabSpan 线程局部调度池，以及 TLS 帧线性分配器。
+ *  Windows 上每个 DLL 可能链不同的 CRT，因此不能直接用 malloc/free/new/delete。微内核提供统一的无锁分配接口，供所有插件和 IDPluginStub 劫持 new/delete 使用
  */
 
 namespace ID::Memory
 {
-    inline constexpr size_t kNumSizeClasses    = 15;                // 小对象 Size Class 总档位数
-    inline constexpr size_t kMaxSmallBlockSize = 8192;              // 小对象最大尺寸（8KB），超过此尺寸走大对象 64KB 页分配
-    inline constexpr size_t kFrameArenaSize    = 4 * 1024 * 1024;   // 每线程默认 4MB 帧线性分配缓冲区
+    namespace detail
+    {
+        template <typename T, size_t N>
+        consteval bool is_ascending(const T(&arr)[N]) noexcept
+        {
+            for (size_t i = 0; i < N - 1; ++i)
+            {
+                if (arr[i] >= arr[i + 1])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    } // namespace detail
 
-    // 15 档小对象块大小配置表（单位：字节）
+    // 小对象 Size Class 总档位数
+    inline constexpr size_t kNumSizeClasses    = 15;
+    
+    /**
+     *  @brief 小对象 Size Class 档位表，按升序排列，最小为 16 字节，最大为 8KB
+     *  @note 由于 operator new/delete 的最小对齐是 16 字节，因此 Size Class 的最小值是 16 字节，更小的分配会被抬高到 16 字节，没有意义。
+     */
     inline constexpr uint32_t kSizeClasses[kNumSizeClasses] =
     {
         16, 32, 48, 64, 96, 128, 192, 256,
         384, 512, 768, 1024, 2048, 4096, 8192
     };
+    
+    static_assert(detail::is_ascending(kSizeClasses), "SizeClasses must be in ascending order");
+    static_assert(kSizeClasses[0] >= sizeof(void*), "SizeClasses must be at least a pointer size");
+
+    // 小对象最大尺寸（8KB），超过此尺寸走大对象分配
+    inline constexpr size_t kMaxSmallBlockSize = kSizeClasses[kNumSizeClasses - 1];
+
+    // 每线程默认 4MB 帧线性分配缓冲区
+    inline constexpr size_t kFrameArenaSize    = 4 * 1024 * 1024;
+
 
     struct MemoryStats
     {

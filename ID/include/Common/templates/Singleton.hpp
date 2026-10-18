@@ -17,7 +17,13 @@
 
 namespace ID
 {
-    // 饿汉式模板
+    /**
+     *  @brief 饿汉式单例模式模板类。该类通过 CRTP（Curiously Recurring Template Pattern）实现单例模式，确保派生类只有唯一实例。
+     *  @tparam T 派生类类型，必须继承自 SingletonEager<T>。
+     *  @note 1. 派生类必须定义一个静态成员变量 s_instance，用于存储单例实例。该类提供了线程安全的访问接口，确保在多线程环境下也能正确获取单例实例。
+     *  @note 2. SingletonEager 适用于跨 DLL 导出的核心单例，s_instance 可在 .cpp 中显式特化定义，保证所有模块/插件共享同一实例。
+     *  @note 3. 子类（class T : public SingletonEager<T>）需要将 SingletonEager<T> 声明为友元类
+     */
     template <typename T>
     class SingletonEager
     {

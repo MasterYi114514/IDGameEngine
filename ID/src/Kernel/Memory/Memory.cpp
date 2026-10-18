@@ -1,5 +1,6 @@
 #include "Kernel/Memory.hpp"
 #include "Kernel/BootstrapLog.hpp"
+#include "SlabSpan.hpp"
 
 #include <atomic>
 #include <cstring>
@@ -109,7 +110,7 @@ namespace ID::Memory
                     return nullptr;
                 }
 
-                SlabSpan* new_slab = SlabSpan::format(raw_span, class_idx, kSizeClasses[class_idx], get_current_thread_tag());
+                SlabSpan* new_slab = SlabSpan::format(raw_span, kSizeClasses[class_idx], get_current_thread_tag());
                 new_slab->next_slab       = m_slab_heads[class_idx];
                 m_slab_heads[class_idx]   = new_slab;
                 m_active_slabs[class_idx] = new_slab;

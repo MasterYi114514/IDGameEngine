@@ -12,6 +12,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 构建模式选项 -----------------------------------------------------------
 option(ID_MONOLITHIC_BUILD "静态归并所有插件并开启全程序优化 (LTO/LTCG)" OFF)
 option(ID_ENABLE_AVX2      "开启 AVX2/FMA SIMD 指令集优化" ON)
+option(ID_BUILD_BENCHMARK  "构建测试与性能基准" ON)
 # -----------------------------------------------------------------------
 
 # 可以自己设置 -----------------------------------------------------------
@@ -53,7 +54,11 @@ function(id_apply_performance_flags TARGET_NAME)
     endif()
 endfunction()
 
-# 按三层平级架构依次加载子项目：微内核 (ID) -> 插件大本营 (IDPlugin) -> 宿主与测试 (Sandbox)
+# 五层平级架构：ID（微内核）/ IDPlugin（插件）/ Sandbox（游戏本体）/ Benchmark（测试）/ Assemble（组装）
+# 当前已落地 ID / IDPlugin / Sandbox / Benchmark；Assemble 尚未建立
 add_subdirectory(ID)
 add_subdirectory(IDPlugin)
 add_subdirectory(Sandbox)
+if(ID_BUILD_BENCHMARK)
+    add_subdirectory(Benchmark)   # 测试与基准
+endif()

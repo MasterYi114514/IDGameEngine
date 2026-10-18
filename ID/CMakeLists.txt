@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.20)
 set(ID_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # -----------------------------------------------------------------------
 
-file(GLOB_RECURSE ID_KERNEL_SRC ${ID_DIR}/include/*.hpp ${ID_DIR}/src/Kernel/*.cpp)
+file(GLOB_RECURSE ID_KERNEL_SRC ${ID_DIR}/src/Kernel/*.hpp ${ID_DIR}/src/Kernel/*.cpp)
 
 if(ID_MONOLITHIC_BUILD)
     add_library(ID STATIC ${ID_KERNEL_SRC})

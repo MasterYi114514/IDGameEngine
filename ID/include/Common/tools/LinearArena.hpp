@@ -12,7 +12,11 @@ namespace ID
 {
     using ArenaFallbackFn = void(*)(size_t size, size_t alignment) noexcept;
 
-    // 线性内存分配器类，提供在预分配缓冲区上进行快速内存分配的功能
+    /**
+     *  @brief 线性内存分配器（LinearArena），当缓冲区不足时可触发回调函数
+     *  @note 1. 该分配器在给定的连续内存缓冲区上进行分配，每次分配操作仅为单次指针加法，性能高，适用于需要快速分配和释放的场景。分配器不支持单个内存块的释放，只有整体重置功能。
+     *  @note 2. 该分配器不具有线程安全性，调用方需要自行确保在多线程环境下的使用是安全的。
+     */
     class alignas(kCacheLineSize) LinearArena
     {
     public:
@@ -55,34 +59,60 @@ namespace ID
             return reinterpret_cast<void*>(aligned); // 返回对齐后的地址
         }
 
-        // 类型安全的模板分配辅助函数
+        /**
+         *  @brief 分配指定类型 T 的数组，返回指向数组首元素的指针
+         *  @param count 数组元素个数，默认为 1
+         *  @return 指向数组首元素的指针；若缓冲区不足则触发回调函数并返回 nullptr
+         */
         template <typename T>
         ID_FORCEINLINE T* allocate_array(size_t count = 1) noexcept
         {
             return static_cast<T*>(allocate(sizeof(T) * count, alignof(T)));
         }
 
-        // 重置分配器，将游标回退到缓冲区起始位置，允许重新使用整个缓冲区
+        /**
+         *  @brief 重置分配器
+         *  @note 该操作只会将游标重置到缓冲区起始位置，调用方需要确保在重置后不再使用之前分配的内存。
+         */
         ID_FORCEINLINE void reset() noexcept
         {
             m_cursor = m_base;
         }
 
+        /**
+         *  @brief 检查分配器是否已初始化
+         *  @return 如果缓冲区已绑定且游标和限制指针有效，则返回 true；否则返回 false
+         */
         ID_FORCEINLINE bool is_initialized() const noexcept
         {
             return m_base != nullptr && m_limit != nullptr;
         }
 
-        // 获取缓冲区的总容量
+        /**
+         *  @brief 获取分配器的总容量
+         *  @return 返回缓冲区的总字节数
+         */
         ID_FORCEINLINE size_t capacity() const noexcept
         {
             return static_cast<size_t>(m_limit - m_base);
         }
 
-        // 获取已使用的字节数
+        /**
+         *  @brief 获取已使用的字节数
+         *  @return 返回从缓冲区起始位置到当前游标的字节数，即已分配的内存总量
+         */
         ID_FORCEINLINE size_t used_bytes() const noexcept
         {
             return static_cast<size_t>(m_cursor - m_base);
+        }
+
+        /**
+         *  @brief 获取剩余可用的字节数
+         *  @return 返回从当前游标到缓冲区末尾的字节数，即剩余可分配的内存总量
+         */
+        ID_FORCEINLINE size_t remaining_bytes() const noexcept
+        {
+            return static_cast<size_t>(m_limit - m_cursor);
         }
 
     private:

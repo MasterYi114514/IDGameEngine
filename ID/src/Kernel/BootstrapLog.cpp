@@ -1,5 +1,7 @@
 #include "Kernel/BootstrapLog.hpp"
+
 #include <cstdio>
+#include <cstdlib>
 
 #if defined(_WIN32)
     #ifndef WIN32_LEAN_AND_MEAN
@@ -51,13 +53,19 @@ namespace ID::Log
         }
     }
 
-    ID_NOINLINE void BootstrapLog::report(Level level, std::string_view category, std::string_view message) const noexcept
+    ID_NOINLINE ID_COLD void BootstrapLog::report(Level level, std::string_view category, std::string_view message) const noexcept
     {
         SinkFn sink = m_active_sink.load(std::memory_order_relaxed);
         sink(level, category, message);
+
+        if (level == Level::Fatal) [[unlikely]]
+        {
+            ID_DEBUG_BREAK();
+            std::abort();
+        }
     }
 
-    ID_NOINLINE void BootstrapLog::report_assert(std::string_view expr, std::string_view message, std::string_view file, uint32_t line) const noexcept
+    ID_NOINLINE ID_COLD void BootstrapLog::report_assert(std::string_view expr, std::string_view message, std::string_view file, uint32_t line) const noexcept
     {
         char buffer[512];
         std::snprintf(
