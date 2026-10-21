@@ -1,0 +1,6 @@
+[ 40%] Built target ID
+[ 53%] Built target IDPluginStub
+[ 60%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+[ 66%] Linking CXX executable out\bin\PluginRuntimeCases.exe
+copy kernel DLL into runtime validation out/bin
+[100%] Built target PluginRuntimeCases

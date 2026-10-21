@@ -1,0 +1,34 @@
+﻿[100%] fixture negative cases: 28 expect-fail targets + legal control + 2 driver self-checks
+-- [legal-control] IDFixtureLegalCases -> exit 0
+-- [expect-fail] self_dependency -> category SelfDependency OK
+-- [expect-fail] ambiguous_provider -> category AmbiguousProvider OK
+-- [expect-fail] missing_provider -> category MissingProvider OK
+-- [expect-fail] cycle -> category Cycle OK
+-- [expect-fail] hash_collision -> category NameHashCollision OK
+-- [expect-fail] duplicate_candidate -> category DuplicateCandidate OK
+-- [expect-fail] empty_inner_group -> category EmptyRequirementGroup OK
+-- [expect-fail] unknown_candidate -> category UnknownCandidate OK
+-- [expect-fail] active_overflow -> category TooManyActive OK
+-- [expect-fail] evidence_mismatch -> category EvidenceProviderMismatch OK
+-- [expect-fail] invalid_name -> category InvalidName OK
+-- [expect-fail] duplicate_plugin -> category DuplicatePlugin OK
+-- [expect-fail] too_many_requirements -> category TooManyRequirements OK
+-- [expect-fail] too_many_candidates -> category TooManyCandidates OK
+-- [expect-fail] too_many_catalog -> category TooManyCatalog OK
+-- [expect-fail] unknown_active -> category UnknownActive OK
+-- [expect-fail] duplicate_active -> category DuplicateActive OK
+-- [expect-fail] evidence_selection_mismatch -> category EvidenceSelectionMismatch OK
+-- [expect-fail] evidence_edge_mismatch -> category EvidenceEdgeMismatch OK
+-- [expect-fail] evidence_duplicate_selection -> category EvidenceSelectionMismatch OK
+-- [expect-fail] evidence_duplicate_binding -> category EvidenceProviderMismatch OK
+-- [expect-fail] evidence_duplicate_edge -> category EvidenceEdgeMismatch OK
+-- [expect-fail] evidence_capacity -> category EvidenceSelectionMismatch OK
+-- [expect-fail] self_dependency_prefix_collision -> category NameHashCollision OK
+-- [expect-fail] cycle_long -> category Cycle OK
+-- [expect-fail] name_boundaries -> category InvalidName OK
+-- [expect-fail] name_internal_nul -> category InvalidName OK
+-- [expect-fail] name_first_char -> category InvalidName OK
+-- [self-check] wrong_expectation -> 已按预期拒绝（错误类别不符（出现 MISMATCH 标记））
+-- [self-check] aux_assert_failure -> 已按预期拒绝（失败断言数=2（判据要求恰好 1 条：只允许类别断言失败，辅助断言不得单独失败））
+-- 反向用例批次通过（每条都有同环境合法对照、恰好 1 条断言失败且类别被真实断言、两个驱动器自检生效）
+[116%] Built target FixtureNegativeCases

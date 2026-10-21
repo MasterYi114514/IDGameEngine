@@ -1,0 +1,601 @@
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt
+  case_self_dependency.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency.cpp”)
+  
+  case_ambiguous_provider.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_ambiguous_provider.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_ambiguous_provider.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_ambiguous_provider.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_ambiguous_provider.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_ambiguous_provider.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_ambiguous_provider.cpp”)
+  
+  case_missing_provider.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_missing_provider.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_missing_provider.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_missing_provider.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_missing_provider.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_missing_provider.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_missing_provider.cpp”)
+  
+  case_cycle.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle.cpp”)
+  
+  case_hash_collision.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_hash_collision.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_hash_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_hash_collision.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_hash_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_hash_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_hash_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixtureTestSupport.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_hash_collision.cpp”)
+  
+  case_duplicate_candidate.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_candidate.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_candidate.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_candidate.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_candidate.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_candidate.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_candidate.cpp”)
+  
+  case_empty_inner_group.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_empty_inner_group.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_empty_inner_group.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_empty_inner_group.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_empty_inner_group.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_empty_inner_group.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_empty_inner_group.cpp”)
+  
+  case_unknown_candidate.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_candidate.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_candidate.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_candidate.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_candidate.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_candidate.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_candidate.cpp”)
+  
+  case_active_overflow.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_active_overflow.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_active_overflow.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_active_overflow.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_active_overflow.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_active_overflow.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_active_overflow.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixtureStressSupport.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_active_overflow.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_active_overflow.cpp(26,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_active_overflow.cpp(27,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_active_overflow.cpp(27,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_evidence_mismatch.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_mismatch.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_mismatch.cpp”)
+  
+F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\generated\FixtureAssembly.generated.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(26,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(27,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(27,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(27,65): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(43,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_mismatch.cpp(43,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_invalid_name.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_invalid_name.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_invalid_name.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_invalid_name.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_invalid_name.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_invalid_name.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_invalid_name.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_invalid_name.cpp(35,54): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_invalid_name.cpp(39,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_invalid_name.cpp(39,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_duplicate_plugin.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_plugin.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_plugin.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_plugin.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_plugin.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_plugin.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_plugin.cpp”)
+  
+  case_too_many_requirements.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_requirements.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_requirements.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_requirements.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_requirements.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_requirements.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_requirements.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_requirements.cpp(38,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_requirements.cpp(39,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_requirements.cpp(39,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_too_many_candidates.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_candidates.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_candidates.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_candidates.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_candidates.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_candidates.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_candidates.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_candidates.cpp(55,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_candidates.cpp(56,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_candidates.cpp(56,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_too_many_catalog.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_catalog.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_catalog.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_catalog.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_catalog.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_catalog.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_catalog.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixtureStressSupport.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_too_many_catalog.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_catalog.cpp(51,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_catalog.cpp(52,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_catalog.cpp(52,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_unknown_active.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_active.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_active.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_active.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_active.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_active.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_unknown_active.cpp”)
+  
+  case_duplicate_active.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_active.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_active.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_active.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_active.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_active.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_duplicate_active.cpp”)
+  
+  case_evidence_selection_mismatch.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_selection_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_selection_mismatch.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_selection_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_selection_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_selection_mismatch.cpp”)
+  
+F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\generated\FixtureAssembly.generated.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_selection_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(24,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(25,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(25,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(25,65): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(40,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp(40,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_evidence_edge_mismatch.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_edge_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_edge_mismatch.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_edge_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_edge_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_edge_mismatch.cpp”)
+  
+F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\generated\FixtureAssembly.generated.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_edge_mismatch.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(24,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(25,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(25,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(25,65): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(40,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_edge_mismatch.cpp(40,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_evidence_duplicate_selection.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_selection.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_selection.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_selection.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_selection.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_selection.cpp”)
+  
+F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\generated\FixtureAssembly.generated.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_selection.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(33,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(34,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(34,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(35,65): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(36,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(36,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(37,19): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(52,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp(52,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  正在生成代码...
+  正在编译...
+  case_evidence_duplicate_binding.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_binding.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_binding.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_binding.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_binding.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_binding.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(70,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(71,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(71,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(73,65): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(74,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(74,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(75,19): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(90,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_binding.cpp(90,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_evidence_duplicate_edge.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_edge.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_edge.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_edge.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_edge.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_duplicate_edge.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(64,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(65,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(65,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(65,42): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(66,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(66,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(66,65): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(67,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(67,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(68,19): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(83,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_edge.cpp(83,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_evidence_capacity.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_capacity.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_capacity.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_capacity.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_capacity.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_evidence_capacity.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(91,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(92,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(92,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(94,19): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(95,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_capacity.cpp(95,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_self_dependency_prefix_collision.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency_prefix_collision.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency_prefix_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency_prefix_collision.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency_prefix_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency_prefix_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency_prefix_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixtureTestSupport.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_self_dependency_prefix_collision.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency_prefix_collision.cpp(36,72): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency_prefix_collision.cpp(37,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency_prefix_collision.cpp(37,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_cycle_long.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle_long.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle_long.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle_long.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle_long.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle_long.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_cycle_long.cpp”)
+  
+  case_name_boundaries.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_boundaries.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_boundaries.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_boundaries.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_boundaries.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_boundaries.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixtureTestSupport.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_boundaries.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(59,50): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(60,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(60,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(62,51): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(63,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(63,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(64,69): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(80,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_boundaries.cpp(80,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  case_name_internal_nul.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_internal_nul.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_internal_nul.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_internal_nul.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_internal_nul.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_internal_nul.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_internal_nul.cpp”)
+  
+  case_name_first_char.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_first_char.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_first_char.cpp”)
+  
+F:\IDGameEngine\ID\include\Kernel\CoreTypes.hpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_first_char.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(533,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_first_char.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1096,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  (编译源文件“../../../../Benchmark/validation/prototype/src/cases/case_name_first_char.cpp”)
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(31,64): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(32,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(32,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(32,63): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(33,5): error C2143: 语法错误: 缺少“)”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(33,5): error C2143: 语法错误: 缺少“;”(在“static_assert”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(33,62): error C2001: 字符串字面量中的换行符 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(48,1): error C2143: 语法错误: 缺少“)”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp(48,1): error C2143: 语法错误: 缺少“;”(在“}”的前面) [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.vcxproj]
+  正在生成代码...

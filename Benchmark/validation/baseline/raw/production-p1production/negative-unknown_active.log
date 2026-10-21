@@ -1,0 +1,26 @@
+MODE: production-p1production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p1production
+CWD: F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production
+TARGET: production_expect_unknown_active
+EXPECTED_MARKER: UnknownActive
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production --target production_expect_unknown_active
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[100%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_unknown_active.dir/src/cases/case_unknown_active.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_unknown_active.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:945:101: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:UnknownActive
+  945 |     static_assert(::ID::Bench::Production::error_differs<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_unknown_active.cpp:27:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   27 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, UnknownActive);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_unknown_active.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_unknown_active.dir/src/cases/case_unknown_active.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:2691: Benchmark/validation/production/CMakeFiles/production_expect_unknown_active.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:2698: Benchmark/validation/production/CMakeFiles/production_expect_unknown_active.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:1115: Benchmark/validation/production/CMakeFiles/production_expect_unknown_active.dir/rule] Error 2
+

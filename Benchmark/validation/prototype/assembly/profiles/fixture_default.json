@@ -1,0 +1,8 @@
+{
+    "schema_version": 1,
+    "assembly_name": "fixture-default",
+    "enabled_plugins": [
+        "ID.Fixture.Alpha",
+        "ID.Fixture.Beta"
+    ]
+}

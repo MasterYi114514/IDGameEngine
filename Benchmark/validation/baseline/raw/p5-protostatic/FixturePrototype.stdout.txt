@@ -1,0 +1,2 @@
+kernel-instance: host=00007ff6d550b040 alpha=00007ff6d550b040 beta=00007ff6d550b040 shared=yes (ID::PluginRuntime singleton)
+fixture-prototype: PASS

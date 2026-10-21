@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Fixture.Optional",
+    "target": "IDFixtureNotSelected",
+    "namespace": "ID::Fixture::Optional",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Fixture.Optional", "api_revision": 1}
+    ],
+    "lifecycle": "standard"
+}

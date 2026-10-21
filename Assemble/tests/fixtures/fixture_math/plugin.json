@@ -1,0 +1,30 @@
+{
+    "schema_version": 1,
+    "name": "ID.Fixture.Math",
+    "target": "IDFixtureMath",
+    "namespace": "ID::Fixture::Math",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [
+        ["ID.Fixture.Core"],
+        ["ID.Fixture.Api"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "ID.Fixture.Core",
+            "api_revisions": {
+                "ID.Fixture.Core": {"min": 2, "max": 2}
+            }
+        },
+        {
+            "capability": "ID.Fixture.Api",
+            "api_revisions": {
+                "ID.Fixture.Api": {"min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [
+        {"capability": "ID.Fixture.Math", "api_revision": 1}
+    ],
+    "lifecycle": "standard"
+}

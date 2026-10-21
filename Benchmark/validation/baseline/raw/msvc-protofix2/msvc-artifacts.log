@@ -1,0 +1,79 @@
+MODE: msvc-protofix2  BUILD_DIR: F:/IDGameEngine/cmake-build-msvc-protofix2
+清理：out/bin/ID.dll 是修复前（缺陷 2）留下的错位副本，已删除，只保留与 exe 同目录的 out/bin/Debug/ID.dll
+
+-- prototype/out 产物（修复后）--
+cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixtureCaseControls.exe  53248 B  00:19:42
+cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixturePrototype.exe  58368 B  00:17:37
+cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixtureZeroPrototype.exe  55296 B  00:17:12
+cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\ID.dll  99328 B  00:17:37
+cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureAlpha.dll  54272 B  00:17:05
+cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureBeta.dll  54272 B  00:17:06
+
+-- 内核 DLL 原始产物 --
+cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.pdb
+cmake-build-msvc-protofix2\out\shared\lib\Debug\ID.exp
+cmake-build-msvc-protofix2\out\shared\lib\Debug\ID.lib
+cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.pdb
+
+-- vcxproj --
+FixtureCaseControls.vcxproj
+FixtureNegativeCases.vcxproj
+FixturePrototype.vcxproj
+FixtureZeroPrototype.vcxproj
+fixture_expect_active_overflow.vcxproj
+fixture_expect_ambiguous_provider.vcxproj
+fixture_expect_aux_assert_failure.vcxproj
+fixture_expect_cycle.vcxproj
+fixture_expect_cycle_long.vcxproj
+fixture_expect_duplicate_active.vcxproj
+fixture_expect_duplicate_candidate.vcxproj
+fixture_expect_duplicate_plugin.vcxproj
+fixture_expect_empty_inner_group.vcxproj
+fixture_expect_evidence_capacity.vcxproj
+fixture_expect_evidence_duplicate_binding.vcxproj
+fixture_expect_evidence_duplicate_edge.vcxproj
+fixture_expect_evidence_duplicate_selection.vcxproj
+fixture_expect_evidence_edge_mismatch.vcxproj
+fixture_expect_evidence_mismatch.vcxproj
+fixture_expect_evidence_selection_mismatch.vcxproj
+fixture_expect_hash_collision.vcxproj
+fixture_expect_invalid_name.vcxproj
+fixture_expect_missing_provider.vcxproj
+fixture_expect_name_boundaries.vcxproj
+fixture_expect_name_first_char.vcxproj
+fixture_expect_name_internal_nul.vcxproj
+fixture_expect_self_dependency.vcxproj
+fixture_expect_self_dependency_prefix_collision.vcxproj
+fixture_expect_too_many_candidates.vcxproj
+fixture_expect_too_many_catalog.vcxproj
+fixture_expect_too_many_requirements.vcxproj
+fixture_expect_unknown_active.vcxproj
+fixture_expect_unknown_candidate.vcxproj
+fixture_expect_wrong_expectation.vcxproj
+fixture_scale_32x32x1.vcxproj
+fixture_scale_64x32x4.vcxproj
+fixture_scale_active_128.vcxproj
+fixture_scale_limit_128x32x16.vcxproj
+fixture_scale_max_legal_128x32x4.vcxproj
+fixture_scale_max_legal_128x32x8.vcxproj
+fixture_scale_probe.vcxproj
+IDFixtureAssembly.vcxproj
+IDFixtureLegalCases.vcxproj
+
+-- IDFixtureAssembly.vcxproj 的 POST_BUILD 复制命令与 /utf-8 --
+IDFixtureAssembly.vcxproj: <?xml version="1.0" encoding="utf-8"?>
+IDFixtureAssembly.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c-</AdditionalOptions>
+IDFixtureAssembly.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c- /Ob3 /Gw</AdditionalOptions>
+IDFixtureAssembly.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c-</AdditionalOptions>
+IDFixtureAssembly.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c-</AdditionalOptions>
+FixtureZeroPrototype.vcxproj: <?xml version="1.0" encoding="utf-8"?>
+FixtureZeroPrototype.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c-</AdditionalOptions>
+FixtureZeroPrototype.vcxproj: D:\Code\Environment\CMake\bin\cmake.exe -E copy_if_different F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/Debug/ID.dll F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/Debug
+FixtureZeroPrototype.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c- /Ob3 /Gw</AdditionalOptions>
+FixtureZeroPrototype.vcxproj: D:\Code\Environment\CMake\bin\cmake.exe -E copy_if_different F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/Release/ID.dll F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/Release
+FixtureZeroPrototype.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c-</AdditionalOptions>
+FixtureZeroPrototype.vcxproj: D:\Code\Environment\CMake\bin\cmake.exe -E copy_if_different F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/MinSizeRel/ID.dll F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/MinSizeRel
+FixtureZeroPrototype.vcxproj: <AdditionalOptions>%(AdditionalOptions) /utf-8 /EHs-c-</AdditionalOptions>
+FixtureZeroPrototype.vcxproj: D:\Code\Environment\CMake\bin\cmake.exe -E copy_if_different F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/RelWithDebInfo/ID.dll F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/RelWithDebInfo

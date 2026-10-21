@@ -1,0 +1,6 @@
+-- ID: 未设置 ID_ASSEMBLY_PROFILE 且 ID_BUILD_SANDBOX=OFF，跳过 Sandbox（宿主只经 IDGameEngine 消费产品；需要宿主时同时设置 profile 与 -DID_BUILD_SANDBOX=ON）
+-- runtime 校验原始日志目录：F:/IDGameEngine/Benchmark/validation/runtime/../baseline/raw/runtime-p5-runtime（构建目录 F:/IDGameEngine/cmake-build-p5-runtime）
+-- runtime 校验报告目录：F:/IDGameEngine/cmake-build-p5-runtime/Benchmark/validation/runtime/out（不覆盖 F:/IDGameEngine/Benchmark/report.txt）
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-p5-runtime

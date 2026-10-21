@@ -1,0 +1,2 @@
+[Sandbox] product started (state=Ready)
+[Sandbox] product stopped (state=Idle)

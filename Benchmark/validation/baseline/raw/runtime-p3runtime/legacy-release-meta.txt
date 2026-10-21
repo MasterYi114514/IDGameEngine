@@ -1,0 +1,25 @@
+EXE           : F:\IDGameEngine\bin\bin\Benchmark.exe
+REPORT        : F:\IDGameEngine\Benchmark\report.txt
+BEFORE_HASH   : 9B5EDE6054E75E810D492208D465636AE8BBD5DC323711E7DA2855D751EA27EE
+BEFORE_TIME   : 2026-10-19 21:45:45
+BEFORE_SIZE   : 10118
+REPORT_FILES_BEFORE : 1
+RUN1_EXIT    : 0
+RUN1_START   : 2026-10-19 22:08:39.467
+RUN1_END     : 2026-10-19 22:08:43.148
+RUN1_HASH    : 66DAB84F22011BB79E52683DCD9FB3F2ED981A2D51895F792CFBB43C0A957BBB
+RUN1_TIME    : 2026-10-19 22:08:43
+RUN1_SIZE    : 10118
+RUN1_RESULT  :   result: 75 passed / 0 failed / 13 skipped
+RUN1_SUMMARY :   result: 75 passed / 0 failed / 13 skipped |   security    : 1 domains / 75 passed / 0 failed / 13 skipped
+RUN1_EXITCODE_LINE :   exit code   : 0
+RUN2_EXIT    : 0
+RUN2_START   : 2026-10-19 22:08:43.171
+RUN2_END     : 2026-10-19 22:08:46.817
+RUN2_HASH    : AEEC8D5BFEF746684A87ADDE790BBCD5C37A3F896D7303B126859AF9184EA224
+RUN2_TIME    : 2026-10-19 22:08:46
+RUN2_SIZE    : 10118
+RUN2_RESULT  :   result: 75 passed / 0 failed / 13 skipped
+RUN2_SUMMARY :   result: 75 passed / 0 failed / 13 skipped |   security    : 1 domains / 75 passed / 0 failed / 13 skipped
+RUN2_EXITCODE_LINE :   exit code   : 0
+REPORT_FILES_AFTER : 1

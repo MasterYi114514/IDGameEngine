@@ -1,0 +1,19 @@
+﻿-- assembly[default] catalog: 4 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional)
+-- assembly[default-fixture] provider  ID.Fixture.Math -> ID.Fixture.Core（需求组 0，能力 ID.Fixture.Core，修订 2）
+-- assembly[default-fixture] edge      ID.Fixture.Core -> ID.Fixture.Math（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_IDFIXTURECORE）
+-- assembly[default-fixture] provider  ID.Fixture.Math -> ID.Fixture.Api（需求组 1，能力 ID.Fixture.Api，修订 1）
+-- assembly[default-fixture] edge      ID.Fixture.Api -> ID.Fixture.Math（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_IDFIXTUREAPI）
+-- assembly[default-fixture] selected  ID.Fixture.Api target=IDFixtureApi macro=ID_USE_PLUGIN_IDFIXTUREAPI id=0x417557752be36759ull
+-- assembly[default-fixture] slot      ID.Fixture.Api.ID.Fixture.Api -> 无运行期槽位
+-- assembly[default-fixture] selected  ID.Fixture.Core target=IDFixtureCore macro=ID_USE_PLUGIN_IDFIXTURECORE id=0x36272307f73a9320ull
+-- assembly[default-fixture] slot      ID.Fixture.Core.ID.Fixture.Core -> 60
+-- assembly[default-fixture] selected  ID.Fixture.Math target=IDFixtureMath macro=ID_USE_PLUGIN_IDFIXTUREMATH id=0x848799fb00d520ddull
+-- assembly[default-fixture] slot      ID.Fixture.Math.ID.Fixture.Math -> 无运行期槽位
+-- assembly[default-fixture] 跳过 IDAssemblySmoke（ID_BUILD_ASSEMBLY_SMOKE=OFF）
+-- assembly[default-fixture] generated: F:/IDGameEngine/build/ship/Assemble/generated/default-fixture
+-- assembly[default-fixture] selected targets: IDFixtureApi;IDFixtureCore;IDFixtureMath
+-- assembly[default-fixture] evidence: F:/IDGameEngine/build/ship/Assemble/generated/default-fixture/IDAssemblyEvidence.txt
+-- assembly[default-fixture] install: C:/Program Files (x86)/IDGameEngine
+-- Configuring done (0.1s)
+-- Generating done (0.1s)
+-- Build files have been written to: F:/IDGameEngine/build/ship

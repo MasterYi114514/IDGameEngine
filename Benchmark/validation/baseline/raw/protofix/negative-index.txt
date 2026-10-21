@@ -1,0 +1,49 @@
+# 反向用例批次可复核索引（RunNegativeCases.cmake 自动写入；SHARED / STATIC 各一份，互不覆盖）
+# 判定：exit != 0 && 静态断言失败条数 == 1 && 含 EXPECTED:<类别> && 不含 MISMATCH
+MODE          : protofix
+BUILD_DIR     : F:/IDGameEngine/cmake-build-protofix
+BATCH_CWD     : F:/IDGameEngine/cmake-build-protofix/Benchmark/validation/prototype
+BUILD_TYPE    : Release
+MONOLITHIC    : OFF
+GENERATOR     : MinGW Makefiles
+CXX           : D:/Code/Environment/MinGW/mingw64/bin/c++.exe
+CXX_ID        : GNU 16.2.0
+DRIVER        : F:/IDGameEngine/Benchmark/validation/prototype/cmake/RunNegativeCases.cmake
+STARTED       : 2026-10-20 00:13:34
+FINISHED      : 2026-10-20 00:13:53
+PASSED        : 28
+FAILED        : 0
+LEGAL_CONTROL : IDFixtureLegalCases exit 0
+SELF_CHECKS   : wrong_expectation=MISMATCH-rejected, aux_assert_failure=assert-count-rejected（均不计入 28 条）
+COLUMNS       : KIND|CASE|MARKER|TARGET|EXIT|ASSERT_FAIL_COUNT|HAS_EXPECTED(TRUE/FALSE)|HAS_MISMATCH(TRUE/FALSE)|VERDICT|LOG
+CONTROL|IDFixtureLegalCases|-|IDFixtureLegalCases|0|0|n/a|n/a|OK|negative-legal-control.log
+CASE|self_dependency|SelfDependency|fixture_expect_self_dependency|2|1|TRUE|FALSE|OK|negative-self_dependency.log
+CASE|ambiguous_provider|AmbiguousProvider|fixture_expect_ambiguous_provider|2|1|TRUE|FALSE|OK|negative-ambiguous_provider.log
+CASE|missing_provider|MissingProvider|fixture_expect_missing_provider|2|1|TRUE|FALSE|OK|negative-missing_provider.log
+CASE|cycle|Cycle|fixture_expect_cycle|2|1|TRUE|FALSE|OK|negative-cycle.log
+CASE|hash_collision|NameHashCollision|fixture_expect_hash_collision|2|1|TRUE|FALSE|OK|negative-hash_collision.log
+CASE|duplicate_candidate|DuplicateCandidate|fixture_expect_duplicate_candidate|2|1|TRUE|FALSE|OK|negative-duplicate_candidate.log
+CASE|empty_inner_group|EmptyRequirementGroup|fixture_expect_empty_inner_group|2|1|TRUE|FALSE|OK|negative-empty_inner_group.log
+CASE|unknown_candidate|UnknownCandidate|fixture_expect_unknown_candidate|2|1|TRUE|FALSE|OK|negative-unknown_candidate.log
+CASE|active_overflow|TooManyActive|fixture_expect_active_overflow|2|1|TRUE|FALSE|OK|negative-active_overflow.log
+CASE|evidence_mismatch|EvidenceProviderMismatch|fixture_expect_evidence_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_mismatch.log
+CASE|invalid_name|InvalidName|fixture_expect_invalid_name|2|1|TRUE|FALSE|OK|negative-invalid_name.log
+CASE|duplicate_plugin|DuplicatePlugin|fixture_expect_duplicate_plugin|2|1|TRUE|FALSE|OK|negative-duplicate_plugin.log
+CASE|too_many_requirements|TooManyRequirements|fixture_expect_too_many_requirements|2|1|TRUE|FALSE|OK|negative-too_many_requirements.log
+CASE|too_many_candidates|TooManyCandidates|fixture_expect_too_many_candidates|2|1|TRUE|FALSE|OK|negative-too_many_candidates.log
+CASE|too_many_catalog|TooManyCatalog|fixture_expect_too_many_catalog|2|1|TRUE|FALSE|OK|negative-too_many_catalog.log
+CASE|unknown_active|UnknownActive|fixture_expect_unknown_active|2|1|TRUE|FALSE|OK|negative-unknown_active.log
+CASE|duplicate_active|DuplicateActive|fixture_expect_duplicate_active|2|1|TRUE|FALSE|OK|negative-duplicate_active.log
+CASE|evidence_selection_mismatch|EvidenceSelectionMismatch|fixture_expect_evidence_selection_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_selection_mismatch.log
+CASE|evidence_edge_mismatch|EvidenceEdgeMismatch|fixture_expect_evidence_edge_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_edge_mismatch.log
+CASE|evidence_duplicate_selection|EvidenceSelectionMismatch|fixture_expect_evidence_duplicate_selection|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_selection.log
+CASE|evidence_duplicate_binding|EvidenceProviderMismatch|fixture_expect_evidence_duplicate_binding|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_binding.log
+CASE|evidence_duplicate_edge|EvidenceEdgeMismatch|fixture_expect_evidence_duplicate_edge|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_edge.log
+CASE|evidence_capacity|EvidenceSelectionMismatch|fixture_expect_evidence_capacity|2|1|TRUE|FALSE|OK|negative-evidence_capacity.log
+CASE|self_dependency_prefix_collision|NameHashCollision|fixture_expect_self_dependency_prefix_collision|2|1|TRUE|FALSE|OK|negative-self_dependency_prefix_collision.log
+CASE|cycle_long|Cycle|fixture_expect_cycle_long|2|1|TRUE|FALSE|OK|negative-cycle_long.log
+CASE|name_boundaries|InvalidName|fixture_expect_name_boundaries|2|1|TRUE|FALSE|OK|negative-name_boundaries.log
+CASE|name_internal_nul|InvalidName|fixture_expect_name_internal_nul|2|1|TRUE|FALSE|OK|negative-name_internal_nul.log
+CASE|name_first_char|InvalidName|fixture_expect_name_first_char|2|1|TRUE|FALSE|OK|negative-name_first_char.log
+SELF|wrong_expectation|DuplicatePlugin|fixture_expect_wrong_expectation|2|1|FALSE|TRUE|REJECTED_OK(错误类别不符（出现 MISMATCH 标记）)|negative-wrong_expectation.log
+SELF|aux_assert_failure|SelfDependency|fixture_expect_aux_assert_failure|2|2|TRUE|FALSE|REJECTED_OK(失败断言数=2（判据要求恰好 1 条：只允许类别断言失败，辅助断言不得单独失败）)|negative-aux_assert_failure.log

@@ -1,0 +1,6 @@
+MODE: production-p5-production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p5-production
+TRUNCATED: positive_basics;positive_graph;positive_ownership;positive_permutation;positive_storage
+SOURCE_DIR: F:/IDGameEngine/Benchmark/validation/production/src/positive
+RESULT: FALSE
+REASON: 存在未注册的正向 TU：positive_uneven.cpp

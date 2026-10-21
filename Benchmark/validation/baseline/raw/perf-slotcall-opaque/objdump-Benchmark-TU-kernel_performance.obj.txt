@@ -1,0 +1,2296 @@
+﻿
+F:\IDGameEngine\cmake-build-p5-release\Benchmark\CMakeFiles\Benchmark.dir\src\kernel\kernel_performance.cpp.obj:     file format pe-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <(anonymous namespace)::mix_round(unsigned int)>:
+       0:	imul   $0x9e3779b1,%ecx,%eax
+       6:	add    $0x3039,%eax
+       b:	ret
+       c:	nopl   0x0(%rax)
+
+0000000000000010 <(anonymous namespace)::revoke_benchmark_table()>:
+      10:	sub    $0x48,%rsp
+      14:	mov    0x0(%rip),%rdx        # 1b <(anonymous namespace)::revoke_benchmark_table()+0xb>
+			17: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime10s_instanceE
+      1b:	mov    $0x2,%r8d
+      21:	lea    0x20(%rsp),%rcx
+      26:	call   *0x0(%rip)        # 2c <(anonymous namespace)::revoke_benchmark_table()+0x1c>
+			28: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime14revoke_serviceEj
+      2c:	nop
+      2d:	add    $0x48,%rsp
+      31:	ret
+      32:	nopl   (%rax)
+      35:	data16 cs nopw 0x0(%rax,%rax,1)
+
+0000000000000040 <(anonymous namespace)::publish_benchmark_table()>:
+      40:	sub    $0x48,%rsp
+      44:	mov    0x0(%rip),%rdx        # 4b <(anonymous namespace)::publish_benchmark_table()+0xb>
+			47: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime10s_instanceE
+      4b:	lea    0x530(%rip),%r9        # 582 <ID::Bench::IDKernelPerformanceTest()+0x3e2>
+			4e: IMAGE_REL_AMD64_REL32	.rdata
+      52:	mov    $0x2,%r8d
+      58:	lea    0x20(%rsp),%rcx
+      5d:	call   *0x0(%rip)        # 63 <(anonymous namespace)::publish_benchmark_table()+0x23>
+			5f: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime15publish_serviceEjPKv
+      63:	nop
+      64:	add    $0x48,%rsp
+      68:	ret
+      69:	nopl   0x0(%rax)
+
+0000000000000070 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]>:
+      70:	push   %rbp
+      71:	push   %rdi
+      72:	push   %rsi
+      73:	push   %rbx
+      74:	sub    $0x1f8,%rsp
+      7b:	vmovsd 0x18(%rdx),%xmm0
+      80:	vcomisd 0x538(%rip),%xmm0        # 5c0 <ID::Bench::IDKernelPerformanceTest()+0x420>
+			84: IMAGE_REL_AMD64_REL32	.rdata
+      88:	mov    (%r9),%rbp
+      8b:	mov    0x8(%r9),%rdi
+      8f:	vmovsd %xmm2,0x230(%rsp)
+      98:	mov    %rcx,%rsi
+      9b:	mov    %rdx,%rbx
+      9e:	ja     108 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x98>
+      a0:	call   a5 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x35>
+			a1: IMAGE_REL_AMD64_REL32	strlen
+      a5:	vmovsd (%rbx),%xmm0
+      a9:	lea    0x70(%rsp),%rcx
+      ae:	mov    %rsi,0x78(%rsp)
+      b3:	vmovsd 0x230(%rsp),%xmm2
+      bc:	mov    %rax,0x70(%rsp)
+      c1:	lea    0x24(%rip),%rax        # ec <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x7c>
+			c4: IMAGE_REL_AMD64_REL32	.rdata
+      c8:	vmovsd %xmm0,0x80(%rsp)
+      d1:	vmovsd %xmm2,0x88(%rsp)
+      da:	mov    %rax,0x90(%rsp)
+      e2:	mov    %rbp,0x98(%rsp)
+      ea:	mov    %rdi,0xa0(%rsp)
+      f2:	call   f7 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x87>
+			f3: IMAGE_REL_AMD64_REL32	ID::Bench::RecordMetric(ID::Bench::MetricDesc const&)
+      f7:	nop
+      f8:	add    $0x1f8,%rsp
+      ff:	pop    %rbx
+     100:	pop    %rsi
+     101:	pop    %rdi
+     102:	pop    %rbp
+     103:	ret
+     104:	nopl   0x0(%rax)
+     108:	vmulsd 0x540(%rip),%xmm0,%xmm0        # 650 <ID::Bench::IDKernelPerformanceTest()+0x4b0>
+			10c: IMAGE_REL_AMD64_REL32	.rdata
+     110:	mov    %ebp,%r9d
+     113:	mov    $0x180,%edx
+     118:	mov    %rdi,0x20(%rsp)
+     11d:	lea    0x0(%rip),%r8        # 124 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0xb4>
+			120: IMAGE_REL_AMD64_REL32	.rdata
+     124:	lea    0x70(%rsp),%rcx
+     129:	vmovsd %xmm0,0x28(%rsp)
+     12f:	call   134 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0xc4>
+			130: IMAGE_REL_AMD64_REL32	__mingw_snprintf
+     134:	mov    %rsi,%rcx
+     137:	call   13c <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0xcc>
+			138: IMAGE_REL_AMD64_REL32	strlen
+     13c:	vmovsd (%rbx),%xmm0
+     140:	lea    0x70(%rsp),%rcx
+     145:	mov    %rsi,0x38(%rsp)
+     14a:	vmovsd 0x230(%rsp),%xmm2
+     153:	mov    %rax,0x30(%rsp)
+     158:	lea    0x24(%rip),%rax        # 183 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x113>
+			15b: IMAGE_REL_AMD64_REL32	.rdata
+     15f:	vmovsd %xmm0,0x40(%rsp)
+     165:	vmovsd %xmm2,0x48(%rsp)
+     16b:	mov    %rax,0x50(%rsp)
+     170:	call   175 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x105>
+			171: IMAGE_REL_AMD64_REL32	strlen
+     175:	lea    0x30(%rsp),%rcx
+     17a:	mov    %rax,0x58(%rsp)
+     17f:	lea    0x70(%rsp),%rax
+     184:	mov    %rax,0x60(%rsp)
+     189:	call   18e <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]+0x11e>
+			18a: IMAGE_REL_AMD64_REL32	ID::Bench::RecordMetric(ID::Bench::MetricDesc const&)
+     18e:	nop
+     18f:	add    $0x1f8,%rsp
+     196:	pop    %rbx
+     197:	pop    %rsi
+     198:	pop    %rdi
+     199:	pop    %rbp
+     19a:	ret
+     19b:	nopl   0x0(%rax,%rax,1)
+
+00000000000001a0 <ID::Bench::IDKernelPerformanceTest()>:
+     1a0:	push   %r15
+     1a2:	push   %r14
+     1a4:	push   %r13
+     1a6:	push   %r12
+     1a8:	push   %rbp
+     1a9:	push   %rdi
+     1aa:	push   %rsi
+     1ab:	push   %rbx
+     1ac:	sub    $0x108,%rsp
+     1b3:	vmovaps %xmm6,0xd0(%rsp)
+     1bc:	vmovaps %xmm7,0xe0(%rsp)
+     1c5:	vmovaps %xmm8,0xf0(%rsp)
+     1ce:	mov    0x0(%rip),%rbp        # 1d5 <ID::Bench::IDKernelPerformanceTest()+0x35>
+			1d1: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime10s_instanceE
+     1d5:	xor    %esi,%esi
+     1d7:	mov    $0x400,%ebx
+     1dc:	lea    0x3e0(%rip),%r8        # 5c3 <ID::Bench::IDKernelPerformanceTest()+0x423>
+			1df: IMAGE_REL_AMD64_REL32	.rdata
+     1e3:	mov    %rbp,%rdx
+     1e6:	lea    0x60(%rsp),%rcx
+     1eb:	call   *0x0(%rip)        # 1f1 <ID::Bench::IDKernelPerformanceTest()+0x51>
+			1ed: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime5startERKNS_21PluginRuntimePlanViewE
+     1f1:	cmpb   $0x0,0x60(%rsp)
+     1f6:	je     208 <ID::Bench::IDKernelPerformanceTest()+0x68>
+     1f8:	jmp    2220 <ID::Bench::IDKernelPerformanceTest()+0x2080>
+     1fd:	nopl   (%rax)
+     200:	mov    0xa0(%rsp),%rsi
+     208:	mov    $0x10,%ecx
+     20d:	call   212 <ID::Bench::IDKernelPerformanceTest()+0x72>
+			20e: IMAGE_REL_AMD64_REL32	malloc
+     212:	xor    %rax,%rsi
+     215:	mov    %rax,%rcx
+     218:	mov    %rsi,0xa0(%rsp)
+     220:	call   225 <ID::Bench::IDKernelPerformanceTest()+0x85>
+			221: IMAGE_REL_AMD64_REL32	free
+     225:	sub    $0x1,%rbx
+     229:	jne    200 <ID::Bench::IDKernelPerformanceTest()+0x60>
+     22b:	lea    0xa0(%rsp),%rcx
+     233:	mov    $0x400,%esi
+     238:	call   23d <ID::Bench::IDKernelPerformanceTest()+0x9d>
+			239: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     23d:	lea    0x80(%rsp),%rcx
+     245:	call   24a <ID::Bench::IDKernelPerformanceTest()+0xaa>
+			246: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     24a:	jmp    258 <ID::Bench::IDKernelPerformanceTest()+0xb8>
+     24c:	nopl   0x0(%rax)
+     250:	mov    0xa0(%rsp),%rbx
+     258:	mov    $0x10,%ecx
+     25d:	call   262 <ID::Bench::IDKernelPerformanceTest()+0xc2>
+			25e: IMAGE_REL_AMD64_REL32	malloc
+     262:	xor    %rax,%rbx
+     265:	mov    %rax,%rcx
+     268:	mov    %rbx,0xa0(%rsp)
+     270:	call   275 <ID::Bench::IDKernelPerformanceTest()+0xd5>
+			271: IMAGE_REL_AMD64_REL32	free
+     275:	sub    $0x1,%rsi
+     279:	jne    250 <ID::Bench::IDKernelPerformanceTest()+0xb0>
+     27b:	lea    0xa0(%rsp),%rcx
+     283:	vxorps %xmm7,%xmm7,%xmm7
+     287:	call   28c <ID::Bench::IDKernelPerformanceTest()+0xec>
+			288: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     28c:	lea    0x80(%rsp),%rcx
+     294:	call   299 <ID::Bench::IDKernelPerformanceTest()+0xf9>
+			295: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     299:	vxorpd %xmm1,%xmm1,%xmm1
+     29d:	vcomisd %xmm1,%xmm0
+     2a1:	jbe    308 <ID::Bench::IDKernelPerformanceTest()+0x168>
+     2a3:	vmulsd 0x560(%rip),%xmm0,%xmm2        # 80b <ID::Bench::IDKernelPerformanceTest()+0x66b>
+			2a7: IMAGE_REL_AMD64_REL32	.rdata
+     2ab:	vcomisd %xmm1,%xmm2
+     2af:	jbe    308 <ID::Bench::IDKernelPerformanceTest()+0x168>
+     2b1:	vmovsd 0x568(%rip),%xmm1        # 821 <ID::Bench::IDKernelPerformanceTest()+0x681>
+			2b5: IMAGE_REL_AMD64_REL32	.rdata
+     2b9:	vmovsd 0x548(%rip),%xmm6        # 809 <ID::Bench::IDKernelPerformanceTest()+0x669>
+			2bd: IMAGE_REL_AMD64_REL32	.rdata
+     2c1:	vdivsd %xmm0,%xmm1,%xmm1
+     2c5:	vcomisd %xmm1,%xmm6
+     2c9:	jae    22ff <ID::Bench::IDKernelPerformanceTest()+0x215f>
+     2cf:	vmovsd 0x550(%rip),%xmm0        # 827 <ID::Bench::IDKernelPerformanceTest()+0x687>
+			2d3: IMAGE_REL_AMD64_REL32	.rdata
+     2d7:	vcomisd %xmm0,%xmm1
+     2db:	jae    310 <ID::Bench::IDKernelPerformanceTest()+0x170>
+     2dd:	vmovsd 0x570(%rip),%xmm0        # 855 <ID::Bench::IDKernelPerformanceTest()+0x6b5>
+			2e1: IMAGE_REL_AMD64_REL32	.rdata
+     2e5:	vcomisd %xmm0,%xmm1
+     2e9:	jae    2601 <ID::Bench::IDKernelPerformanceTest()+0x2461>
+     2ef:	vcvttsd2si %xmm1,%rsi
+     2f4:	mov    $0x1,%r12d
+     2fa:	vcvtsi2sd %rsi,%xmm7,%xmm6
+     2ff:	jmp    31c <ID::Bench::IDKernelPerformanceTest()+0x17c>
+     301:	nopl   0x0(%rax)
+     308:	vmovsd 0x550(%rip),%xmm0        # 860 <ID::Bench::IDKernelPerformanceTest()+0x6c0>
+			30c: IMAGE_REL_AMD64_REL32	.rdata
+     310:	vmovapd %xmm0,%xmm6
+     314:	xor    %r12d,%r12d
+     317:	mov    $0x4000000,%esi
+     31c:	lea    0x80(%rsp),%rcx
+     324:	xor    %ebx,%ebx
+     326:	xor    %edi,%edi
+     328:	call   32d <ID::Bench::IDKernelPerformanceTest()+0x18d>
+			329: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     32d:	jmp    338 <ID::Bench::IDKernelPerformanceTest()+0x198>
+     32f:	nop
+     330:	mov    0xa0(%rsp),%rbx
+     338:	mov    $0x10,%ecx
+     33d:	add    $0x1,%rdi
+     341:	call   346 <ID::Bench::IDKernelPerformanceTest()+0x1a6>
+			342: IMAGE_REL_AMD64_REL32	malloc
+     346:	xor    %rax,%rbx
+     349:	mov    %rax,%rcx
+     34c:	mov    %rbx,0xa0(%rsp)
+     354:	call   359 <ID::Bench::IDKernelPerformanceTest()+0x1b9>
+			355: IMAGE_REL_AMD64_REL32	free
+     359:	cmp    %rdi,%rsi
+     35c:	jne    330 <ID::Bench::IDKernelPerformanceTest()+0x190>
+     35e:	lea    0xa0(%rsp),%rcx
+     366:	call   36b <ID::Bench::IDKernelPerformanceTest()+0x1cb>
+			367: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     36b:	lea    0x80(%rsp),%rcx
+     373:	call   378 <ID::Bench::IDKernelPerformanceTest()+0x1d8>
+			374: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     378:	vmovapd %xmm0,%xmm1
+     37c:	vxorpd %xmm0,%xmm0,%xmm0
+     380:	vcomisd %xmm0,%xmm1
+     384:	jbe    3b3 <ID::Bench::IDKernelPerformanceTest()+0x213>
+     386:	test   %r12b,%r12b
+     389:	je     3b3 <ID::Bench::IDKernelPerformanceTest()+0x213>
+     38b:	vmovsd 0x580(%rip),%xmm0        # 913 <ID::Bench::IDKernelPerformanceTest()+0x773>
+			38f: IMAGE_REL_AMD64_REL32	.rdata
+     393:	vdivsd %xmm1,%xmm0,%xmm0
+     397:	vcomisd 0x588(%rip),%xmm0        # 927 <ID::Bench::IDKernelPerformanceTest()+0x787>
+			39b: IMAGE_REL_AMD64_REL32	.rdata
+     39f:	ja     2433 <ID::Bench::IDKernelPerformanceTest()+0x2293>
+     3a5:	vcomisd 0x590(%rip),%xmm0        # 93d <ID::Bench::IDKernelPerformanceTest()+0x79d>
+			3a9: IMAGE_REL_AMD64_REL32	.rdata
+     3ad:	jb     2433 <ID::Bench::IDKernelPerformanceTest()+0x2293>
+     3b3:	vmovsd 0x578(%rip),%xmm0        # 933 <ID::Bench::IDKernelPerformanceTest()+0x793>
+			3b7: IMAGE_REL_AMD64_REL32	.rdata
+     3bb:	vdivsd %xmm6,%xmm0,%xmm6
+     3bf:	vpxor  %xmm0,%xmm0,%xmm0
+     3c3:	lea    0xa0(%rsp),%r12
+     3cb:	vmovdqu %ymm0,0xa0(%rsp)
+     3d4:	movq   $0x0,0xc0(%rsp)
+     3e0:	lea    0xc8(%rsp),%r15
+     3e8:	vzeroupper
+     3eb:	lea    0x58(%rsp),%rcx
+     3f0:	xor    %ebx,%ebx
+     3f2:	xor    %esi,%esi
+     3f4:	call   3f9 <ID::Bench::IDKernelPerformanceTest()+0x259>
+			3f5: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     3f9:	jmp    408 <ID::Bench::IDKernelPerformanceTest()+0x268>
+     3fb:	nopl   0x0(%rax,%rax,1)
+     400:	mov    0x80(%rsp),%rbx
+     408:	mov    $0x10,%ecx
+     40d:	add    $0x1,%rsi
+     411:	call   416 <ID::Bench::IDKernelPerformanceTest()+0x276>
+			412: IMAGE_REL_AMD64_REL32	malloc
+     416:	xor    %rax,%rbx
+     419:	mov    %rax,%rcx
+     41c:	mov    %rbx,0x80(%rsp)
+     424:	call   429 <ID::Bench::IDKernelPerformanceTest()+0x289>
+			425: IMAGE_REL_AMD64_REL32	free
+     429:	cmp    %rsi,%rdi
+     42c:	jne    400 <ID::Bench::IDKernelPerformanceTest()+0x260>
+     42e:	lea    0x80(%rsp),%rcx
+     436:	add    $0x8,%r12
+     43a:	call   43f <ID::Bench::IDKernelPerformanceTest()+0x29f>
+			43b: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     43f:	lea    0x58(%rsp),%rcx
+     444:	call   449 <ID::Bench::IDKernelPerformanceTest()+0x2a9>
+			445: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     449:	vmulsd %xmm6,%xmm0,%xmm0
+     44d:	vmovsd %xmm0,-0x8(%r12)
+     454:	cmp    %r15,%r12
+     457:	jne    3eb <ID::Bench::IDKernelPerformanceTest()+0x24b>
+     459:	vmovsd 0xa8(%rsp),%xmm0
+     462:	vmovsd 0xa0(%rsp),%xmm1
+     46b:	vcomisd %xmm0,%xmm1
+     46f:	jbe    287a <ID::Bench::IDKernelPerformanceTest()+0x26da>
+     475:	vmovsd %xmm1,0xa8(%rsp)
+     47e:	xor    %eax,%eax
+     480:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     489:	vmovsd 0xb0(%rsp),%xmm0
+     492:	vmovsd 0xa8(%rsp),%xmm1
+     49b:	vcomisd %xmm0,%xmm1
+     49f:	jbe    283e <ID::Bench::IDKernelPerformanceTest()+0x269e>
+     4a5:	vmovsd %xmm1,0xb0(%rsp)
+     4ae:	vmovsd 0xa0(%rsp),%xmm1
+     4b7:	vcomisd %xmm0,%xmm1
+     4bb:	jbe    2924 <ID::Bench::IDKernelPerformanceTest()+0x2784>
+     4c1:	vmovsd %xmm1,0xa8(%rsp)
+     4ca:	xor    %eax,%eax
+     4cc:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     4d5:	vmovsd 0xb8(%rsp),%xmm0
+     4de:	vmovsd 0xb0(%rsp),%xmm1
+     4e7:	vcomisd %xmm0,%xmm1
+     4eb:	jbe    278a <ID::Bench::IDKernelPerformanceTest()+0x25ea>
+     4f1:	vmovsd %xmm1,0xb8(%rsp)
+     4fa:	vmovsd 0xa8(%rsp),%xmm1
+     503:	vcomisd %xmm0,%xmm1
+     507:	jbe    297e <ID::Bench::IDKernelPerformanceTest()+0x27de>
+     50d:	vmovsd %xmm1,0xb0(%rsp)
+     516:	vmovsd 0xa0(%rsp),%xmm1
+     51f:	vcomisd %xmm0,%xmm1
+     523:	jbe    2a32 <ID::Bench::IDKernelPerformanceTest()+0x2892>
+     529:	vmovsd %xmm1,0xa8(%rsp)
+     532:	xor    %eax,%eax
+     534:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     53d:	vmovsd 0xc0(%rsp),%xmm0
+     546:	vcomisd 0xb8(%rsp),%xmm0
+     54f:	jae    28c0 <ID::Bench::IDKernelPerformanceTest()+0x2720>
+     555:	vcomisd 0xb0(%rsp),%xmm0
+     55e:	jae    2960 <ID::Bench::IDKernelPerformanceTest()+0x27c0>
+     564:	vmovsd 0xa8(%rsp),%xmm1
+     56d:	vcomisd %xmm0,%xmm1
+     571:	jbe    2a14 <ID::Bench::IDKernelPerformanceTest()+0x2874>
+     577:	vmovsd %xmm1,0xb0(%rsp)
+     580:	xor    %eax,%eax
+     582:	vcomisd 0xa0(%rsp),%xmm0
+     58b:	setae  %al
+     58e:	mov    0x0(%rip),%rsi        # 595 <ID::Bench::IDKernelPerformanceTest()+0x3f5>
+			591: IMAGE_REL_AMD64_REL32	__imp_ID_AlignedAlloc
+     595:	mov    $0x400,%edi
+     59a:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     5a3:	mov    0x0(%rip),%rbx        # 5aa <ID::Bench::IDKernelPerformanceTest()+0x40a>
+			5a6: IMAGE_REL_AMD64_REL32	__imp_ID_AlignedFree
+     5aa:	movq   $0x0,0xa0(%rsp)
+     5b6:	vmovsd 0xb0(%rsp),%xmm8
+     5bf:	nop
+     5c0:	mov    $0x10,%edx
+     5c5:	mov    $0x10,%ecx
+     5ca:	call   *%rsi
+     5cc:	xor    %rax,0xa0(%rsp)
+     5d4:	mov    %rax,%rcx
+     5d7:	call   *%rbx
+     5d9:	sub    $0x1,%rdi
+     5dd:	jne    5c0 <ID::Bench::IDKernelPerformanceTest()+0x420>
+     5df:	lea    0xa0(%rsp),%rcx
+     5e7:	mov    $0x400,%r13d
+     5ed:	call   5f2 <ID::Bench::IDKernelPerformanceTest()+0x452>
+			5ee: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     5f2:	lea    0x80(%rsp),%rcx
+     5fa:	call   5ff <ID::Bench::IDKernelPerformanceTest()+0x45f>
+			5fb: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     5ff:	movq   $0x0,0xa0(%rsp)
+     60b:	nopl   0x0(%rax,%rax,1)
+     610:	mov    $0x10,%edx
+     615:	mov    $0x10,%ecx
+     61a:	call   *%rsi
+     61c:	xor    %rax,0xa0(%rsp)
+     624:	mov    %rax,%rcx
+     627:	call   *%rbx
+     629:	sub    $0x1,%r13
+     62d:	jne    610 <ID::Bench::IDKernelPerformanceTest()+0x470>
+     62f:	lea    0xa0(%rsp),%rcx
+     637:	call   63c <ID::Bench::IDKernelPerformanceTest()+0x49c>
+			638: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     63c:	lea    0x80(%rsp),%rcx
+     644:	call   649 <ID::Bench::IDKernelPerformanceTest()+0x4a9>
+			645: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     649:	vxorpd %xmm1,%xmm1,%xmm1
+     64d:	vcomisd %xmm1,%xmm0
+     651:	jbe    6b8 <ID::Bench::IDKernelPerformanceTest()+0x518>
+     653:	vmulsd 0x560(%rip),%xmm0,%xmm2        # bbb <ID::Bench::IDKernelPerformanceTest()+0xa1b>
+			657: IMAGE_REL_AMD64_REL32	.rdata
+     65b:	vcomisd %xmm1,%xmm2
+     65f:	jbe    6b8 <ID::Bench::IDKernelPerformanceTest()+0x518>
+     661:	vmovsd 0x568(%rip),%xmm1        # bd1 <ID::Bench::IDKernelPerformanceTest()+0xa31>
+			665: IMAGE_REL_AMD64_REL32	.rdata
+     669:	vmovsd 0x548(%rip),%xmm6        # bb9 <ID::Bench::IDKernelPerformanceTest()+0xa19>
+			66d: IMAGE_REL_AMD64_REL32	.rdata
+     671:	vdivsd %xmm0,%xmm1,%xmm1
+     675:	vcomisd %xmm1,%xmm6
+     679:	jae    22ef <ID::Bench::IDKernelPerformanceTest()+0x214f>
+     67f:	vmovsd 0x550(%rip),%xmm0        # bd7 <ID::Bench::IDKernelPerformanceTest()+0xa37>
+			683: IMAGE_REL_AMD64_REL32	.rdata
+     687:	vcomisd %xmm0,%xmm1
+     68b:	jae    6c0 <ID::Bench::IDKernelPerformanceTest()+0x520>
+     68d:	vmovsd 0x570(%rip),%xmm0        # c05 <ID::Bench::IDKernelPerformanceTest()+0xa65>
+			691: IMAGE_REL_AMD64_REL32	.rdata
+     695:	vcomisd %xmm0,%xmm1
+     699:	jae    25ee <ID::Bench::IDKernelPerformanceTest()+0x244e>
+     69f:	vcvttsd2si %xmm1,%rdi
+     6a4:	mov    $0x1,%r14d
+     6aa:	vcvtsi2sd %rdi,%xmm7,%xmm6
+     6af:	jmp    6cc <ID::Bench::IDKernelPerformanceTest()+0x52c>
+     6b1:	nopl   0x0(%rax)
+     6b8:	vmovsd 0x550(%rip),%xmm0        # c10 <ID::Bench::IDKernelPerformanceTest()+0xa70>
+			6bc: IMAGE_REL_AMD64_REL32	.rdata
+     6c0:	vmovapd %xmm0,%xmm6
+     6c4:	xor    %r14d,%r14d
+     6c7:	mov    $0x4000000,%edi
+     6cc:	lea    0x80(%rsp),%rcx
+     6d4:	xor    %r12d,%r12d
+     6d7:	call   6dc <ID::Bench::IDKernelPerformanceTest()+0x53c>
+			6d8: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     6dc:	movq   $0x0,0xa0(%rsp)
+     6e8:	nopl   0x0(%rax,%rax,1)
+     6f0:	mov    $0x10,%edx
+     6f5:	mov    $0x10,%ecx
+     6fa:	add    $0x1,%r12
+     6fe:	call   *%rsi
+     700:	xor    %rax,0xa0(%rsp)
+     708:	mov    %rax,%rcx
+     70b:	call   *%rbx
+     70d:	cmp    %r12,%rdi
+     710:	jne    6f0 <ID::Bench::IDKernelPerformanceTest()+0x550>
+     712:	lea    0xa0(%rsp),%rcx
+     71a:	call   71f <ID::Bench::IDKernelPerformanceTest()+0x57f>
+			71b: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     71f:	lea    0x80(%rsp),%rcx
+     727:	call   72c <ID::Bench::IDKernelPerformanceTest()+0x58c>
+			728: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     72c:	vmovapd %xmm0,%xmm1
+     730:	vxorpd %xmm0,%xmm0,%xmm0
+     734:	vcomisd %xmm0,%xmm1
+     738:	jbe    767 <ID::Bench::IDKernelPerformanceTest()+0x5c7>
+     73a:	test   %r14b,%r14b
+     73d:	je     767 <ID::Bench::IDKernelPerformanceTest()+0x5c7>
+     73f:	vmovsd 0x580(%rip),%xmm0        # cc7 <ID::Bench::IDKernelPerformanceTest()+0xb27>
+			743: IMAGE_REL_AMD64_REL32	.rdata
+     747:	vdivsd %xmm1,%xmm0,%xmm0
+     74b:	vcomisd 0x588(%rip),%xmm0        # cdb <ID::Bench::IDKernelPerformanceTest()+0xb3b>
+			74f: IMAGE_REL_AMD64_REL32	.rdata
+     753:	ja     24d5 <ID::Bench::IDKernelPerformanceTest()+0x2335>
+     759:	vcomisd 0x590(%rip),%xmm0        # cf1 <ID::Bench::IDKernelPerformanceTest()+0xb51>
+			75d: IMAGE_REL_AMD64_REL32	.rdata
+     761:	jb     24d5 <ID::Bench::IDKernelPerformanceTest()+0x2335>
+     767:	vmovsd 0x578(%rip),%xmm0        # ce7 <ID::Bench::IDKernelPerformanceTest()+0xb47>
+			76b: IMAGE_REL_AMD64_REL32	.rdata
+     76f:	vdivsd %xmm6,%xmm0,%xmm6
+     773:	vpxor  %xmm0,%xmm0,%xmm0
+     777:	lea    0xa0(%rsp),%r14
+     77f:	vmovdqu %ymm0,0xa0(%rsp)
+     788:	movq   $0x0,0xc0(%rsp)
+     794:	vzeroupper
+     797:	lea    0x58(%rsp),%rcx
+     79c:	xor    %edi,%edi
+     79e:	call   7a3 <ID::Bench::IDKernelPerformanceTest()+0x603>
+			79f: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     7a3:	movq   $0x0,0x80(%rsp)
+     7af:	nop
+     7b0:	mov    $0x10,%edx
+     7b5:	mov    $0x10,%ecx
+     7ba:	add    $0x1,%rdi
+     7be:	call   *%rsi
+     7c0:	xor    %rax,0x80(%rsp)
+     7c8:	mov    %rax,%rcx
+     7cb:	call   *%rbx
+     7cd:	cmp    %rdi,%r12
+     7d0:	jne    7b0 <ID::Bench::IDKernelPerformanceTest()+0x610>
+     7d2:	lea    0x80(%rsp),%rcx
+     7da:	add    $0x8,%r14
+     7de:	call   7e3 <ID::Bench::IDKernelPerformanceTest()+0x643>
+			7df: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     7e3:	lea    0x58(%rsp),%rcx
+     7e8:	call   7ed <ID::Bench::IDKernelPerformanceTest()+0x64d>
+			7e9: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     7ed:	vmulsd %xmm6,%xmm0,%xmm0
+     7f1:	vmovsd %xmm0,-0x8(%r14)
+     7f7:	cmp    %r15,%r14
+     7fa:	jne    797 <ID::Bench::IDKernelPerformanceTest()+0x5f7>
+     7fc:	vmovsd 0xa8(%rsp),%xmm0
+     805:	vmovsd 0xa0(%rsp),%xmm1
+     80e:	vcomisd %xmm0,%xmm1
+     812:	jbe    288e <ID::Bench::IDKernelPerformanceTest()+0x26ee>
+     818:	vmovsd %xmm1,0xa8(%rsp)
+     821:	xor    %eax,%eax
+     823:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     82c:	vmovsd 0xb0(%rsp),%xmm0
+     835:	vmovsd 0xa8(%rsp),%xmm1
+     83e:	vcomisd %xmm0,%xmm1
+     842:	jbe    2884 <ID::Bench::IDKernelPerformanceTest()+0x26e4>
+     848:	vmovsd %xmm1,0xb0(%rsp)
+     851:	vmovsd 0xa0(%rsp),%xmm1
+     85a:	vcomisd %xmm0,%xmm1
+     85e:	jbe    292e <ID::Bench::IDKernelPerformanceTest()+0x278e>
+     864:	vmovsd %xmm1,0xa8(%rsp)
+     86d:	xor    %eax,%eax
+     86f:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     878:	vmovsd 0xb8(%rsp),%xmm0
+     881:	vmovsd 0xb0(%rsp),%xmm1
+     88a:	vcomisd %xmm0,%xmm1
+     88e:	jbe    28ac <ID::Bench::IDKernelPerformanceTest()+0x270c>
+     894:	vmovsd %xmm1,0xb8(%rsp)
+     89d:	vmovsd 0xa8(%rsp),%xmm1
+     8a6:	vcomisd %xmm0,%xmm1
+     8aa:	jbe    2974 <ID::Bench::IDKernelPerformanceTest()+0x27d4>
+     8b0:	vmovsd %xmm1,0xb0(%rsp)
+     8b9:	vmovsd 0xa0(%rsp),%xmm1
+     8c2:	vcomisd %xmm0,%xmm1
+     8c6:	jbe    2a28 <ID::Bench::IDKernelPerformanceTest()+0x2888>
+     8cc:	vmovsd %xmm1,0xa8(%rsp)
+     8d5:	xor    %eax,%eax
+     8d7:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     8e0:	vmovsd 0xc0(%rsp),%xmm0
+     8e9:	vmovsd 0xb8(%rsp),%xmm1
+     8f2:	vcomisd %xmm0,%xmm1
+     8f6:	jbe    28b6 <ID::Bench::IDKernelPerformanceTest()+0x2716>
+     8fc:	vcomisd 0xb0(%rsp),%xmm0
+     905:	vmovsd %xmm1,0xc0(%rsp)
+     90e:	jae    28de <ID::Bench::IDKernelPerformanceTest()+0x273e>
+     914:	vmovsd 0xa8(%rsp),%xmm1
+     91d:	vcomisd %xmm0,%xmm1
+     921:	jbe    29e2 <ID::Bench::IDKernelPerformanceTest()+0x2842>
+     927:	vmovsd %xmm1,0xb0(%rsp)
+     930:	xor    %eax,%eax
+     932:	vcomisd 0xa0(%rsp),%xmm0
+     93b:	setae  %al
+     93e:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     947:	vmovapd 0xa0(%rsp),%xmm2
+     950:	vmovsd 0xb0(%rsp),%xmm3
+     959:	vmovapd 0xb0(%rsp),%xmm5
+     962:	vmovsd 0xc0(%rsp),%xmm0
+     96b:	vunpcklpd %xmm2,%xmm5,%xmm1
+     96f:	vmovapd %xmm1,0x80(%rsp)
+     978:	vxorpd %xmm1,%xmm1,%xmm1
+     97c:	vcomisd %xmm1,%xmm3
+     980:	vmovsd %xmm0,0x90(%rsp)
+     989:	jbe    225d <ID::Bench::IDKernelPerformanceTest()+0x20bd>
+     98f:	vsubsd %xmm2,%xmm0,%xmm0
+     993:	vdivsd %xmm3,%xmm0,%xmm0
+     997:	lea    0xa8(%rip),%rax        # a46 <ID::Bench::IDKernelPerformanceTest()+0x8a6>
+			99a: IMAGE_REL_AMD64_REL32	.rdata
+     99e:	vmovapd %xmm8,%xmm2
+     9a2:	vmovsd %xmm0,0x98(%rsp)
+     9ab:	mov    $0x400,%edi
+     9b0:	lea    0x40(%rsp),%r9
+     9b5:	mov    %rax,0x48(%rsp)
+     9ba:	movq   $0x59,0x40(%rsp)
+     9c3:	lea    0x102(%rip),%rcx        # acc <ID::Bench::IDKernelPerformanceTest()+0x92c>
+			9c6: IMAGE_REL_AMD64_REL32	.rdata
+     9ca:	lea    0x80(%rsp),%rdx
+     9d2:	call   70 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]>
+     9d7:	jmp    9e8 <ID::Bench::IDKernelPerformanceTest()+0x848>
+     9d9:	nopl   0x0(%rax)
+     9e0:	mov    0xa0(%rsp),%r13
+     9e8:	mov    $0x200,%ecx
+     9ed:	call   9f2 <ID::Bench::IDKernelPerformanceTest()+0x852>
+			9ee: IMAGE_REL_AMD64_REL32	malloc
+     9f2:	xor    %rax,%r13
+     9f5:	mov    %rax,%rcx
+     9f8:	mov    %r13,0xa0(%rsp)
+     a00:	call   a05 <ID::Bench::IDKernelPerformanceTest()+0x865>
+			a01: IMAGE_REL_AMD64_REL32	free
+     a05:	sub    $0x1,%rdi
+     a09:	jne    9e0 <ID::Bench::IDKernelPerformanceTest()+0x840>
+     a0b:	lea    0xa0(%rsp),%rcx
+     a13:	mov    $0x400,%r12d
+     a19:	call   a1e <ID::Bench::IDKernelPerformanceTest()+0x87e>
+			a1a: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     a1e:	lea    0x80(%rsp),%rcx
+     a26:	call   a2b <ID::Bench::IDKernelPerformanceTest()+0x88b>
+			a27: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     a2b:	jmp    a38 <ID::Bench::IDKernelPerformanceTest()+0x898>
+     a2d:	nopl   (%rax)
+     a30:	mov    0xa0(%rsp),%rdi
+     a38:	mov    $0x200,%ecx
+     a3d:	call   a42 <ID::Bench::IDKernelPerformanceTest()+0x8a2>
+			a3e: IMAGE_REL_AMD64_REL32	malloc
+     a42:	xor    %rax,%rdi
+     a45:	mov    %rax,%rcx
+     a48:	mov    %rdi,0xa0(%rsp)
+     a50:	call   a55 <ID::Bench::IDKernelPerformanceTest()+0x8b5>
+			a51: IMAGE_REL_AMD64_REL32	free
+     a55:	sub    $0x1,%r12
+     a59:	jne    a30 <ID::Bench::IDKernelPerformanceTest()+0x890>
+     a5b:	lea    0xa0(%rsp),%rcx
+     a63:	call   a68 <ID::Bench::IDKernelPerformanceTest()+0x8c8>
+			a64: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     a68:	lea    0x80(%rsp),%rcx
+     a70:	call   a75 <ID::Bench::IDKernelPerformanceTest()+0x8d5>
+			a71: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     a75:	vxorpd %xmm1,%xmm1,%xmm1
+     a79:	vcomisd %xmm1,%xmm0
+     a7d:	jbe    ae0 <ID::Bench::IDKernelPerformanceTest()+0x940>
+     a7f:	vmulsd 0x560(%rip),%xmm0,%xmm2        # fe7 <ID::Bench::IDKernelPerformanceTest()+0xe47>
+			a83: IMAGE_REL_AMD64_REL32	.rdata
+     a87:	vcomisd %xmm1,%xmm2
+     a8b:	jbe    ae0 <ID::Bench::IDKernelPerformanceTest()+0x940>
+     a8d:	vmovsd 0x568(%rip),%xmm1        # ffd <ID::Bench::IDKernelPerformanceTest()+0xe5d>
+			a91: IMAGE_REL_AMD64_REL32	.rdata
+     a95:	vmovsd 0x548(%rip),%xmm6        # fe5 <ID::Bench::IDKernelPerformanceTest()+0xe45>
+			a99: IMAGE_REL_AMD64_REL32	.rdata
+     a9d:	vdivsd %xmm0,%xmm1,%xmm1
+     aa1:	vcomisd %xmm1,%xmm6
+     aa5:	jae    232f <ID::Bench::IDKernelPerformanceTest()+0x218f>
+     aab:	vmovsd 0x550(%rip),%xmm0        # 1003 <ID::Bench::IDKernelPerformanceTest()+0xe63>
+			aaf: IMAGE_REL_AMD64_REL32	.rdata
+     ab3:	vcomisd %xmm0,%xmm1
+     ab7:	jae    ae8 <ID::Bench::IDKernelPerformanceTest()+0x948>
+     ab9:	vmovsd 0x570(%rip),%xmm0        # 1031 <ID::Bench::IDKernelPerformanceTest()+0xe91>
+			abd: IMAGE_REL_AMD64_REL32	.rdata
+     ac1:	vcomisd %xmm0,%xmm1
+     ac5:	jae    25c8 <ID::Bench::IDKernelPerformanceTest()+0x2428>
+     acb:	vcvttsd2si %xmm1,%r12
+     ad0:	mov    $0x1,%r14d
+     ad6:	vcvtsi2sd %r12,%xmm7,%xmm6
+     adb:	jmp    af5 <ID::Bench::IDKernelPerformanceTest()+0x955>
+     add:	nopl   (%rax)
+     ae0:	vmovsd 0x550(%rip),%xmm0        # 1038 <ID::Bench::IDKernelPerformanceTest()+0xe98>
+			ae4: IMAGE_REL_AMD64_REL32	.rdata
+     ae8:	vmovapd %xmm0,%xmm6
+     aec:	xor    %r14d,%r14d
+     aef:	mov    $0x4000000,%r12d
+     af5:	lea    0x80(%rsp),%rcx
+     afd:	xor    %edi,%edi
+     aff:	xor    %r13d,%r13d
+     b02:	call   b07 <ID::Bench::IDKernelPerformanceTest()+0x967>
+			b03: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     b07:	jmp    b18 <ID::Bench::IDKernelPerformanceTest()+0x978>
+     b09:	nopl   0x0(%rax)
+     b10:	mov    0xa0(%rsp),%rdi
+     b18:	mov    $0x200,%ecx
+     b1d:	add    $0x1,%r13
+     b21:	call   b26 <ID::Bench::IDKernelPerformanceTest()+0x986>
+			b22: IMAGE_REL_AMD64_REL32	malloc
+     b26:	xor    %rax,%rdi
+     b29:	mov    %rax,%rcx
+     b2c:	mov    %rdi,0xa0(%rsp)
+     b34:	call   b39 <ID::Bench::IDKernelPerformanceTest()+0x999>
+			b35: IMAGE_REL_AMD64_REL32	free
+     b39:	cmp    %r13,%r12
+     b3c:	jne    b10 <ID::Bench::IDKernelPerformanceTest()+0x970>
+     b3e:	lea    0xa0(%rsp),%rcx
+     b46:	call   b4b <ID::Bench::IDKernelPerformanceTest()+0x9ab>
+			b47: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     b4b:	lea    0x80(%rsp),%rcx
+     b53:	call   b58 <ID::Bench::IDKernelPerformanceTest()+0x9b8>
+			b54: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     b58:	vmovapd %xmm0,%xmm1
+     b5c:	vxorpd %xmm0,%xmm0,%xmm0
+     b60:	vcomisd %xmm0,%xmm1
+     b64:	jbe    b93 <ID::Bench::IDKernelPerformanceTest()+0x9f3>
+     b66:	test   %r14b,%r14b
+     b69:	je     b93 <ID::Bench::IDKernelPerformanceTest()+0x9f3>
+     b6b:	vmovsd 0x580(%rip),%xmm0        # 10f3 <ID::Bench::IDKernelPerformanceTest()+0xf53>
+			b6f: IMAGE_REL_AMD64_REL32	.rdata
+     b73:	vdivsd %xmm1,%xmm0,%xmm0
+     b77:	vcomisd 0x588(%rip),%xmm0        # 1107 <ID::Bench::IDKernelPerformanceTest()+0xf67>
+			b7b: IMAGE_REL_AMD64_REL32	.rdata
+     b7f:	ja     23e2 <ID::Bench::IDKernelPerformanceTest()+0x2242>
+     b85:	vcomisd 0x590(%rip),%xmm0        # 111d <ID::Bench::IDKernelPerformanceTest()+0xf7d>
+			b89: IMAGE_REL_AMD64_REL32	.rdata
+     b8d:	jb     23e2 <ID::Bench::IDKernelPerformanceTest()+0x2242>
+     b93:	vmovsd 0x578(%rip),%xmm0        # 1113 <ID::Bench::IDKernelPerformanceTest()+0xf73>
+			b97: IMAGE_REL_AMD64_REL32	.rdata
+     b9b:	vdivsd %xmm6,%xmm0,%xmm6
+     b9f:	vpxor  %xmm0,%xmm0,%xmm0
+     ba3:	lea    0xa0(%rsp),%r14
+     bab:	vmovdqu %ymm0,0xa0(%rsp)
+     bb4:	movq   $0x0,0xc0(%rsp)
+     bc0:	vzeroupper
+     bc3:	lea    0x58(%rsp),%rcx
+     bc8:	xor    %edi,%edi
+     bca:	xor    %r12d,%r12d
+     bcd:	call   bd2 <ID::Bench::IDKernelPerformanceTest()+0xa32>
+			bce: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     bd2:	jmp    be0 <ID::Bench::IDKernelPerformanceTest()+0xa40>
+     bd4:	nopl   0x0(%rax)
+     bd8:	mov    0x80(%rsp),%rdi
+     be0:	mov    $0x200,%ecx
+     be5:	add    $0x1,%r12
+     be9:	call   bee <ID::Bench::IDKernelPerformanceTest()+0xa4e>
+			bea: IMAGE_REL_AMD64_REL32	malloc
+     bee:	xor    %rax,%rdi
+     bf1:	mov    %rax,%rcx
+     bf4:	mov    %rdi,0x80(%rsp)
+     bfc:	call   c01 <ID::Bench::IDKernelPerformanceTest()+0xa61>
+			bfd: IMAGE_REL_AMD64_REL32	free
+     c01:	cmp    %r12,%r13
+     c04:	jne    bd8 <ID::Bench::IDKernelPerformanceTest()+0xa38>
+     c06:	lea    0x80(%rsp),%rcx
+     c0e:	add    $0x8,%r14
+     c12:	call   c17 <ID::Bench::IDKernelPerformanceTest()+0xa77>
+			c13: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     c17:	lea    0x58(%rsp),%rcx
+     c1c:	call   c21 <ID::Bench::IDKernelPerformanceTest()+0xa81>
+			c1d: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     c21:	vmulsd %xmm6,%xmm0,%xmm0
+     c25:	vmovsd %xmm0,-0x8(%r14)
+     c2b:	cmp    %r15,%r14
+     c2e:	jne    bc3 <ID::Bench::IDKernelPerformanceTest()+0xa23>
+     c30:	vmovsd 0xa8(%rsp),%xmm0
+     c39:	vmovsd 0xa0(%rsp),%xmm1
+     c42:	vcomisd %xmm0,%xmm1
+     c46:	jbe    280c <ID::Bench::IDKernelPerformanceTest()+0x266c>
+     c4c:	vmovsd %xmm1,0xa8(%rsp)
+     c55:	xor    %eax,%eax
+     c57:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     c60:	vmovsd 0xb0(%rsp),%xmm0
+     c69:	vmovsd 0xa8(%rsp),%xmm1
+     c72:	vcomisd %xmm0,%xmm1
+     c76:	jbe    2802 <ID::Bench::IDKernelPerformanceTest()+0x2662>
+     c7c:	vmovsd %xmm1,0xb0(%rsp)
+     c85:	vmovsd 0xa0(%rsp),%xmm1
+     c8e:	vcomisd %xmm0,%xmm1
+     c92:	jbe    28f2 <ID::Bench::IDKernelPerformanceTest()+0x2752>
+     c98:	vmovsd %xmm1,0xa8(%rsp)
+     ca1:	xor    %eax,%eax
+     ca3:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     cac:	vmovsd 0xb8(%rsp),%xmm0
+     cb5:	vmovsd 0xb0(%rsp),%xmm1
+     cbe:	vcomisd %xmm0,%xmm1
+     cc2:	jbe    27e4 <ID::Bench::IDKernelPerformanceTest()+0x2644>
+     cc8:	vmovsd %xmm1,0xb8(%rsp)
+     cd1:	vmovsd 0xa8(%rsp),%xmm1
+     cda:	vcomisd %xmm0,%xmm1
+     cde:	jbe    291a <ID::Bench::IDKernelPerformanceTest()+0x277a>
+     ce4:	vmovsd %xmm1,0xb0(%rsp)
+     ced:	vmovsd 0xa0(%rsp),%xmm1
+     cf6:	vcomisd %xmm0,%xmm1
+     cfa:	jbe    29ce <ID::Bench::IDKernelPerformanceTest()+0x282e>
+     d00:	vmovsd %xmm1,0xa8(%rsp)
+     d09:	xor    %eax,%eax
+     d0b:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     d14:	vmovsd 0xc0(%rsp),%xmm0
+     d1d:	vcomisd 0xb8(%rsp),%xmm0
+     d26:	jae    27ee <ID::Bench::IDKernelPerformanceTest()+0x264e>
+     d2c:	vcomisd 0xb0(%rsp),%xmm0
+     d35:	jae    28fc <ID::Bench::IDKernelPerformanceTest()+0x275c>
+     d3b:	vmovsd 0xa8(%rsp),%xmm1
+     d44:	vcomisd %xmm0,%xmm1
+     d48:	jbe    29ec <ID::Bench::IDKernelPerformanceTest()+0x284c>
+     d4e:	vmovsd %xmm1,0xb0(%rsp)
+     d57:	xor    %eax,%eax
+     d59:	vcomisd 0xa0(%rsp),%xmm0
+     d62:	setae  %al
+     d65:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     d6e:	mov    $0x400,%edi
+     d73:	mov    0xb0(%rsp),%r14
+     d7b:	movq   $0x0,0xa0(%rsp)
+     d87:	nopw   0x0(%rax,%rax,1)
+     d90:	mov    $0x10,%edx
+     d95:	mov    $0x200,%ecx
+     d9a:	call   *%rsi
+     d9c:	xor    %rax,0xa0(%rsp)
+     da4:	mov    %rax,%rcx
+     da7:	call   *%rbx
+     da9:	sub    $0x1,%rdi
+     dad:	jne    d90 <ID::Bench::IDKernelPerformanceTest()+0xbf0>
+     daf:	lea    0xa0(%rsp),%rcx
+     db7:	mov    $0x400,%edi
+     dbc:	call   dc1 <ID::Bench::IDKernelPerformanceTest()+0xc21>
+			dbd: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     dc1:	lea    0x80(%rsp),%rcx
+     dc9:	call   dce <ID::Bench::IDKernelPerformanceTest()+0xc2e>
+			dca: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     dce:	movq   $0x0,0xa0(%rsp)
+     dda:	nopw   0x0(%rax,%rax,1)
+     de0:	mov    $0x10,%edx
+     de5:	mov    $0x200,%ecx
+     dea:	call   *%rsi
+     dec:	xor    %rax,0xa0(%rsp)
+     df4:	mov    %rax,%rcx
+     df7:	call   *%rbx
+     df9:	sub    $0x1,%rdi
+     dfd:	jne    de0 <ID::Bench::IDKernelPerformanceTest()+0xc40>
+     dff:	lea    0xa0(%rsp),%rcx
+     e07:	call   e0c <ID::Bench::IDKernelPerformanceTest()+0xc6c>
+			e08: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     e0c:	lea    0x80(%rsp),%rcx
+     e14:	call   e19 <ID::Bench::IDKernelPerformanceTest()+0xc79>
+			e15: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     e19:	vxorpd %xmm1,%xmm1,%xmm1
+     e1d:	vcomisd %xmm1,%xmm0
+     e21:	jbe    e88 <ID::Bench::IDKernelPerformanceTest()+0xce8>
+     e23:	vmulsd 0x560(%rip),%xmm0,%xmm2        # 138b <ID::Bench::IDKernelPerformanceTest()+0x11eb>
+			e27: IMAGE_REL_AMD64_REL32	.rdata
+     e2b:	vcomisd %xmm1,%xmm2
+     e2f:	jbe    e88 <ID::Bench::IDKernelPerformanceTest()+0xce8>
+     e31:	vmovsd 0x568(%rip),%xmm1        # 13a1 <ID::Bench::IDKernelPerformanceTest()+0x1201>
+			e35: IMAGE_REL_AMD64_REL32	.rdata
+     e39:	vmovsd 0x548(%rip),%xmm6        # 1389 <ID::Bench::IDKernelPerformanceTest()+0x11e9>
+			e3d: IMAGE_REL_AMD64_REL32	.rdata
+     e41:	vdivsd %xmm0,%xmm1,%xmm1
+     e45:	vcomisd %xmm1,%xmm6
+     e49:	jae    231f <ID::Bench::IDKernelPerformanceTest()+0x217f>
+     e4f:	vmovsd 0x550(%rip),%xmm0        # 13a7 <ID::Bench::IDKernelPerformanceTest()+0x1207>
+			e53: IMAGE_REL_AMD64_REL32	.rdata
+     e57:	vcomisd %xmm0,%xmm1
+     e5b:	jae    e90 <ID::Bench::IDKernelPerformanceTest()+0xcf0>
+     e5d:	vmovsd 0x570(%rip),%xmm0        # 13d5 <ID::Bench::IDKernelPerformanceTest()+0x1235>
+			e61: IMAGE_REL_AMD64_REL32	.rdata
+     e65:	vcomisd %xmm0,%xmm1
+     e69:	jae    2614 <ID::Bench::IDKernelPerformanceTest()+0x2474>
+     e6f:	vcvttsd2si %xmm1,%rdi
+     e74:	mov    $0x1,%r13d
+     e7a:	vcvtsi2sd %rdi,%xmm7,%xmm6
+     e7f:	jmp    e9c <ID::Bench::IDKernelPerformanceTest()+0xcfc>
+     e81:	nopl   0x0(%rax)
+     e88:	vmovsd 0x550(%rip),%xmm0        # 13e0 <ID::Bench::IDKernelPerformanceTest()+0x1240>
+			e8c: IMAGE_REL_AMD64_REL32	.rdata
+     e90:	vmovapd %xmm0,%xmm6
+     e94:	xor    %r13d,%r13d
+     e97:	mov    $0x4000000,%edi
+     e9c:	lea    0x80(%rsp),%rcx
+     ea4:	xor    %r12d,%r12d
+     ea7:	call   eac <ID::Bench::IDKernelPerformanceTest()+0xd0c>
+			ea8: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     eac:	movq   $0x0,0xa0(%rsp)
+     eb8:	nopl   0x0(%rax,%rax,1)
+     ec0:	mov    $0x10,%edx
+     ec5:	mov    $0x200,%ecx
+     eca:	add    $0x1,%r12
+     ece:	call   *%rsi
+     ed0:	xor    %rax,0xa0(%rsp)
+     ed8:	mov    %rax,%rcx
+     edb:	call   *%rbx
+     edd:	cmp    %r12,%rdi
+     ee0:	jne    ec0 <ID::Bench::IDKernelPerformanceTest()+0xd20>
+     ee2:	lea    0xa0(%rsp),%rcx
+     eea:	call   eef <ID::Bench::IDKernelPerformanceTest()+0xd4f>
+			eeb: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     eef:	lea    0x80(%rsp),%rcx
+     ef7:	call   efc <ID::Bench::IDKernelPerformanceTest()+0xd5c>
+			ef8: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     efc:	vmovapd %xmm0,%xmm1
+     f00:	vxorpd %xmm0,%xmm0,%xmm0
+     f04:	vcomisd %xmm0,%xmm1
+     f08:	jbe    f37 <ID::Bench::IDKernelPerformanceTest()+0xd97>
+     f0a:	test   %r13b,%r13b
+     f0d:	je     f37 <ID::Bench::IDKernelPerformanceTest()+0xd97>
+     f0f:	vmovsd 0x580(%rip),%xmm0        # 1497 <ID::Bench::IDKernelPerformanceTest()+0x12f7>
+			f13: IMAGE_REL_AMD64_REL32	.rdata
+     f17:	vdivsd %xmm1,%xmm0,%xmm0
+     f1b:	vcomisd 0x588(%rip),%xmm0        # 14ab <ID::Bench::IDKernelPerformanceTest()+0x130b>
+			f1f: IMAGE_REL_AMD64_REL32	.rdata
+     f23:	ja     2526 <ID::Bench::IDKernelPerformanceTest()+0x2386>
+     f29:	vcomisd 0x590(%rip),%xmm0        # 14c1 <ID::Bench::IDKernelPerformanceTest()+0x1321>
+			f2d: IMAGE_REL_AMD64_REL32	.rdata
+     f31:	jb     2526 <ID::Bench::IDKernelPerformanceTest()+0x2386>
+     f37:	vmovsd 0x578(%rip),%xmm0        # 14b7 <ID::Bench::IDKernelPerformanceTest()+0x1317>
+			f3b: IMAGE_REL_AMD64_REL32	.rdata
+     f3f:	vdivsd %xmm6,%xmm0,%xmm6
+     f43:	vpxor  %xmm0,%xmm0,%xmm0
+     f47:	lea    0xa0(%rsp),%r13
+     f4f:	vmovdqu %ymm0,0xa0(%rsp)
+     f58:	movq   $0x0,0xc0(%rsp)
+     f64:	vzeroupper
+     f67:	lea    0x58(%rsp),%rcx
+     f6c:	xor    %edi,%edi
+     f6e:	call   f73 <ID::Bench::IDKernelPerformanceTest()+0xdd3>
+			f6f: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+     f73:	movq   $0x0,0x80(%rsp)
+     f7f:	nop
+     f80:	mov    $0x10,%edx
+     f85:	mov    $0x200,%ecx
+     f8a:	add    $0x1,%rdi
+     f8e:	call   *%rsi
+     f90:	xor    %rax,0x80(%rsp)
+     f98:	mov    %rax,%rcx
+     f9b:	call   *%rbx
+     f9d:	cmp    %rdi,%r12
+     fa0:	jne    f80 <ID::Bench::IDKernelPerformanceTest()+0xde0>
+     fa2:	lea    0x80(%rsp),%rcx
+     faa:	add    $0x8,%r13
+     fae:	call   fb3 <ID::Bench::IDKernelPerformanceTest()+0xe13>
+			faf: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+     fb3:	lea    0x58(%rsp),%rcx
+     fb8:	call   fbd <ID::Bench::IDKernelPerformanceTest()+0xe1d>
+			fb9: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+     fbd:	vmulsd %xmm6,%xmm0,%xmm0
+     fc1:	vmovsd %xmm0,-0x8(%r13)
+     fc7:	cmp    %r15,%r13
+     fca:	jne    f67 <ID::Bench::IDKernelPerformanceTest()+0xdc7>
+     fcc:	vmovsd 0xa8(%rsp),%xmm0
+     fd5:	vmovsd 0xa0(%rsp),%xmm1
+     fde:	vcomisd %xmm0,%xmm1
+     fe2:	jbe    2816 <ID::Bench::IDKernelPerformanceTest()+0x2676>
+     fe8:	vmovsd %xmm1,0xa8(%rsp)
+     ff1:	xor    %eax,%eax
+     ff3:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+     ffc:	vmovsd 0xb0(%rsp),%xmm0
+    1005:	vmovsd 0xa8(%rsp),%xmm1
+    100e:	vcomisd %xmm0,%xmm1
+    1012:	jbe    27da <ID::Bench::IDKernelPerformanceTest()+0x263a>
+    1018:	vmovsd %xmm1,0xb0(%rsp)
+    1021:	vmovsd 0xa0(%rsp),%xmm1
+    102a:	vcomisd %xmm0,%xmm1
+    102e:	jbe    2988 <ID::Bench::IDKernelPerformanceTest()+0x27e8>
+    1034:	vmovsd %xmm1,0xa8(%rsp)
+    103d:	xor    %eax,%eax
+    103f:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1048:	vmovsd 0xb8(%rsp),%xmm0
+    1051:	vmovsd 0xb0(%rsp),%xmm1
+    105a:	vcomisd %xmm0,%xmm1
+    105e:	jbe    27c6 <ID::Bench::IDKernelPerformanceTest()+0x2626>
+    1064:	vmovsd %xmm1,0xb8(%rsp)
+    106d:	vmovsd 0xa8(%rsp),%xmm1
+    1076:	vcomisd %xmm0,%xmm1
+    107a:	jbe    29a6 <ID::Bench::IDKernelPerformanceTest()+0x2806>
+    1080:	vmovsd %xmm1,0xb0(%rsp)
+    1089:	vmovsd 0xa0(%rsp),%xmm1
+    1092:	vcomisd %xmm0,%xmm1
+    1096:	jbe    2a3c <ID::Bench::IDKernelPerformanceTest()+0x289c>
+    109c:	vmovsd %xmm1,0xa8(%rsp)
+    10a5:	xor    %eax,%eax
+    10a7:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    10b0:	vmovsd 0xc0(%rsp),%xmm0
+    10b9:	vmovsd 0xb8(%rsp),%xmm1
+    10c2:	vcomisd %xmm0,%xmm1
+    10c6:	jbe    27d0 <ID::Bench::IDKernelPerformanceTest()+0x2630>
+    10cc:	vcomisd 0xb0(%rsp),%xmm0
+    10d5:	vmovsd %xmm1,0xc0(%rsp)
+    10de:	jae    296a <ID::Bench::IDKernelPerformanceTest()+0x27ca>
+    10e4:	vmovsd 0xa8(%rsp),%xmm1
+    10ed:	vcomisd %xmm0,%xmm1
+    10f1:	jbe    2a1e <ID::Bench::IDKernelPerformanceTest()+0x287e>
+    10f7:	vmovsd %xmm1,0xb0(%rsp)
+    1100:	xor    %eax,%eax
+    1102:	vcomisd 0xa0(%rsp),%xmm0
+    110b:	setae  %al
+    110e:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1117:	vmovapd 0xa0(%rsp),%xmm2
+    1120:	vmovsd 0xb0(%rsp),%xmm3
+    1129:	vmovapd 0xb0(%rsp),%xmm4
+    1132:	vmovsd 0xc0(%rsp),%xmm0
+    113b:	vunpcklpd %xmm2,%xmm4,%xmm1
+    113f:	vmovapd %xmm1,0x80(%rsp)
+    1148:	vxorpd %xmm1,%xmm1,%xmm1
+    114c:	vcomisd %xmm1,%xmm3
+    1150:	vmovsd %xmm0,0x90(%rsp)
+    1159:	jbe    226f <ID::Bench::IDKernelPerformanceTest()+0x20cf>
+    115f:	vsubsd %xmm2,%xmm0,%xmm0
+    1163:	vdivsd %xmm3,%xmm0,%xmm0
+    1167:	lea    0x118(%rip),%rax        # 1286 <ID::Bench::IDKernelPerformanceTest()+0x10e6>
+			116a: IMAGE_REL_AMD64_REL32	.rdata
+    116e:	vmovq  %r14,%xmm2
+    1173:	vmovsd %xmm0,0x98(%rsp)
+    117c:	mov    $0x400,%edi
+    1181:	lea    0x40(%rsp),%r9
+    1186:	mov    %rax,0x48(%rsp)
+    118b:	movq   $0x5a,0x40(%rsp)
+    1194:	lea    0x173(%rip),%rcx        # 130e <ID::Bench::IDKernelPerformanceTest()+0x116e>
+			1197: IMAGE_REL_AMD64_REL32	.rdata
+    119b:	lea    0x80(%rsp),%rdx
+    11a3:	call   70 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]>
+    11a8:	mov    0x0(%rip),%r12        # 11af <ID::Bench::IDKernelPerformanceTest()+0x100f>
+			11ab: IMAGE_REL_AMD64_REL32	__imp__ZN2ID6Memory20os_alloc_aligned_64kEy
+    11af:	movq   $0x0,0xa0(%rsp)
+    11bb:	mov    0x0(%rip),%r13        # 11c2 <ID::Bench::IDKernelPerformanceTest()+0x1022>
+			11be: IMAGE_REL_AMD64_REL32	__imp__ZN2ID6Memory19os_free_aligned_64kEPvy
+    11c2:	nopw   0x0(%rax,%rax,1)
+    11c8:	mov    $0x10000,%ecx
+    11cd:	call   *%r12
+    11d0:	xor    %rax,0xa0(%rsp)
+    11d8:	test   %rax,%rax
+    11db:	je     1300 <ID::Bench::IDKernelPerformanceTest()+0x1160>
+    11e1:	mov    $0x10000,%edx
+    11e6:	mov    %rax,%rcx
+    11e9:	movb   $0x5a,(%rax)
+    11ec:	call   *%r13
+    11ef:	sub    $0x1,%rdi
+    11f3:	jne    11c8 <ID::Bench::IDKernelPerformanceTest()+0x1028>
+    11f5:	lea    0xa0(%rsp),%rcx
+    11fd:	mov    $0x400,%edi
+    1202:	call   1207 <ID::Bench::IDKernelPerformanceTest()+0x1067>
+			1203: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1207:	lea    0x80(%rsp),%rcx
+    120f:	call   1214 <ID::Bench::IDKernelPerformanceTest()+0x1074>
+			1210: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1214:	movq   $0x0,0xa0(%rsp)
+    1220:	mov    $0x10000,%ecx
+    1225:	call   *%r12
+    1228:	xor    %rax,0xa0(%rsp)
+    1230:	test   %rax,%rax
+    1233:	je     12e0 <ID::Bench::IDKernelPerformanceTest()+0x1140>
+    1239:	mov    $0x10000,%edx
+    123e:	mov    %rax,%rcx
+    1241:	movb   $0x5a,(%rax)
+    1244:	call   *%r13
+    1247:	sub    $0x1,%rdi
+    124b:	jne    1220 <ID::Bench::IDKernelPerformanceTest()+0x1080>
+    124d:	lea    0xa0(%rsp),%rcx
+    1255:	call   125a <ID::Bench::IDKernelPerformanceTest()+0x10ba>
+			1256: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    125a:	lea    0x80(%rsp),%rcx
+    1262:	call   1267 <ID::Bench::IDKernelPerformanceTest()+0x10c7>
+			1263: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1267:	vxorpd %xmm1,%xmm1,%xmm1
+    126b:	vcomisd %xmm1,%xmm0
+    126f:	jbe    1320 <ID::Bench::IDKernelPerformanceTest()+0x1180>
+    1275:	vmulsd 0x560(%rip),%xmm0,%xmm2        # 17dd <ID::Bench::IDKernelPerformanceTest()+0x163d>
+			1279: IMAGE_REL_AMD64_REL32	.rdata
+    127d:	vcomisd %xmm1,%xmm2
+    1281:	jbe    1320 <ID::Bench::IDKernelPerformanceTest()+0x1180>
+    1287:	vmovsd 0x568(%rip),%xmm1        # 17f7 <ID::Bench::IDKernelPerformanceTest()+0x1657>
+			128b: IMAGE_REL_AMD64_REL32	.rdata
+    128f:	vmovsd 0x548(%rip),%xmm6        # 17df <ID::Bench::IDKernelPerformanceTest()+0x163f>
+			1293: IMAGE_REL_AMD64_REL32	.rdata
+    1297:	vdivsd %xmm0,%xmm1,%xmm1
+    129b:	vcomisd %xmm1,%xmm6
+    129f:	jae    230f <ID::Bench::IDKernelPerformanceTest()+0x216f>
+    12a5:	vmovsd 0x550(%rip),%xmm0        # 17fd <ID::Bench::IDKernelPerformanceTest()+0x165d>
+			12a9: IMAGE_REL_AMD64_REL32	.rdata
+    12ad:	vcomisd %xmm0,%xmm1
+    12b1:	jae    1328 <ID::Bench::IDKernelPerformanceTest()+0x1188>
+    12b3:	vmovsd 0x570(%rip),%xmm0        # 182b <ID::Bench::IDKernelPerformanceTest()+0x168b>
+			12b7: IMAGE_REL_AMD64_REL32	.rdata
+    12bb:	vcomisd %xmm0,%xmm1
+    12bf:	jae    264d <ID::Bench::IDKernelPerformanceTest()+0x24ad>
+    12c5:	vcvttsd2si %xmm1,%r14
+    12ca:	movb   $0x1,0x28(%rsp)
+    12cf:	vcvtsi2sd %r14,%xmm7,%xmm6
+    12d4:	jmp    1337 <ID::Bench::IDKernelPerformanceTest()+0x1197>
+    12d6:	cs nopw 0x0(%rax,%rax,1)
+    12e0:	xor    %ecx,%ecx
+    12e2:	mov    $0x10000,%edx
+    12e7:	call   *%r13
+    12ea:	sub    $0x1,%rdi
+    12ee:	jne    1220 <ID::Bench::IDKernelPerformanceTest()+0x1080>
+    12f4:	jmp    124d <ID::Bench::IDKernelPerformanceTest()+0x10ad>
+    12f9:	nopl   0x0(%rax)
+    1300:	xor    %ecx,%ecx
+    1302:	mov    $0x10000,%edx
+    1307:	call   *%r13
+    130a:	sub    $0x1,%rdi
+    130e:	jne    11c8 <ID::Bench::IDKernelPerformanceTest()+0x1028>
+    1314:	jmp    11f5 <ID::Bench::IDKernelPerformanceTest()+0x1055>
+    1319:	nopl   0x0(%rax)
+    1320:	vmovsd 0x550(%rip),%xmm0        # 1878 <ID::Bench::IDKernelPerformanceTest()+0x16d8>
+			1324: IMAGE_REL_AMD64_REL32	.rdata
+    1328:	vmovapd %xmm0,%xmm6
+    132c:	movb   $0x0,0x28(%rsp)
+    1331:	mov    $0x4000000,%r14d
+    1337:	lea    0x80(%rsp),%rcx
+    133f:	xor    %edi,%edi
+    1341:	call   1346 <ID::Bench::IDKernelPerformanceTest()+0x11a6>
+			1342: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1346:	movq   $0x0,0xa0(%rsp)
+    1352:	nopw   0x0(%rax,%rax,1)
+    1358:	mov    $0x10000,%ecx
+    135d:	call   *%r12
+    1360:	xor    %rax,0xa0(%rsp)
+    1368:	test   %rax,%rax
+    136b:	je     1710 <ID::Bench::IDKernelPerformanceTest()+0x1570>
+    1371:	add    $0x1,%rdi
+    1375:	mov    $0x10000,%edx
+    137a:	mov    %rax,%rcx
+    137d:	movb   $0x5a,(%rax)
+    1380:	call   *%r13
+    1383:	cmp    %r14,%rdi
+    1386:	jne    1358 <ID::Bench::IDKernelPerformanceTest()+0x11b8>
+    1388:	lea    0xa0(%rsp),%rcx
+    1390:	call   1395 <ID::Bench::IDKernelPerformanceTest()+0x11f5>
+			1391: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1395:	lea    0x80(%rsp),%rcx
+    139d:	call   13a2 <ID::Bench::IDKernelPerformanceTest()+0x1202>
+			139e: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    13a2:	vmovapd %xmm0,%xmm1
+    13a6:	vxorpd %xmm0,%xmm0,%xmm0
+    13aa:	vcomisd %xmm0,%xmm1
+    13ae:	jbe    13df <ID::Bench::IDKernelPerformanceTest()+0x123f>
+    13b0:	cmpb   $0x0,0x28(%rsp)
+    13b5:	je     13df <ID::Bench::IDKernelPerformanceTest()+0x123f>
+    13b7:	vmovsd 0x580(%rip),%xmm0        # 193f <ID::Bench::IDKernelPerformanceTest()+0x179f>
+			13bb: IMAGE_REL_AMD64_REL32	.rdata
+    13bf:	vdivsd %xmm1,%xmm0,%xmm0
+    13c3:	vcomisd 0x588(%rip),%xmm0        # 1953 <ID::Bench::IDKernelPerformanceTest()+0x17b3>
+			13c7: IMAGE_REL_AMD64_REL32	.rdata
+    13cb:	ja     2484 <ID::Bench::IDKernelPerformanceTest()+0x22e4>
+    13d1:	vcomisd 0x590(%rip),%xmm0        # 1969 <ID::Bench::IDKernelPerformanceTest()+0x17c9>
+			13d5: IMAGE_REL_AMD64_REL32	.rdata
+    13d9:	jb     2484 <ID::Bench::IDKernelPerformanceTest()+0x22e4>
+    13df:	vmovsd 0x578(%rip),%xmm0        # 195f <ID::Bench::IDKernelPerformanceTest()+0x17bf>
+			13e3: IMAGE_REL_AMD64_REL32	.rdata
+    13e7:	vdivsd %xmm6,%xmm0,%xmm6
+    13eb:	lea    0xa0(%rsp),%rax
+    13f3:	vpxor  %xmm0,%xmm0,%xmm0
+    13f7:	movq   $0x0,0xc0(%rsp)
+    1403:	vmovdqu %ymm0,0xa0(%rsp)
+    140c:	mov    %rax,0x28(%rsp)
+    1411:	vzeroupper
+    1414:	lea    0x58(%rsp),%rcx
+    1419:	xor    %edi,%edi
+    141b:	call   1420 <ID::Bench::IDKernelPerformanceTest()+0x1280>
+			141c: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1420:	movq   $0x0,0x80(%rsp)
+    142c:	nopl   0x0(%rax)
+    1430:	mov    $0x10000,%ecx
+    1435:	call   *%r12
+    1438:	xor    %rax,0x80(%rsp)
+    1440:	test   %rax,%rax
+    1443:	je     16f0 <ID::Bench::IDKernelPerformanceTest()+0x1550>
+    1449:	add    $0x1,%rdi
+    144d:	mov    $0x10000,%edx
+    1452:	mov    %rax,%rcx
+    1455:	movb   $0x5a,(%rax)
+    1458:	call   *%r13
+    145b:	cmp    %r14,%rdi
+    145e:	jne    1430 <ID::Bench::IDKernelPerformanceTest()+0x1290>
+    1460:	lea    0x80(%rsp),%rcx
+    1468:	call   146d <ID::Bench::IDKernelPerformanceTest()+0x12cd>
+			1469: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    146d:	lea    0x58(%rsp),%rcx
+    1472:	call   1477 <ID::Bench::IDKernelPerformanceTest()+0x12d7>
+			1473: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1477:	mov    0x28(%rsp),%rax
+    147c:	vmulsd %xmm6,%xmm0,%xmm0
+    1480:	add    $0x8,%rax
+    1484:	vmovsd %xmm0,-0x8(%rax)
+    1489:	cmp    %rax,%r15
+    148c:	mov    %rax,0x28(%rsp)
+    1491:	jne    1414 <ID::Bench::IDKernelPerformanceTest()+0x1274>
+    1493:	vmovsd 0xa8(%rsp),%xmm0
+    149c:	vmovsd 0xa0(%rsp),%xmm1
+    14a5:	vcomisd %xmm0,%xmm1
+    14a9:	jbe    27b2 <ID::Bench::IDKernelPerformanceTest()+0x2612>
+    14af:	vmovsd %xmm1,0xa8(%rsp)
+    14b8:	xor    %eax,%eax
+    14ba:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    14c3:	vmovsd 0xb0(%rsp),%xmm0
+    14cc:	vmovsd 0xa8(%rsp),%xmm1
+    14d5:	vcomisd %xmm0,%xmm1
+    14d9:	jbe    27a8 <ID::Bench::IDKernelPerformanceTest()+0x2608>
+    14df:	vmovsd %xmm1,0xb0(%rsp)
+    14e8:	vmovsd 0xa0(%rsp),%xmm1
+    14f1:	vcomisd %xmm0,%xmm1
+    14f5:	jbe    299c <ID::Bench::IDKernelPerformanceTest()+0x27fc>
+    14fb:	vmovsd %xmm1,0xa8(%rsp)
+    1504:	xor    %eax,%eax
+    1506:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    150f:	vmovsd 0xb8(%rsp),%xmm0
+    1518:	vmovsd 0xb0(%rsp),%xmm1
+    1521:	vcomisd %xmm0,%xmm1
+    1525:	jbe    2820 <ID::Bench::IDKernelPerformanceTest()+0x2680>
+    152b:	vmovsd %xmm1,0xb8(%rsp)
+    1534:	vmovsd 0xa8(%rsp),%xmm1
+    153d:	vcomisd %xmm0,%xmm1
+    1541:	jbe    2910 <ID::Bench::IDKernelPerformanceTest()+0x2770>
+    1547:	vmovsd %xmm1,0xb0(%rsp)
+    1550:	vmovsd 0xa0(%rsp),%xmm1
+    1559:	vcomisd %xmm0,%xmm1
+    155d:	jbe    29c4 <ID::Bench::IDKernelPerformanceTest()+0x2824>
+    1563:	vmovsd %xmm1,0xa8(%rsp)
+    156c:	xor    %eax,%eax
+    156e:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1577:	vmovsd 0xc0(%rsp),%xmm0
+    1580:	vcomisd 0xb8(%rsp),%xmm0
+    1589:	jae    282a <ID::Bench::IDKernelPerformanceTest()+0x268a>
+    158f:	vcomisd 0xb0(%rsp),%xmm0
+    1598:	jae    28ca <ID::Bench::IDKernelPerformanceTest()+0x272a>
+    159e:	vmovsd 0xa8(%rsp),%xmm1
+    15a7:	vcomisd %xmm0,%xmm1
+    15ab:	jbe    29f6 <ID::Bench::IDKernelPerformanceTest()+0x2856>
+    15b1:	vmovsd %xmm1,0xb0(%rsp)
+    15ba:	xor    %eax,%eax
+    15bc:	vcomisd 0xa0(%rsp),%xmm0
+    15c5:	setae  %al
+    15c8:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    15d1:	mov    $0x400,%edi
+    15d6:	mov    0xb0(%rsp),%r14
+    15de:	movq   $0x0,0xa0(%rsp)
+    15ea:	nopw   0x0(%rax,%rax,1)
+    15f0:	mov    $0x10,%edx
+    15f5:	mov    $0x2001,%ecx
+    15fa:	call   *%rsi
+    15fc:	xor    %rax,0xa0(%rsp)
+    1604:	mov    %rax,%rcx
+    1607:	call   *%rbx
+    1609:	sub    $0x1,%rdi
+    160d:	jne    15f0 <ID::Bench::IDKernelPerformanceTest()+0x1450>
+    160f:	lea    0xa0(%rsp),%rcx
+    1617:	mov    $0x400,%edi
+    161c:	call   1621 <ID::Bench::IDKernelPerformanceTest()+0x1481>
+			161d: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1621:	lea    0x80(%rsp),%rcx
+    1629:	call   162e <ID::Bench::IDKernelPerformanceTest()+0x148e>
+			162a: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    162e:	movq   $0x0,0xa0(%rsp)
+    163a:	nopw   0x0(%rax,%rax,1)
+    1640:	mov    $0x10,%edx
+    1645:	mov    $0x2001,%ecx
+    164a:	call   *%rsi
+    164c:	xor    %rax,0xa0(%rsp)
+    1654:	mov    %rax,%rcx
+    1657:	call   *%rbx
+    1659:	sub    $0x1,%rdi
+    165d:	jne    1640 <ID::Bench::IDKernelPerformanceTest()+0x14a0>
+    165f:	lea    0xa0(%rsp),%rcx
+    1667:	call   166c <ID::Bench::IDKernelPerformanceTest()+0x14cc>
+			1668: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    166c:	lea    0x80(%rsp),%rcx
+    1674:	call   1679 <ID::Bench::IDKernelPerformanceTest()+0x14d9>
+			1675: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1679:	vxorpd %xmm1,%xmm1,%xmm1
+    167d:	vcomisd %xmm1,%xmm0
+    1681:	jbe    1730 <ID::Bench::IDKernelPerformanceTest()+0x1590>
+    1687:	vmulsd 0x560(%rip),%xmm0,%xmm2        # 1bef <ID::Bench::IDKernelPerformanceTest()+0x1a4f>
+			168b: IMAGE_REL_AMD64_REL32	.rdata
+    168f:	vcomisd %xmm1,%xmm2
+    1693:	jbe    1730 <ID::Bench::IDKernelPerformanceTest()+0x1590>
+    1699:	vmovsd 0x568(%rip),%xmm1        # 1c09 <ID::Bench::IDKernelPerformanceTest()+0x1a69>
+			169d: IMAGE_REL_AMD64_REL32	.rdata
+    16a1:	vmovsd 0x548(%rip),%xmm6        # 1bf1 <ID::Bench::IDKernelPerformanceTest()+0x1a51>
+			16a5: IMAGE_REL_AMD64_REL32	.rdata
+    16a9:	vdivsd %xmm0,%xmm1,%xmm1
+    16ad:	vcomisd %xmm1,%xmm6
+    16b1:	jae    22df <ID::Bench::IDKernelPerformanceTest()+0x213f>
+    16b7:	vmovsd 0x550(%rip),%xmm0        # 1c0f <ID::Bench::IDKernelPerformanceTest()+0x1a6f>
+			16bb: IMAGE_REL_AMD64_REL32	.rdata
+    16bf:	vcomisd %xmm0,%xmm1
+    16c3:	jae    1738 <ID::Bench::IDKernelPerformanceTest()+0x1598>
+    16c5:	vmovsd 0x570(%rip),%xmm0        # 1c3d <ID::Bench::IDKernelPerformanceTest()+0x1a9d>
+			16c9: IMAGE_REL_AMD64_REL32	.rdata
+    16cd:	vcomisd %xmm0,%xmm1
+    16d1:	jae    2627 <ID::Bench::IDKernelPerformanceTest()+0x2487>
+    16d7:	vcvttsd2si %xmm1,%rdi
+    16dc:	mov    $0x1,%r13d
+    16e2:	vcvtsi2sd %rdi,%xmm7,%xmm6
+    16e7:	jmp    1744 <ID::Bench::IDKernelPerformanceTest()+0x15a4>
+    16e9:	nopl   0x0(%rax)
+    16f0:	add    $0x1,%rdi
+    16f4:	xor    %ecx,%ecx
+    16f6:	mov    $0x10000,%edx
+    16fb:	call   *%r13
+    16fe:	cmp    %rdi,%r14
+    1701:	jne    1430 <ID::Bench::IDKernelPerformanceTest()+0x1290>
+    1707:	jmp    1460 <ID::Bench::IDKernelPerformanceTest()+0x12c0>
+    170c:	nopl   0x0(%rax)
+    1710:	add    $0x1,%rdi
+    1714:	xor    %ecx,%ecx
+    1716:	mov    $0x10000,%edx
+    171b:	call   *%r13
+    171e:	cmp    %rdi,%r14
+    1721:	jne    1358 <ID::Bench::IDKernelPerformanceTest()+0x11b8>
+    1727:	jmp    1388 <ID::Bench::IDKernelPerformanceTest()+0x11e8>
+    172c:	nopl   0x0(%rax)
+    1730:	vmovsd 0x550(%rip),%xmm0        # 1c88 <ID::Bench::IDKernelPerformanceTest()+0x1ae8>
+			1734: IMAGE_REL_AMD64_REL32	.rdata
+    1738:	vmovapd %xmm0,%xmm6
+    173c:	xor    %r13d,%r13d
+    173f:	mov    $0x4000000,%edi
+    1744:	lea    0x80(%rsp),%rcx
+    174c:	xor    %r12d,%r12d
+    174f:	call   1754 <ID::Bench::IDKernelPerformanceTest()+0x15b4>
+			1750: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1754:	movq   $0x0,0xa0(%rsp)
+    1760:	mov    $0x10,%edx
+    1765:	mov    $0x2001,%ecx
+    176a:	add    $0x1,%r12
+    176e:	call   *%rsi
+    1770:	xor    %rax,0xa0(%rsp)
+    1778:	mov    %rax,%rcx
+    177b:	call   *%rbx
+    177d:	cmp    %r12,%rdi
+    1780:	jne    1760 <ID::Bench::IDKernelPerformanceTest()+0x15c0>
+    1782:	lea    0xa0(%rsp),%rcx
+    178a:	call   178f <ID::Bench::IDKernelPerformanceTest()+0x15ef>
+			178b: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    178f:	lea    0x80(%rsp),%rcx
+    1797:	call   179c <ID::Bench::IDKernelPerformanceTest()+0x15fc>
+			1798: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    179c:	vmovapd %xmm0,%xmm1
+    17a0:	vxorpd %xmm0,%xmm0,%xmm0
+    17a4:	vcomisd %xmm0,%xmm1
+    17a8:	jbe    17d7 <ID::Bench::IDKernelPerformanceTest()+0x1637>
+    17aa:	test   %r13b,%r13b
+    17ad:	je     17d7 <ID::Bench::IDKernelPerformanceTest()+0x1637>
+    17af:	vmovsd 0x580(%rip),%xmm0        # 1d37 <ID::Bench::IDKernelPerformanceTest()+0x1b97>
+			17b3: IMAGE_REL_AMD64_REL32	.rdata
+    17b7:	vdivsd %xmm1,%xmm0,%xmm0
+    17bb:	vcomisd 0x588(%rip),%xmm0        # 1d4b <ID::Bench::IDKernelPerformanceTest()+0x1bab>
+			17bf: IMAGE_REL_AMD64_REL32	.rdata
+    17c3:	ja     2391 <ID::Bench::IDKernelPerformanceTest()+0x21f1>
+    17c9:	vcomisd 0x590(%rip),%xmm0        # 1d61 <ID::Bench::IDKernelPerformanceTest()+0x1bc1>
+			17cd: IMAGE_REL_AMD64_REL32	.rdata
+    17d1:	jb     2391 <ID::Bench::IDKernelPerformanceTest()+0x21f1>
+    17d7:	vmovsd 0x578(%rip),%xmm0        # 1d57 <ID::Bench::IDKernelPerformanceTest()+0x1bb7>
+			17db: IMAGE_REL_AMD64_REL32	.rdata
+    17df:	vdivsd %xmm6,%xmm0,%xmm6
+    17e3:	vpxor  %xmm0,%xmm0,%xmm0
+    17e7:	lea    0xa0(%rsp),%r13
+    17ef:	vmovdqu %ymm0,0xa0(%rsp)
+    17f8:	movq   $0x0,0xc0(%rsp)
+    1804:	vzeroupper
+    1807:	lea    0x58(%rsp),%rcx
+    180c:	xor    %edi,%edi
+    180e:	call   1813 <ID::Bench::IDKernelPerformanceTest()+0x1673>
+			180f: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1813:	movq   $0x0,0x80(%rsp)
+    181f:	nop
+    1820:	mov    $0x10,%edx
+    1825:	mov    $0x2001,%ecx
+    182a:	add    $0x1,%rdi
+    182e:	call   *%rsi
+    1830:	xor    %rax,0x80(%rsp)
+    1838:	mov    %rax,%rcx
+    183b:	call   *%rbx
+    183d:	cmp    %rdi,%r12
+    1840:	jne    1820 <ID::Bench::IDKernelPerformanceTest()+0x1680>
+    1842:	lea    0x80(%rsp),%rcx
+    184a:	add    $0x8,%r13
+    184e:	call   1853 <ID::Bench::IDKernelPerformanceTest()+0x16b3>
+			184f: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1853:	lea    0x58(%rsp),%rcx
+    1858:	call   185d <ID::Bench::IDKernelPerformanceTest()+0x16bd>
+			1859: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    185d:	vmulsd %xmm0,%xmm6,%xmm0
+    1861:	vmovsd %xmm0,-0x8(%r13)
+    1867:	cmp    %r15,%r13
+    186a:	jne    1807 <ID::Bench::IDKernelPerformanceTest()+0x1667>
+    186c:	vmovsd 0xa8(%rsp),%xmm0
+    1875:	vmovsd 0xa0(%rsp),%xmm1
+    187e:	vcomisd %xmm0,%xmm1
+    1882:	jbe    2898 <ID::Bench::IDKernelPerformanceTest()+0x26f8>
+    1888:	vmovsd %xmm1,0xa8(%rsp)
+    1891:	xor    %eax,%eax
+    1893:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    189c:	vmovsd 0xb0(%rsp),%xmm0
+    18a5:	vmovsd 0xa8(%rsp),%xmm1
+    18ae:	vcomisd %xmm0,%xmm1
+    18b2:	jbe    2848 <ID::Bench::IDKernelPerformanceTest()+0x26a8>
+    18b8:	vmovsd %xmm1,0xb0(%rsp)
+    18c1:	vmovsd 0xa0(%rsp),%xmm1
+    18ca:	vcomisd %xmm0,%xmm1
+    18ce:	jbe    2942 <ID::Bench::IDKernelPerformanceTest()+0x27a2>
+    18d4:	vmovsd %xmm1,0xa8(%rsp)
+    18dd:	xor    %eax,%eax
+    18df:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    18e8:	vmovsd 0xb8(%rsp),%xmm0
+    18f1:	vmovsd 0xb0(%rsp),%xmm1
+    18fa:	vcomisd %xmm0,%xmm1
+    18fe:	jbe    2794 <ID::Bench::IDKernelPerformanceTest()+0x25f4>
+    1904:	vmovsd %xmm1,0xb8(%rsp)
+    190d:	vmovsd 0xa8(%rsp),%xmm1
+    1916:	vcomisd %xmm0,%xmm1
+    191a:	jbe    29b0 <ID::Bench::IDKernelPerformanceTest()+0x2810>
+    1920:	vmovsd %xmm1,0xb0(%rsp)
+    1929:	vmovsd 0xa0(%rsp),%xmm1
+    1932:	vcomisd %xmm0,%xmm1
+    1936:	jbe    2a50 <ID::Bench::IDKernelPerformanceTest()+0x28b0>
+    193c:	vmovsd %xmm1,0xa8(%rsp)
+    1945:	xor    %eax,%eax
+    1947:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1950:	vmovsd 0xc0(%rsp),%xmm0
+    1959:	vmovsd 0xb8(%rsp),%xmm1
+    1962:	vcomisd %xmm0,%xmm1
+    1966:	jbe    279e <ID::Bench::IDKernelPerformanceTest()+0x25fe>
+    196c:	vcomisd 0xb0(%rsp),%xmm0
+    1975:	vmovsd %xmm1,0xc0(%rsp)
+    197e:	jae    2992 <ID::Bench::IDKernelPerformanceTest()+0x27f2>
+    1984:	vmovsd 0xa8(%rsp),%xmm1
+    198d:	vcomisd %xmm0,%xmm1
+    1991:	jbe    2a46 <ID::Bench::IDKernelPerformanceTest()+0x28a6>
+    1997:	vmovsd %xmm1,0xb0(%rsp)
+    19a0:	xor    %eax,%eax
+    19a2:	vcomisd 0xa0(%rsp),%xmm0
+    19ab:	setae  %al
+    19ae:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    19b7:	vmovapd 0xa0(%rsp),%xmm2
+    19c0:	vmovsd 0xb0(%rsp),%xmm3
+    19c9:	vmovapd 0xb0(%rsp),%xmm5
+    19d2:	vmovsd 0xc0(%rsp),%xmm0
+    19db:	vunpcklpd %xmm2,%xmm5,%xmm1
+    19df:	vmovapd %xmm1,0x80(%rsp)
+    19e8:	vxorpd %xmm1,%xmm1,%xmm1
+    19ec:	vcomisd %xmm1,%xmm3
+    19f0:	vmovsd %xmm0,0x90(%rsp)
+    19f9:	jbe    2266 <ID::Bench::IDKernelPerformanceTest()+0x20c6>
+    19ff:	vsubsd %xmm2,%xmm0,%xmm0
+    1a03:	vdivsd %xmm3,%xmm0,%xmm0
+    1a07:	lea    0x190(%rip),%rax        # 1b9e <ID::Bench::IDKernelPerformanceTest()+0x19fe>
+			1a0a: IMAGE_REL_AMD64_REL32	.rdata
+    1a0e:	vmovq  %r14,%xmm2
+    1a13:	xor    %ebx,%ebx
+    1a15:	vmovsd %xmm0,0x98(%rsp)
+    1a1e:	lea    0x40(%rsp),%r9
+    1a23:	mov    %rax,0x48(%rsp)
+    1a28:	movq   $0x7e,0x40(%rsp)
+    1a31:	lea    0x20f(%rip),%rcx        # 1c47 <ID::Bench::IDKernelPerformanceTest()+0x1aa7>
+			1a34: IMAGE_REL_AMD64_REL32	.rdata
+    1a38:	lea    0x80(%rsp),%rdx
+    1a40:	call   70 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]>
+    1a45:	movl   $0x0,0xa0(%rsp)
+    1a50:	mov    0x0(%rip),%rax        # 1a57 <ID::Bench::IDKernelPerformanceTest()+0x18b7>
+			1a53: IMAGE_REL_AMD64_REL32	.data
+    1a57:	mov    (%rax),%rax
+    1a5a:	mov    %ebx,%ecx
+    1a5c:	add    $0x1,%rbx
+    1a60:	call   *%rax
+    1a62:	add    %eax,0xa0(%rsp)
+    1a69:	cmp    $0x400,%rbx
+    1a70:	jne    1a50 <ID::Bench::IDKernelPerformanceTest()+0x18b0>
+    1a72:	lea    0xa0(%rsp),%rcx
+    1a7a:	xor    %ebx,%ebx
+    1a7c:	call   1a81 <ID::Bench::IDKernelPerformanceTest()+0x18e1>
+			1a7d: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1a81:	lea    0xa0(%rsp),%rcx
+    1a89:	call   1a8e <ID::Bench::IDKernelPerformanceTest()+0x18ee>
+			1a8a: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1a8e:	movl   $0x0,0x80(%rsp)
+    1a99:	nopl   0x0(%rax)
+    1aa0:	mov    0x0(%rip),%rax        # 1aa7 <ID::Bench::IDKernelPerformanceTest()+0x1907>
+			1aa3: IMAGE_REL_AMD64_REL32	.data
+    1aa7:	mov    (%rax),%rax
+    1aaa:	mov    %ebx,%ecx
+    1aac:	add    $0x1,%rbx
+    1ab0:	call   *%rax
+    1ab2:	add    %eax,0x80(%rsp)
+    1ab9:	cmp    $0x400,%rbx
+    1ac0:	jne    1aa0 <ID::Bench::IDKernelPerformanceTest()+0x1900>
+    1ac2:	lea    0x80(%rsp),%rcx
+    1aca:	call   1acf <ID::Bench::IDKernelPerformanceTest()+0x192f>
+			1acb: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1acf:	lea    0xa0(%rsp),%rcx
+    1ad7:	call   1adc <ID::Bench::IDKernelPerformanceTest()+0x193c>
+			1ad8: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1adc:	vxorpd %xmm1,%xmm1,%xmm1
+    1ae0:	vcomisd %xmm1,%xmm0
+    1ae4:	jbe    1b48 <ID::Bench::IDKernelPerformanceTest()+0x19a8>
+    1ae6:	vmulsd 0x560(%rip),%xmm0,%xmm2        # 204e <ID::Bench::IDKernelPerformanceTest()+0x1eae>
+			1aea: IMAGE_REL_AMD64_REL32	.rdata
+    1aee:	vcomisd %xmm1,%xmm2
+    1af2:	jbe    1b48 <ID::Bench::IDKernelPerformanceTest()+0x19a8>
+    1af4:	vmovsd 0x568(%rip),%xmm1        # 2064 <ID::Bench::IDKernelPerformanceTest()+0x1ec4>
+			1af8: IMAGE_REL_AMD64_REL32	.rdata
+    1afc:	vmovsd 0x548(%rip),%xmm6        # 204c <ID::Bench::IDKernelPerformanceTest()+0x1eac>
+			1b00: IMAGE_REL_AMD64_REL32	.rdata
+    1b04:	vdivsd %xmm0,%xmm1,%xmm1
+    1b08:	vcomisd %xmm1,%xmm6
+    1b0c:	jae    22d0 <ID::Bench::IDKernelPerformanceTest()+0x2130>
+    1b12:	vmovsd 0x550(%rip),%xmm0        # 206a <ID::Bench::IDKernelPerformanceTest()+0x1eca>
+			1b16: IMAGE_REL_AMD64_REL32	.rdata
+    1b1a:	vcomisd %xmm0,%xmm1
+    1b1e:	jae    1b50 <ID::Bench::IDKernelPerformanceTest()+0x19b0>
+    1b20:	vmovsd 0x570(%rip),%xmm0        # 2098 <ID::Bench::IDKernelPerformanceTest()+0x1ef8>
+			1b24: IMAGE_REL_AMD64_REL32	.rdata
+    1b28:	vcomisd %xmm0,%xmm1
+    1b2c:	jae    263a <ID::Bench::IDKernelPerformanceTest()+0x249a>
+    1b32:	vcvttsd2si %xmm1,%rbx
+    1b37:	mov    $0x1,%edi
+    1b3c:	vcvtsi2sd %rbx,%xmm7,%xmm6
+    1b41:	jmp    1b5b <ID::Bench::IDKernelPerformanceTest()+0x19bb>
+    1b43:	nopl   0x0(%rax,%rax,1)
+    1b48:	vmovsd 0x550(%rip),%xmm0        # 20a0 <ID::Bench::IDKernelPerformanceTest()+0x1f00>
+			1b4c: IMAGE_REL_AMD64_REL32	.rdata
+    1b50:	vmovapd %xmm0,%xmm6
+    1b54:	xor    %edi,%edi
+    1b56:	mov    $0x4000000,%ebx
+    1b5b:	lea    0xa0(%rsp),%rcx
+    1b63:	xor    %esi,%esi
+    1b65:	call   1b6a <ID::Bench::IDKernelPerformanceTest()+0x19ca>
+			1b66: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1b6a:	movl   $0x0,0x80(%rsp)
+    1b75:	nopl   (%rax)
+    1b78:	mov    0x0(%rip),%rax        # 1b7f <ID::Bench::IDKernelPerformanceTest()+0x19df>
+			1b7b: IMAGE_REL_AMD64_REL32	.data
+    1b7f:	mov    (%rax),%rax
+    1b82:	mov    %esi,%ecx
+    1b84:	add    $0x1,%rsi
+    1b88:	call   *%rax
+    1b8a:	add    %eax,0x80(%rsp)
+    1b91:	cmp    %rsi,%rbx
+    1b94:	jne    1b78 <ID::Bench::IDKernelPerformanceTest()+0x19d8>
+    1b96:	lea    0x80(%rsp),%rcx
+    1b9e:	call   1ba3 <ID::Bench::IDKernelPerformanceTest()+0x1a03>
+			1b9f: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1ba3:	lea    0xa0(%rsp),%rcx
+    1bab:	call   1bb0 <ID::Bench::IDKernelPerformanceTest()+0x1a10>
+			1bac: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1bb0:	vmovapd %xmm0,%xmm1
+    1bb4:	vxorpd %xmm0,%xmm0,%xmm0
+    1bb8:	vcomisd %xmm0,%xmm1
+    1bbc:	jbe    1beb <ID::Bench::IDKernelPerformanceTest()+0x1a4b>
+    1bbe:	test   %dil,%dil
+    1bc1:	je     1beb <ID::Bench::IDKernelPerformanceTest()+0x1a4b>
+    1bc3:	vmovsd 0x580(%rip),%xmm0        # 214b <ID::Bench::IDKernelPerformanceTest()+0x1fab>
+			1bc7: IMAGE_REL_AMD64_REL32	.rdata
+    1bcb:	vdivsd %xmm1,%xmm0,%xmm0
+    1bcf:	vcomisd 0x588(%rip),%xmm0        # 215f <ID::Bench::IDKernelPerformanceTest()+0x1fbf>
+			1bd3: IMAGE_REL_AMD64_REL32	.rdata
+    1bd7:	ja     2340 <ID::Bench::IDKernelPerformanceTest()+0x21a0>
+    1bdd:	vcomisd 0x590(%rip),%xmm0        # 2175 <ID::Bench::IDKernelPerformanceTest()+0x1fd5>
+			1be1: IMAGE_REL_AMD64_REL32	.rdata
+    1be5:	jb     2340 <ID::Bench::IDKernelPerformanceTest()+0x21a0>
+    1beb:	vmovsd 0x578(%rip),%xmm0        # 216b <ID::Bench::IDKernelPerformanceTest()+0x1fcb>
+			1bef: IMAGE_REL_AMD64_REL32	.rdata
+    1bf3:	vdivsd %xmm6,%xmm0,%xmm6
+    1bf7:	vpxor  %xmm0,%xmm0,%xmm0
+    1bfb:	lea    0xa0(%rsp),%rdi
+    1c03:	vmovdqu %ymm0,0xa0(%rsp)
+    1c0c:	movq   $0x0,0xc0(%rsp)
+    1c18:	vzeroupper
+    1c1b:	lea    0x80(%rsp),%rcx
+    1c23:	xor    %ebx,%ebx
+    1c25:	call   1c2a <ID::Bench::IDKernelPerformanceTest()+0x1a8a>
+			1c26: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1c2a:	movl   $0x0,0x58(%rsp)
+    1c32:	nopw   0x0(%rax,%rax,1)
+    1c38:	mov    0x0(%rip),%rax        # 1c3f <ID::Bench::IDKernelPerformanceTest()+0x1a9f>
+			1c3b: IMAGE_REL_AMD64_REL32	.data
+    1c3f:	mov    (%rax),%rax
+    1c42:	mov    %ebx,%ecx
+    1c44:	add    $0x1,%rbx
+    1c48:	call   *%rax
+    1c4a:	add    %eax,0x58(%rsp)
+    1c4e:	cmp    %rbx,%rsi
+    1c51:	jne    1c38 <ID::Bench::IDKernelPerformanceTest()+0x1a98>
+    1c53:	lea    0x58(%rsp),%rcx
+    1c58:	add    $0x8,%rdi
+    1c5c:	call   1c61 <ID::Bench::IDKernelPerformanceTest()+0x1ac1>
+			1c5d: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1c61:	lea    0x80(%rsp),%rcx
+    1c69:	call   1c6e <ID::Bench::IDKernelPerformanceTest()+0x1ace>
+			1c6a: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1c6e:	vmulsd %xmm0,%xmm6,%xmm0
+    1c72:	vmovsd %xmm0,-0x8(%rdi)
+    1c77:	cmp    %r15,%rdi
+    1c7a:	jne    1c1b <ID::Bench::IDKernelPerformanceTest()+0x1a7b>
+    1c7c:	vmovsd 0xa8(%rsp),%xmm0
+    1c85:	vmovsd 0xa0(%rsp),%xmm1
+    1c8e:	vcomisd %xmm0,%xmm1
+    1c92:	jbe    27bc <ID::Bench::IDKernelPerformanceTest()+0x261c>
+    1c98:	vmovsd %xmm1,0xa8(%rsp)
+    1ca1:	xor    %eax,%eax
+    1ca3:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1cac:	vmovsd 0xb0(%rsp),%xmm0
+    1cb5:	vmovsd 0xa8(%rsp),%xmm1
+    1cbe:	vcomisd %xmm0,%xmm1
+    1cc2:	jbe    27f8 <ID::Bench::IDKernelPerformanceTest()+0x2658>
+    1cc8:	vmovsd %xmm1,0xb0(%rsp)
+    1cd1:	vmovsd 0xa0(%rsp),%xmm1
+    1cda:	vcomisd %xmm0,%xmm1
+    1cde:	jbe    28e8 <ID::Bench::IDKernelPerformanceTest()+0x2748>
+    1ce4:	vmovsd %xmm1,0xa8(%rsp)
+    1ced:	xor    %eax,%eax
+    1cef:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1cf8:	vmovsd 0xb8(%rsp),%xmm0
+    1d01:	vmovsd 0xb0(%rsp),%xmm1
+    1d0a:	vcomisd %xmm0,%xmm1
+    1d0e:	jbe    28a2 <ID::Bench::IDKernelPerformanceTest()+0x2702>
+    1d14:	vmovsd %xmm1,0xb8(%rsp)
+    1d1d:	vmovsd 0xa8(%rsp),%xmm1
+    1d26:	vcomisd %xmm0,%xmm1
+    1d2a:	jbe    2938 <ID::Bench::IDKernelPerformanceTest()+0x2798>
+    1d30:	vmovsd %xmm1,0xb0(%rsp)
+    1d39:	vmovsd 0xa0(%rsp),%xmm1
+    1d42:	vcomisd %xmm0,%xmm1
+    1d46:	jbe    29d8 <ID::Bench::IDKernelPerformanceTest()+0x2838>
+    1d4c:	vmovsd %xmm1,0xa8(%rsp)
+    1d55:	xor    %eax,%eax
+    1d57:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1d60:	vmovsd 0xc0(%rsp),%xmm0
+    1d69:	vcomisd 0xb8(%rsp),%xmm0
+    1d72:	jae    2834 <ID::Bench::IDKernelPerformanceTest()+0x2694>
+    1d78:	vcomisd 0xb0(%rsp),%xmm0
+    1d81:	jae    28d4 <ID::Bench::IDKernelPerformanceTest()+0x2734>
+    1d87:	vmovsd 0xa8(%rsp),%xmm1
+    1d90:	vcomisd %xmm0,%xmm1
+    1d94:	jbe    2a00 <ID::Bench::IDKernelPerformanceTest()+0x2860>
+    1d9a:	vmovsd %xmm1,0xb0(%rsp)
+    1da3:	xor    %eax,%eax
+    1da5:	vcomisd 0xa0(%rsp),%xmm0
+    1dae:	setae  %al
+    1db1:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    1dba:	xor    %ebx,%ebx
+    1dbc:	mov    0xb0(%rsp),%r12
+    1dc4:	movl   $0x0,0xa0(%rsp)
+    1dcf:	nop
+    1dd0:	mov    0x10(%rbp),%rax
+    1dd4:	mov    (%rax),%rax
+    1dd7:	mov    %ebx,%ecx
+    1dd9:	add    $0x1,%rbx
+    1ddd:	call   *%rax
+    1ddf:	add    %eax,0xa0(%rsp)
+    1de6:	cmp    $0x400,%rbx
+    1ded:	jne    1dd0 <ID::Bench::IDKernelPerformanceTest()+0x1c30>
+    1def:	lea    0xa0(%rsp),%rcx
+    1df7:	xor    %ebx,%ebx
+    1df9:	call   1dfe <ID::Bench::IDKernelPerformanceTest()+0x1c5e>
+			1dfa: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1dfe:	lea    0xa0(%rsp),%rcx
+    1e06:	call   1e0b <ID::Bench::IDKernelPerformanceTest()+0x1c6b>
+			1e07: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1e0b:	movl   $0x0,0x80(%rsp)
+    1e16:	cs nopw 0x0(%rax,%rax,1)
+    1e20:	mov    0x10(%rbp),%rax
+    1e24:	mov    (%rax),%rax
+    1e27:	mov    %ebx,%ecx
+    1e29:	add    $0x1,%rbx
+    1e2d:	call   *%rax
+    1e2f:	add    %eax,0x80(%rsp)
+    1e36:	cmp    $0x400,%rbx
+    1e3d:	jne    1e20 <ID::Bench::IDKernelPerformanceTest()+0x1c80>
+    1e3f:	lea    0x80(%rsp),%rcx
+    1e47:	call   1e4c <ID::Bench::IDKernelPerformanceTest()+0x1cac>
+			1e48: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1e4c:	lea    0xa0(%rsp),%rcx
+    1e54:	call   1e59 <ID::Bench::IDKernelPerformanceTest()+0x1cb9>
+			1e55: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1e59:	vxorpd %xmm1,%xmm1,%xmm1
+    1e5d:	vcomisd %xmm1,%xmm0
+    1e61:	jbe    1ec0 <ID::Bench::IDKernelPerformanceTest()+0x1d20>
+    1e63:	vmulsd 0x560(%rip),%xmm0,%xmm2        # 23cb <ID::Bench::IDKernelPerformanceTest()+0x222b>
+			1e67: IMAGE_REL_AMD64_REL32	.rdata
+    1e6b:	vcomisd %xmm1,%xmm2
+    1e6f:	jbe    1ec0 <ID::Bench::IDKernelPerformanceTest()+0x1d20>
+    1e71:	vmovsd 0x568(%rip),%xmm1        # 23e1 <ID::Bench::IDKernelPerformanceTest()+0x2241>
+			1e75: IMAGE_REL_AMD64_REL32	.rdata
+    1e79:	vmovsd 0x548(%rip),%xmm6        # 23c9 <ID::Bench::IDKernelPerformanceTest()+0x2229>
+			1e7d: IMAGE_REL_AMD64_REL32	.rdata
+    1e81:	vdivsd %xmm0,%xmm1,%xmm1
+    1e85:	vcomisd %xmm1,%xmm6
+    1e89:	jae    22c1 <ID::Bench::IDKernelPerformanceTest()+0x2121>
+    1e8f:	vmovsd 0x550(%rip),%xmm0        # 23e7 <ID::Bench::IDKernelPerformanceTest()+0x2247>
+			1e93: IMAGE_REL_AMD64_REL32	.rdata
+    1e97:	vcomisd %xmm0,%xmm1
+    1e9b:	jae    1ec8 <ID::Bench::IDKernelPerformanceTest()+0x1d28>
+    1e9d:	vmovsd 0x570(%rip),%xmm0        # 2415 <ID::Bench::IDKernelPerformanceTest()+0x2275>
+			1ea1: IMAGE_REL_AMD64_REL32	.rdata
+    1ea5:	vcomisd %xmm0,%xmm1
+    1ea9:	jae    25db <ID::Bench::IDKernelPerformanceTest()+0x243b>
+    1eaf:	vcvttsd2si %xmm1,%rbx
+    1eb4:	mov    $0x1,%edi
+    1eb9:	vcvtsi2sd %rbx,%xmm7,%xmm6
+    1ebe:	jmp    1ed3 <ID::Bench::IDKernelPerformanceTest()+0x1d33>
+    1ec0:	vmovsd 0x550(%rip),%xmm0        # 2418 <ID::Bench::IDKernelPerformanceTest()+0x2278>
+			1ec4: IMAGE_REL_AMD64_REL32	.rdata
+    1ec8:	vmovapd %xmm0,%xmm6
+    1ecc:	xor    %edi,%edi
+    1ece:	mov    $0x4000000,%ebx
+    1ed3:	lea    0xa0(%rsp),%rcx
+    1edb:	xor    %esi,%esi
+    1edd:	call   1ee2 <ID::Bench::IDKernelPerformanceTest()+0x1d42>
+			1ede: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1ee2:	movl   $0x0,0x80(%rsp)
+    1eed:	nopl   (%rax)
+    1ef0:	mov    0x10(%rbp),%rax
+    1ef4:	mov    (%rax),%rax
+    1ef7:	mov    %esi,%ecx
+    1ef9:	add    $0x1,%rsi
+    1efd:	call   *%rax
+    1eff:	add    %eax,0x80(%rsp)
+    1f06:	cmp    %rsi,%rbx
+    1f09:	jne    1ef0 <ID::Bench::IDKernelPerformanceTest()+0x1d50>
+    1f0b:	lea    0x80(%rsp),%rcx
+    1f13:	call   1f18 <ID::Bench::IDKernelPerformanceTest()+0x1d78>
+			1f14: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1f18:	lea    0xa0(%rsp),%rcx
+    1f20:	call   1f25 <ID::Bench::IDKernelPerformanceTest()+0x1d85>
+			1f21: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1f25:	vmovapd %xmm0,%xmm1
+    1f29:	vxorpd %xmm0,%xmm0,%xmm0
+    1f2d:	vcomisd %xmm0,%xmm1
+    1f31:	jbe    1f60 <ID::Bench::IDKernelPerformanceTest()+0x1dc0>
+    1f33:	test   %dil,%dil
+    1f36:	je     1f60 <ID::Bench::IDKernelPerformanceTest()+0x1dc0>
+    1f38:	vmovsd 0x580(%rip),%xmm0        # 24c0 <ID::Bench::IDKernelPerformanceTest()+0x2320>
+			1f3c: IMAGE_REL_AMD64_REL32	.rdata
+    1f40:	vdivsd %xmm1,%xmm0,%xmm0
+    1f44:	vcomisd 0x588(%rip),%xmm0        # 24d4 <ID::Bench::IDKernelPerformanceTest()+0x2334>
+			1f48: IMAGE_REL_AMD64_REL32	.rdata
+    1f4c:	ja     2577 <ID::Bench::IDKernelPerformanceTest()+0x23d7>
+    1f52:	vcomisd 0x590(%rip),%xmm0        # 24ea <ID::Bench::IDKernelPerformanceTest()+0x234a>
+			1f56: IMAGE_REL_AMD64_REL32	.rdata
+    1f5a:	jb     2577 <ID::Bench::IDKernelPerformanceTest()+0x23d7>
+    1f60:	vmovsd 0x578(%rip),%xmm0        # 24e0 <ID::Bench::IDKernelPerformanceTest()+0x2340>
+			1f64: IMAGE_REL_AMD64_REL32	.rdata
+    1f68:	vdivsd %xmm6,%xmm0,%xmm6
+    1f6c:	vpxor  %xmm0,%xmm0,%xmm0
+    1f70:	lea    0xa0(%rsp),%rdi
+    1f78:	vmovdqu %ymm0,0xa0(%rsp)
+    1f81:	movq   $0x0,0xc0(%rsp)
+    1f8d:	vzeroupper
+    1f90:	lea    0x80(%rsp),%rcx
+    1f98:	xor    %ebx,%ebx
+    1f9a:	call   1f9f <ID::Bench::IDKernelPerformanceTest()+0x1dff>
+			1f9b: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::Timer()
+    1f9f:	movl   $0x0,0x58(%rsp)
+    1fa7:	nopw   0x0(%rax,%rax,1)
+    1fb0:	mov    0x10(%rbp),%rax
+    1fb4:	mov    (%rax),%rax
+    1fb7:	mov    %ebx,%ecx
+    1fb9:	add    $0x1,%rbx
+    1fbd:	call   *%rax
+    1fbf:	add    %eax,0x58(%rsp)
+    1fc3:	cmp    %rbx,%rsi
+    1fc6:	jne    1fb0 <ID::Bench::IDKernelPerformanceTest()+0x1e10>
+    1fc8:	lea    0x58(%rsp),%rcx
+    1fcd:	add    $0x8,%rdi
+    1fd1:	call   1fd6 <ID::Bench::IDKernelPerformanceTest()+0x1e36>
+			1fd2: IMAGE_REL_AMD64_REL32	ID::Bench::KeepAliveSink(void const*)
+    1fd6:	lea    0x80(%rsp),%rcx
+    1fde:	call   1fe3 <ID::Bench::IDKernelPerformanceTest()+0x1e43>
+			1fdf: IMAGE_REL_AMD64_REL32	ID::Bench::Timer::ElapsedNs() const
+    1fe3:	vmulsd %xmm6,%xmm0,%xmm0
+    1fe7:	vmovsd %xmm0,-0x8(%rdi)
+    1fec:	cmp    %rdi,%r15
+    1fef:	jne    1f90 <ID::Bench::IDKernelPerformanceTest()+0x1df0>
+    1ff1:	vmovsd 0xa8(%rsp),%xmm0
+    1ffa:	vmovsd 0xa0(%rsp),%xmm1
+    2003:	vcomisd %xmm0,%xmm1
+    2007:	jbe    2870 <ID::Bench::IDKernelPerformanceTest()+0x26d0>
+    200d:	vmovsd %xmm1,0xa8(%rsp)
+    2016:	xor    %eax,%eax
+    2018:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    2021:	vmovsd 0xb0(%rsp),%xmm0
+    202a:	vmovsd 0xa8(%rsp),%xmm1
+    2033:	vcomisd %xmm0,%xmm1
+    2037:	jbe    2866 <ID::Bench::IDKernelPerformanceTest()+0x26c6>
+    203d:	vmovsd %xmm1,0xb0(%rsp)
+    2046:	vmovsd 0xa0(%rsp),%xmm1
+    204f:	vcomisd %xmm0,%xmm1
+    2053:	jbe    2956 <ID::Bench::IDKernelPerformanceTest()+0x27b6>
+    2059:	vmovsd %xmm1,0xa8(%rsp)
+    2062:	xor    %eax,%eax
+    2064:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    206d:	vmovsd 0xb8(%rsp),%xmm0
+    2076:	vmovsd 0xb0(%rsp),%xmm1
+    207f:	vcomisd %xmm0,%xmm1
+    2083:	jbe    2852 <ID::Bench::IDKernelPerformanceTest()+0x26b2>
+    2089:	vmovsd %xmm1,0xb8(%rsp)
+    2092:	vmovsd 0xa8(%rsp),%xmm1
+    209b:	vcomisd %xmm0,%xmm1
+    209f:	jbe    294c <ID::Bench::IDKernelPerformanceTest()+0x27ac>
+    20a5:	vmovsd %xmm1,0xb0(%rsp)
+    20ae:	vmovsd 0xa0(%rsp),%xmm1
+    20b7:	vcomisd %xmm0,%xmm1
+    20bb:	jbe    2a0a <ID::Bench::IDKernelPerformanceTest()+0x286a>
+    20c1:	vmovsd %xmm1,0xa8(%rsp)
+    20ca:	xor    %eax,%eax
+    20cc:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    20d5:	vmovsd 0xc0(%rsp),%xmm0
+    20de:	vmovsd 0xb8(%rsp),%xmm1
+    20e7:	vcomisd %xmm0,%xmm1
+    20eb:	jbe    285c <ID::Bench::IDKernelPerformanceTest()+0x26bc>
+    20f1:	vcomisd 0xb0(%rsp),%xmm0
+    20fa:	vmovsd %xmm1,0xc0(%rsp)
+    2103:	jae    2906 <ID::Bench::IDKernelPerformanceTest()+0x2766>
+    2109:	vmovsd 0xa8(%rsp),%xmm1
+    2112:	vcomisd %xmm0,%xmm1
+    2116:	jbe    29ba <ID::Bench::IDKernelPerformanceTest()+0x281a>
+    211c:	vmovsd %xmm1,0xb0(%rsp)
+    2125:	xor    %eax,%eax
+    2127:	vcomisd 0xa0(%rsp),%xmm0
+    2130:	setae  %al
+    2133:	vmovsd %xmm0,0xa0(%rsp,%rax,8)
+    213c:	vmovapd 0xa0(%rsp),%xmm2
+    2145:	vmovsd 0xb0(%rsp),%xmm3
+    214e:	vmovapd 0xb0(%rsp),%xmm4
+    2157:	vmovsd 0xc0(%rsp),%xmm0
+    2160:	vunpcklpd %xmm2,%xmm4,%xmm1
+    2164:	vmovapd %xmm1,0x80(%rsp)
+    216d:	vxorpd %xmm1,%xmm1,%xmm1
+    2171:	vcomisd %xmm1,%xmm3
+    2175:	vmovsd %xmm0,0x90(%rsp)
+    217e:	jbe    2278 <ID::Bench::IDKernelPerformanceTest()+0x20d8>
+    2184:	vsubsd %xmm2,%xmm0,%xmm0
+    2188:	vdivsd %xmm3,%xmm0,%xmm0
+    218c:	lea    0x228(%rip),%rax        # 23bb <ID::Bench::IDKernelPerformanceTest()+0x221b>
+			218f: IMAGE_REL_AMD64_REL32	.rdata
+    2193:	vmovq  %r12,%xmm5
+    2198:	vmovsd %xmm0,0x98(%rsp)
+    21a1:	vmulsd 0x598(%rip),%xmm5,%xmm2        # 2741 <ID::Bench::IDKernelPerformanceTest()+0x25a1>
+			21a5: IMAGE_REL_AMD64_REL32	.rdata
+    21a9:	mov    %rax,0x48(%rsp)
+    21ae:	movq   $0x12b,0x40(%rsp)
+    21b7:	lea    0x40(%rsp),%r9
+    21bc:	lea    0x80(%rsp),%rdx
+    21c4:	lea    0x358(%rip),%rcx        # 2523 <ID::Bench::IDKernelPerformanceTest()+0x2383>
+			21c7: IMAGE_REL_AMD64_REL32	.rdata
+    21cb:	call   70 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]>
+    21d0:	lea    0xa0(%rsp),%rcx
+    21d8:	mov    %rbp,%rdx
+    21db:	call   *0x0(%rip)        # 21e1 <ID::Bench::IDKernelPerformanceTest()+0x2041>
+			21dd: IMAGE_REL_AMD64_REL32	__imp__ZN2ID13PluginRuntime8shutdownEv
+    21e1:	cmpb   $0x0,0xa0(%rsp)
+    21e9:	jne    2281 <ID::Bench::IDKernelPerformanceTest()+0x20e1>
+    21ef:	vmovaps 0xd0(%rsp),%xmm6
+    21f8:	vmovaps 0xe0(%rsp),%xmm7
+    2201:	vmovaps 0xf0(%rsp),%xmm8
+    220a:	add    $0x108,%rsp
+    2211:	pop    %rbx
+    2212:	pop    %rsi
+    2213:	pop    %rdi
+    2214:	pop    %rbp
+    2215:	pop    %r12
+    2217:	pop    %r13
+    2219:	pop    %r14
+    221b:	pop    %r15
+    221d:	ret
+    221e:	xchg   %ax,%ax
+    2220:	lea    0x89(%rip),%rax        # 22b0 <ID::Bench::IDKernelPerformanceTest()+0x2110>
+			2223: IMAGE_REL_AMD64_REL32	.rdata
+    2227:	xor    %ecx,%ecx
+    2229:	movq   $0x17,0x40(%rsp)
+    2232:	mov    %rax,0x48(%rsp)
+    2237:	lea    0x40(%rsp),%rdx
+    223c:	movq   $0x58,0x30(%rsp)
+    2245:	lea    0x30(%rip),%rax        # 227c <ID::Bench::IDKernelPerformanceTest()+0x20dc>
+			2248: IMAGE_REL_AMD64_REL32	.rdata
+    224c:	lea    0x30(%rsp),%r8
+    2251:	mov    %rax,0x38(%rsp)
+    2256:	call   225b <ID::Bench::IDKernelPerformanceTest()+0x20bb>
+			2257: IMAGE_REL_AMD64_REL32	ID::Bench::Check(bool, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >)
+    225b:	jmp    21ef <ID::Bench::IDKernelPerformanceTest()+0x204f>
+    225d:	vxorpd %xmm0,%xmm0,%xmm0
+    2261:	jmp    997 <ID::Bench::IDKernelPerformanceTest()+0x7f7>
+    2266:	vxorpd %xmm0,%xmm0,%xmm0
+    226a:	jmp    1a07 <ID::Bench::IDKernelPerformanceTest()+0x1867>
+    226f:	vxorpd %xmm0,%xmm0,%xmm0
+    2273:	jmp    1167 <ID::Bench::IDKernelPerformanceTest()+0xfc7>
+    2278:	vxorpd %xmm0,%xmm0,%xmm0
+    227c:	jmp    218c <ID::Bench::IDKernelPerformanceTest()+0x1fec>
+    2281:	lea    0x3a9(%rip),%rax        # 2631 <ID::Bench::IDKernelPerformanceTest()+0x2491>
+			2284: IMAGE_REL_AMD64_REL32	.rdata
+    2288:	xor    %ecx,%ecx
+    228a:	movq   $0x1a,0x40(%rsp)
+    2293:	mov    %rax,0x48(%rsp)
+    2298:	lea    0x30(%rsp),%r8
+    229d:	movq   $0x30,0x30(%rsp)
+    22a6:	lea    0x378(%rip),%rax        # 2625 <ID::Bench::IDKernelPerformanceTest()+0x2485>
+			22a9: IMAGE_REL_AMD64_REL32	.rdata
+    22ad:	lea    0x40(%rsp),%rdx
+    22b2:	mov    %rax,0x38(%rsp)
+    22b7:	call   22bc <ID::Bench::IDKernelPerformanceTest()+0x211c>
+			22b8: IMAGE_REL_AMD64_REL32	ID::Bench::Check(bool, std::basic_string_view<char, std::char_traits<char> >, std::basic_string_view<char, std::char_traits<char> >)
+    22bc:	jmp    21ef <ID::Bench::IDKernelPerformanceTest()+0x204f>
+    22c1:	mov    $0x400,%ebx
+    22c6:	mov    $0x1,%edi
+    22cb:	jmp    1ed3 <ID::Bench::IDKernelPerformanceTest()+0x1d33>
+    22d0:	mov    $0x400,%ebx
+    22d5:	mov    $0x1,%edi
+    22da:	jmp    1b5b <ID::Bench::IDKernelPerformanceTest()+0x19bb>
+    22df:	mov    $0x1,%r13d
+    22e5:	mov    $0x400,%edi
+    22ea:	jmp    1744 <ID::Bench::IDKernelPerformanceTest()+0x15a4>
+    22ef:	mov    $0x1,%r14d
+    22f5:	mov    $0x400,%edi
+    22fa:	jmp    6cc <ID::Bench::IDKernelPerformanceTest()+0x52c>
+    22ff:	mov    $0x1,%r12d
+    2305:	mov    $0x400,%esi
+    230a:	jmp    31c <ID::Bench::IDKernelPerformanceTest()+0x17c>
+    230f:	movb   $0x1,0x28(%rsp)
+    2314:	mov    $0x400,%r14d
+    231a:	jmp    1337 <ID::Bench::IDKernelPerformanceTest()+0x1197>
+    231f:	mov    $0x1,%r13d
+    2325:	mov    $0x400,%edi
+    232a:	jmp    e9c <ID::Bench::IDKernelPerformanceTest()+0xcfc>
+    232f:	mov    $0x1,%r14d
+    2335:	mov    $0x400,%r12d
+    233b:	jmp    af5 <ID::Bench::IDKernelPerformanceTest()+0x955>
+    2340:	vmulsd %xmm6,%xmm0,%xmm1
+    2344:	vmovsd 0x550(%rip),%xmm0        # 289c <ID::Bench::IDKernelPerformanceTest()+0x26fc>
+			2348: IMAGE_REL_AMD64_REL32	.rdata
+    234c:	vcomisd %xmm1,%xmm0
+    2350:	jbe    2660 <ID::Bench::IDKernelPerformanceTest()+0x24c0>
+    2356:	vcomisd 0x548(%rip),%xmm1        # 28a6 <ID::Bench::IDKernelPerformanceTest()+0x2706>
+			235a: IMAGE_REL_AMD64_REL32	.rdata
+    235e:	jbe    2765 <ID::Bench::IDKernelPerformanceTest()+0x25c5>
+    2364:	vmovsd 0x570(%rip),%xmm0        # 28dc <ID::Bench::IDKernelPerformanceTest()+0x273c>
+			2368: IMAGE_REL_AMD64_REL32	.rdata
+    236c:	vcomisd %xmm0,%xmm1
+    2370:	jae    2a6d <ID::Bench::IDKernelPerformanceTest()+0x28cd>
+    2376:	vcvttsd2si %xmm1,%rsi
+    237b:	vmovsd 0x578(%rip),%xmm6        # 28fb <ID::Bench::IDKernelPerformanceTest()+0x275b>
+			237f: IMAGE_REL_AMD64_REL32	.rdata
+    2383:	vcvtsi2sd %rsi,%xmm7,%xmm0
+    2388:	vdivsd %xmm0,%xmm6,%xmm6
+    238c:	jmp    1bf7 <ID::Bench::IDKernelPerformanceTest()+0x1a57>
+    2391:	vmulsd %xmm6,%xmm0,%xmm1
+    2395:	vmovsd 0x550(%rip),%xmm0        # 28ed <ID::Bench::IDKernelPerformanceTest()+0x274d>
+			2399: IMAGE_REL_AMD64_REL32	.rdata
+    239d:	vcomisd %xmm1,%xmm0
+    23a1:	jbe    26e2 <ID::Bench::IDKernelPerformanceTest()+0x2542>
+    23a7:	vcomisd 0x548(%rip),%xmm1        # 28f7 <ID::Bench::IDKernelPerformanceTest()+0x2757>
+			23ab: IMAGE_REL_AMD64_REL32	.rdata
+    23af:	jbe    2752 <ID::Bench::IDKernelPerformanceTest()+0x25b2>
+    23b5:	vmovsd 0x570(%rip),%xmm0        # 292d <ID::Bench::IDKernelPerformanceTest()+0x278d>
+			23b9: IMAGE_REL_AMD64_REL32	.rdata
+    23bd:	vcomisd %xmm0,%xmm1
+    23c1:	jae    2acc <ID::Bench::IDKernelPerformanceTest()+0x292c>
+    23c7:	vcvttsd2si %xmm1,%r12
+    23cc:	vmovsd 0x578(%rip),%xmm6        # 294c <ID::Bench::IDKernelPerformanceTest()+0x27ac>
+			23d0: IMAGE_REL_AMD64_REL32	.rdata
+    23d4:	vcvtsi2sd %r12,%xmm7,%xmm0
+    23d9:	vdivsd %xmm0,%xmm6,%xmm6
+    23dd:	jmp    17e3 <ID::Bench::IDKernelPerformanceTest()+0x1643>
+    23e2:	vmulsd %xmm6,%xmm0,%xmm1
+    23e6:	vmovsd 0x550(%rip),%xmm0        # 293e <ID::Bench::IDKernelPerformanceTest()+0x279e>
+			23ea: IMAGE_REL_AMD64_REL32	.rdata
+    23ee:	vcomisd %xmm1,%xmm0
+    23f2:	jbe    2685 <ID::Bench::IDKernelPerformanceTest()+0x24e5>
+    23f8:	vcomisd 0x548(%rip),%xmm1        # 2948 <ID::Bench::IDKernelPerformanceTest()+0x27a8>
+			23fc: IMAGE_REL_AMD64_REL32	.rdata
+    2400:	jbe    2777 <ID::Bench::IDKernelPerformanceTest()+0x25d7>
+    2406:	vmovsd 0x570(%rip),%xmm0        # 297e <ID::Bench::IDKernelPerformanceTest()+0x27de>
+			240a: IMAGE_REL_AMD64_REL32	.rdata
+    240e:	vcomisd %xmm0,%xmm1
+    2412:	jae    2a93 <ID::Bench::IDKernelPerformanceTest()+0x28f3>
+    2418:	vcvttsd2si %xmm1,%r13
+    241d:	vmovsd 0x578(%rip),%xmm6        # 299d <ID::Bench::IDKernelPerformanceTest()+0x27fd>
+			2421: IMAGE_REL_AMD64_REL32	.rdata
+    2425:	vcvtsi2sd %r13,%xmm7,%xmm0
+    242a:	vdivsd %xmm0,%xmm6,%xmm6
+    242e:	jmp    b9f <ID::Bench::IDKernelPerformanceTest()+0x9ff>
+    2433:	vmulsd %xmm6,%xmm0,%xmm1
+    2437:	vmovsd 0x550(%rip),%xmm0        # 298f <ID::Bench::IDKernelPerformanceTest()+0x27ef>
+			243b: IMAGE_REL_AMD64_REL32	.rdata
+    243f:	vcomisd %xmm1,%xmm0
+    2443:	jbe    26bd <ID::Bench::IDKernelPerformanceTest()+0x251d>
+    2449:	vcomisd 0x548(%rip),%xmm1        # 2999 <ID::Bench::IDKernelPerformanceTest()+0x27f9>
+			244d: IMAGE_REL_AMD64_REL32	.rdata
+    2451:	jbe    2740 <ID::Bench::IDKernelPerformanceTest()+0x25a0>
+    2457:	vmovsd 0x570(%rip),%xmm0        # 29cf <ID::Bench::IDKernelPerformanceTest()+0x282f>
+			245b: IMAGE_REL_AMD64_REL32	.rdata
+    245f:	vcomisd %xmm0,%xmm1
+    2463:	jae    2adf <ID::Bench::IDKernelPerformanceTest()+0x293f>
+    2469:	vcvttsd2si %xmm1,%rdi
+    246e:	vmovsd 0x578(%rip),%xmm6        # 29ee <ID::Bench::IDKernelPerformanceTest()+0x284e>
+			2472: IMAGE_REL_AMD64_REL32	.rdata
+    2476:	vcvtsi2sd %rdi,%xmm7,%xmm0
+    247b:	vdivsd %xmm0,%xmm6,%xmm6
+    247f:	jmp    3bf <ID::Bench::IDKernelPerformanceTest()+0x21f>
+    2484:	vmulsd %xmm6,%xmm0,%xmm1
+    2488:	vmovsd 0x550(%rip),%xmm0        # 29e0 <ID::Bench::IDKernelPerformanceTest()+0x2840>
+			248c: IMAGE_REL_AMD64_REL32	.rdata
+    2490:	vcomisd %xmm1,%xmm0
+    2494:	jbe    2672 <ID::Bench::IDKernelPerformanceTest()+0x24d2>
+    249a:	vcomisd 0x548(%rip),%xmm1        # 29ea <ID::Bench::IDKernelPerformanceTest()+0x284a>
+			249e: IMAGE_REL_AMD64_REL32	.rdata
+    24a2:	jbe    272d <ID::Bench::IDKernelPerformanceTest()+0x258d>
+    24a8:	vmovsd 0x570(%rip),%xmm0        # 2a20 <ID::Bench::IDKernelPerformanceTest()+0x2880>
+			24ac: IMAGE_REL_AMD64_REL32	.rdata
+    24b0:	vcomisd %xmm0,%xmm1
+    24b4:	jae    2ab9 <ID::Bench::IDKernelPerformanceTest()+0x2919>
+    24ba:	vcvttsd2si %xmm1,%r14
+    24bf:	vmovsd 0x578(%rip),%xmm6        # 2a3f <ID::Bench::IDKernelPerformanceTest()+0x289f>
+			24c3: IMAGE_REL_AMD64_REL32	.rdata
+    24c7:	vcvtsi2sd %r14,%xmm7,%xmm0
+    24cc:	vdivsd %xmm0,%xmm6,%xmm6
+    24d0:	jmp    13eb <ID::Bench::IDKernelPerformanceTest()+0x124b>
+    24d5:	vmulsd %xmm6,%xmm0,%xmm1
+    24d9:	vmovsd 0x550(%rip),%xmm0        # 2a31 <ID::Bench::IDKernelPerformanceTest()+0x2891>
+			24dd: IMAGE_REL_AMD64_REL32	.rdata
+    24e1:	vcomisd %xmm1,%xmm0
+    24e5:	jbe    26cf <ID::Bench::IDKernelPerformanceTest()+0x252f>
+    24eb:	vcomisd 0x548(%rip),%xmm1        # 2a3b <ID::Bench::IDKernelPerformanceTest()+0x289b>
+			24ef: IMAGE_REL_AMD64_REL32	.rdata
+    24f3:	jbe    271a <ID::Bench::IDKernelPerformanceTest()+0x257a>
+    24f9:	vmovsd 0x570(%rip),%xmm0        # 2a71 <ID::Bench::IDKernelPerformanceTest()+0x28d1>
+			24fd: IMAGE_REL_AMD64_REL32	.rdata
+    2501:	vcomisd %xmm0,%xmm1
+    2505:	jae    2a80 <ID::Bench::IDKernelPerformanceTest()+0x28e0>
+    250b:	vcvttsd2si %xmm1,%r12
+    2510:	vmovsd 0x578(%rip),%xmm6        # 2a90 <ID::Bench::IDKernelPerformanceTest()+0x28f0>
+			2514: IMAGE_REL_AMD64_REL32	.rdata
+    2518:	vcvtsi2sd %r12,%xmm7,%xmm0
+    251d:	vdivsd %xmm0,%xmm6,%xmm6
+    2521:	jmp    773 <ID::Bench::IDKernelPerformanceTest()+0x5d3>
+    2526:	vmulsd %xmm6,%xmm0,%xmm1
+    252a:	vmovsd 0x550(%rip),%xmm0        # 2a82 <ID::Bench::IDKernelPerformanceTest()+0x28e2>
+			252e: IMAGE_REL_AMD64_REL32	.rdata
+    2532:	vcomisd %xmm1,%xmm0
+    2536:	jbe    2698 <ID::Bench::IDKernelPerformanceTest()+0x24f8>
+    253c:	vcomisd 0x548(%rip),%xmm1        # 2a8c <ID::Bench::IDKernelPerformanceTest()+0x28ec>
+			2540: IMAGE_REL_AMD64_REL32	.rdata
+    2544:	jbe    2707 <ID::Bench::IDKernelPerformanceTest()+0x2567>
+    254a:	vmovsd 0x570(%rip),%xmm0        # 2ac2 <ID::Bench::IDKernelPerformanceTest()+0x2922>
+			254e: IMAGE_REL_AMD64_REL32	.rdata
+    2552:	vcomisd %xmm0,%xmm1
+    2556:	jae    2aa6 <ID::Bench::IDKernelPerformanceTest()+0x2906>
+    255c:	vcvttsd2si %xmm1,%r12
+    2561:	vmovsd 0x578(%rip),%xmm6        # 2ae1 <ID::Bench::IDKernelPerformanceTest()+0x2941>
+			2565: IMAGE_REL_AMD64_REL32	.rdata
+    2569:	vcvtsi2sd %r12,%xmm7,%xmm0
+    256e:	vdivsd %xmm0,%xmm6,%xmm6
+    2572:	jmp    f43 <ID::Bench::IDKernelPerformanceTest()+0xda3>
+    2577:	vmulsd %xmm6,%xmm0,%xmm0
+    257b:	vmovsd 0x550(%rip),%xmm1        # 2ad3 <ID::Bench::IDKernelPerformanceTest()+0x2933>
+			257f: IMAGE_REL_AMD64_REL32	.rdata
+    2583:	vcomisd %xmm0,%xmm1
+    2587:	jbe    26ab <ID::Bench::IDKernelPerformanceTest()+0x250b>
+    258d:	vcomisd 0x548(%rip),%xmm0        # 2add <ID::Bench::IDKernelPerformanceTest()+0x293d>
+			2591: IMAGE_REL_AMD64_REL32	.rdata
+    2595:	jbe    26f5 <ID::Bench::IDKernelPerformanceTest()+0x2555>
+    259b:	vmovsd 0x570(%rip),%xmm1        # 2b13 <(anonymous namespace)::kServiceTable+0x25e3>
+			259f: IMAGE_REL_AMD64_REL32	.rdata
+    25a3:	vcomisd %xmm1,%xmm0
+    25a7:	jae    2a5a <ID::Bench::IDKernelPerformanceTest()+0x28ba>
+    25ad:	vcvttsd2si %xmm0,%rsi
+    25b2:	vmovsd 0x578(%rip),%xmm6        # 2b32 <(anonymous namespace)::kServiceTable+0x2602>
+			25b6: IMAGE_REL_AMD64_REL32	.rdata
+    25ba:	vcvtsi2sd %rsi,%xmm7,%xmm0
+    25bf:	vdivsd %xmm0,%xmm6,%xmm6
+    25c3:	jmp    1f6c <ID::Bench::IDKernelPerformanceTest()+0x1dcc>
+    25c8:	vsubsd %xmm0,%xmm1,%xmm1
+    25cc:	vcvttsd2si %xmm1,%r12
+    25d1:	btc    $0x3f,%r12
+    25d6:	jmp    ad0 <ID::Bench::IDKernelPerformanceTest()+0x930>
+    25db:	vsubsd %xmm0,%xmm1,%xmm1
+    25df:	vcvttsd2si %xmm1,%rbx
+    25e4:	btc    $0x3f,%rbx
+    25e9:	jmp    1eb4 <ID::Bench::IDKernelPerformanceTest()+0x1d14>
+    25ee:	vsubsd %xmm0,%xmm1,%xmm1
+    25f2:	vcvttsd2si %xmm1,%rdi
+    25f7:	btc    $0x3f,%rdi
+    25fc:	jmp    6a4 <ID::Bench::IDKernelPerformanceTest()+0x504>
+    2601:	vsubsd %xmm0,%xmm1,%xmm1
+    2605:	vcvttsd2si %xmm1,%rsi
+    260a:	btc    $0x3f,%rsi
+    260f:	jmp    2f4 <ID::Bench::IDKernelPerformanceTest()+0x154>
+    2614:	vsubsd %xmm0,%xmm1,%xmm1
+    2618:	vcvttsd2si %xmm1,%rdi
+    261d:	btc    $0x3f,%rdi
+    2622:	jmp    e74 <ID::Bench::IDKernelPerformanceTest()+0xcd4>
+    2627:	vsubsd %xmm0,%xmm1,%xmm1
+    262b:	vcvttsd2si %xmm1,%rdi
+    2630:	btc    $0x3f,%rdi
+    2635:	jmp    16dc <ID::Bench::IDKernelPerformanceTest()+0x153c>
+    263a:	vsubsd %xmm0,%xmm1,%xmm1
+    263e:	vcvttsd2si %xmm1,%rbx
+    2643:	btc    $0x3f,%rbx
+    2648:	jmp    1b37 <ID::Bench::IDKernelPerformanceTest()+0x1997>
+    264d:	vsubsd %xmm0,%xmm1,%xmm1
+    2651:	vcvttsd2si %xmm1,%r14
+    2656:	btc    $0x3f,%r14
+    265b:	jmp    12ca <ID::Bench::IDKernelPerformanceTest()+0x112a>
+    2660:	vmovsd 0x558(%rip),%xmm6        # 2bc0 <(anonymous namespace)::kServiceTable+0x2690>
+			2664: IMAGE_REL_AMD64_REL32	.rdata
+    2668:	mov    $0x4000000,%esi
+    266d:	jmp    1bf7 <ID::Bench::IDKernelPerformanceTest()+0x1a57>
+    2672:	vmovsd 0x558(%rip),%xmm6        # 2bd2 <(anonymous namespace)::kServiceTable+0x26a2>
+			2676: IMAGE_REL_AMD64_REL32	.rdata
+    267a:	mov    $0x4000000,%r14d
+    2680:	jmp    13eb <ID::Bench::IDKernelPerformanceTest()+0x124b>
+    2685:	vmovsd 0x558(%rip),%xmm6        # 2be5 <(anonymous namespace)::kServiceTable+0x26b5>
+			2689: IMAGE_REL_AMD64_REL32	.rdata
+    268d:	mov    $0x4000000,%r13d
+    2693:	jmp    b9f <ID::Bench::IDKernelPerformanceTest()+0x9ff>
+    2698:	vmovsd 0x558(%rip),%xmm6        # 2bf8 <(anonymous namespace)::kServiceTable+0x26c8>
+			269c: IMAGE_REL_AMD64_REL32	.rdata
+    26a0:	mov    $0x4000000,%r12d
+    26a6:	jmp    f43 <ID::Bench::IDKernelPerformanceTest()+0xda3>
+    26ab:	vmovsd 0x558(%rip),%xmm6        # 2c0b <(anonymous namespace)::kServiceTable+0x26db>
+			26af: IMAGE_REL_AMD64_REL32	.rdata
+    26b3:	mov    $0x4000000,%esi
+    26b8:	jmp    1f6c <ID::Bench::IDKernelPerformanceTest()+0x1dcc>
+    26bd:	vmovsd 0x558(%rip),%xmm6        # 2c1d <(anonymous namespace)::kServiceTable+0x26ed>
+			26c1: IMAGE_REL_AMD64_REL32	.rdata
+    26c5:	mov    $0x4000000,%edi
+    26ca:	jmp    3bf <ID::Bench::IDKernelPerformanceTest()+0x21f>
+    26cf:	vmovsd 0x558(%rip),%xmm6        # 2c2f <(anonymous namespace)::kServiceTable+0x26ff>
+			26d3: IMAGE_REL_AMD64_REL32	.rdata
+    26d7:	mov    $0x4000000,%r12d
+    26dd:	jmp    773 <ID::Bench::IDKernelPerformanceTest()+0x5d3>
+    26e2:	vmovsd 0x558(%rip),%xmm6        # 2c42 <(anonymous namespace)::kServiceTable+0x2712>
+			26e6: IMAGE_REL_AMD64_REL32	.rdata
+    26ea:	mov    $0x4000000,%r12d
+    26f0:	jmp    17e3 <ID::Bench::IDKernelPerformanceTest()+0x1643>
+    26f5:	vmovsd 0x560(%rip),%xmm6        # 2c5d <(anonymous namespace)::kServiceTable+0x272d>
+			26f9: IMAGE_REL_AMD64_REL32	.rdata
+    26fd:	mov    $0x400,%esi
+    2702:	jmp    1f6c <ID::Bench::IDKernelPerformanceTest()+0x1dcc>
+    2707:	vmovsd 0x560(%rip),%xmm6        # 2c6f <(anonymous namespace)::kServiceTable+0x273f>
+			270b: IMAGE_REL_AMD64_REL32	.rdata
+    270f:	mov    $0x400,%r12d
+    2715:	jmp    f43 <ID::Bench::IDKernelPerformanceTest()+0xda3>
+    271a:	vmovsd 0x560(%rip),%xmm6        # 2c82 <(anonymous namespace)::kServiceTable+0x2752>
+			271e: IMAGE_REL_AMD64_REL32	.rdata
+    2722:	mov    $0x400,%r12d
+    2728:	jmp    773 <ID::Bench::IDKernelPerformanceTest()+0x5d3>
+    272d:	vmovsd 0x560(%rip),%xmm6        # 2c95 <(anonymous namespace)::kServiceTable+0x2765>
+			2731: IMAGE_REL_AMD64_REL32	.rdata
+    2735:	mov    $0x400,%r14d
+    273b:	jmp    13eb <ID::Bench::IDKernelPerformanceTest()+0x124b>
+    2740:	vmovsd 0x560(%rip),%xmm6        # 2ca8 <(anonymous namespace)::kServiceTable+0x2778>
+			2744: IMAGE_REL_AMD64_REL32	.rdata
+    2748:	mov    $0x400,%edi
+    274d:	jmp    3bf <ID::Bench::IDKernelPerformanceTest()+0x21f>
+    2752:	vmovsd 0x560(%rip),%xmm6        # 2cba <(anonymous namespace)::kServiceTable+0x278a>
+			2756: IMAGE_REL_AMD64_REL32	.rdata
+    275a:	mov    $0x400,%r12d
+    2760:	jmp    17e3 <ID::Bench::IDKernelPerformanceTest()+0x1643>
+    2765:	vmovsd 0x560(%rip),%xmm6        # 2ccd <(anonymous namespace)::kServiceTable+0x279d>
+			2769: IMAGE_REL_AMD64_REL32	.rdata
+    276d:	mov    $0x400,%esi
+    2772:	jmp    1bf7 <ID::Bench::IDKernelPerformanceTest()+0x1a57>
+    2777:	vmovsd 0x560(%rip),%xmm6        # 2cdf <(anonymous namespace)::kServiceTable+0x27af>
+			277b: IMAGE_REL_AMD64_REL32	.rdata
+    277f:	mov    $0x400,%r13d
+    2785:	jmp    b9f <ID::Bench::IDKernelPerformanceTest()+0x9ff>
+    278a:	mov    $0x3,%eax
+    278f:	jmp    534 <ID::Bench::IDKernelPerformanceTest()+0x394>
+    2794:	mov    $0x3,%eax
+    2799:	jmp    1947 <ID::Bench::IDKernelPerformanceTest()+0x17a7>
+    279e:	mov    $0x4,%eax
+    27a3:	jmp    19ae <ID::Bench::IDKernelPerformanceTest()+0x180e>
+    27a8:	mov    $0x2,%eax
+    27ad:	jmp    1506 <ID::Bench::IDKernelPerformanceTest()+0x1366>
+    27b2:	mov    $0x1,%eax
+    27b7:	jmp    14ba <ID::Bench::IDKernelPerformanceTest()+0x131a>
+    27bc:	mov    $0x1,%eax
+    27c1:	jmp    1ca3 <ID::Bench::IDKernelPerformanceTest()+0x1b03>
+    27c6:	mov    $0x3,%eax
+    27cb:	jmp    10a7 <ID::Bench::IDKernelPerformanceTest()+0xf07>
+    27d0:	mov    $0x4,%eax
+    27d5:	jmp    110e <ID::Bench::IDKernelPerformanceTest()+0xf6e>
+    27da:	mov    $0x2,%eax
+    27df:	jmp    103f <ID::Bench::IDKernelPerformanceTest()+0xe9f>
+    27e4:	mov    $0x3,%eax
+    27e9:	jmp    d0b <ID::Bench::IDKernelPerformanceTest()+0xb6b>
+    27ee:	mov    $0x4,%eax
+    27f3:	jmp    d65 <ID::Bench::IDKernelPerformanceTest()+0xbc5>
+    27f8:	mov    $0x2,%eax
+    27fd:	jmp    1cef <ID::Bench::IDKernelPerformanceTest()+0x1b4f>
+    2802:	mov    $0x2,%eax
+    2807:	jmp    ca3 <ID::Bench::IDKernelPerformanceTest()+0xb03>
+    280c:	mov    $0x1,%eax
+    2811:	jmp    c57 <ID::Bench::IDKernelPerformanceTest()+0xab7>
+    2816:	mov    $0x1,%eax
+    281b:	jmp    ff3 <ID::Bench::IDKernelPerformanceTest()+0xe53>
+    2820:	mov    $0x3,%eax
+    2825:	jmp    156e <ID::Bench::IDKernelPerformanceTest()+0x13ce>
+    282a:	mov    $0x4,%eax
+    282f:	jmp    15c8 <ID::Bench::IDKernelPerformanceTest()+0x1428>
+    2834:	mov    $0x4,%eax
+    2839:	jmp    1db1 <ID::Bench::IDKernelPerformanceTest()+0x1c11>
+    283e:	mov    $0x2,%eax
+    2843:	jmp    4cc <ID::Bench::IDKernelPerformanceTest()+0x32c>
+    2848:	mov    $0x2,%eax
+    284d:	jmp    18df <ID::Bench::IDKernelPerformanceTest()+0x173f>
+    2852:	mov    $0x3,%eax
+    2857:	jmp    20cc <ID::Bench::IDKernelPerformanceTest()+0x1f2c>
+    285c:	mov    $0x4,%eax
+    2861:	jmp    2133 <ID::Bench::IDKernelPerformanceTest()+0x1f93>
+    2866:	mov    $0x2,%eax
+    286b:	jmp    2064 <ID::Bench::IDKernelPerformanceTest()+0x1ec4>
+    2870:	mov    $0x1,%eax
+    2875:	jmp    2018 <ID::Bench::IDKernelPerformanceTest()+0x1e78>
+    287a:	mov    $0x1,%eax
+    287f:	jmp    480 <ID::Bench::IDKernelPerformanceTest()+0x2e0>
+    2884:	mov    $0x2,%eax
+    2889:	jmp    86f <ID::Bench::IDKernelPerformanceTest()+0x6cf>
+    288e:	mov    $0x1,%eax
+    2893:	jmp    823 <ID::Bench::IDKernelPerformanceTest()+0x683>
+    2898:	mov    $0x1,%eax
+    289d:	jmp    1893 <ID::Bench::IDKernelPerformanceTest()+0x16f3>
+    28a2:	mov    $0x3,%eax
+    28a7:	jmp    1d57 <ID::Bench::IDKernelPerformanceTest()+0x1bb7>
+    28ac:	mov    $0x3,%eax
+    28b1:	jmp    8d7 <ID::Bench::IDKernelPerformanceTest()+0x737>
+    28b6:	mov    $0x4,%eax
+    28bb:	jmp    93e <ID::Bench::IDKernelPerformanceTest()+0x79e>
+    28c0:	mov    $0x4,%eax
+    28c5:	jmp    58e <ID::Bench::IDKernelPerformanceTest()+0x3ee>
+    28ca:	mov    $0x3,%eax
+    28cf:	jmp    15c8 <ID::Bench::IDKernelPerformanceTest()+0x1428>
+    28d4:	mov    $0x3,%eax
+    28d9:	jmp    1db1 <ID::Bench::IDKernelPerformanceTest()+0x1c11>
+    28de:	mov    $0x3,%eax
+    28e3:	jmp    93e <ID::Bench::IDKernelPerformanceTest()+0x79e>
+    28e8:	mov    $0x1,%eax
+    28ed:	jmp    1cef <ID::Bench::IDKernelPerformanceTest()+0x1b4f>
+    28f2:	mov    $0x1,%eax
+    28f7:	jmp    ca3 <ID::Bench::IDKernelPerformanceTest()+0xb03>
+    28fc:	mov    $0x3,%eax
+    2901:	jmp    d65 <ID::Bench::IDKernelPerformanceTest()+0xbc5>
+    2906:	mov    $0x3,%eax
+    290b:	jmp    2133 <ID::Bench::IDKernelPerformanceTest()+0x1f93>
+    2910:	mov    $0x2,%eax
+    2915:	jmp    156e <ID::Bench::IDKernelPerformanceTest()+0x13ce>
+    291a:	mov    $0x2,%eax
+    291f:	jmp    d0b <ID::Bench::IDKernelPerformanceTest()+0xb6b>
+    2924:	mov    $0x1,%eax
+    2929:	jmp    4cc <ID::Bench::IDKernelPerformanceTest()+0x32c>
+    292e:	mov    $0x1,%eax
+    2933:	jmp    86f <ID::Bench::IDKernelPerformanceTest()+0x6cf>
+    2938:	mov    $0x2,%eax
+    293d:	jmp    1d57 <ID::Bench::IDKernelPerformanceTest()+0x1bb7>
+    2942:	mov    $0x1,%eax
+    2947:	jmp    18df <ID::Bench::IDKernelPerformanceTest()+0x173f>
+    294c:	mov    $0x2,%eax
+    2951:	jmp    20cc <ID::Bench::IDKernelPerformanceTest()+0x1f2c>
+    2956:	mov    $0x1,%eax
+    295b:	jmp    2064 <ID::Bench::IDKernelPerformanceTest()+0x1ec4>
+    2960:	mov    $0x3,%eax
+    2965:	jmp    58e <ID::Bench::IDKernelPerformanceTest()+0x3ee>
+    296a:	mov    $0x3,%eax
+    296f:	jmp    110e <ID::Bench::IDKernelPerformanceTest()+0xf6e>
+    2974:	mov    $0x2,%eax
+    2979:	jmp    8d7 <ID::Bench::IDKernelPerformanceTest()+0x737>
+    297e:	mov    $0x2,%eax
+    2983:	jmp    534 <ID::Bench::IDKernelPerformanceTest()+0x394>
+    2988:	mov    $0x1,%eax
+    298d:	jmp    103f <ID::Bench::IDKernelPerformanceTest()+0xe9f>
+    2992:	mov    $0x3,%eax
+    2997:	jmp    19ae <ID::Bench::IDKernelPerformanceTest()+0x180e>
+    299c:	mov    $0x1,%eax
+    29a1:	jmp    1506 <ID::Bench::IDKernelPerformanceTest()+0x1366>
+    29a6:	mov    $0x2,%eax
+    29ab:	jmp    10a7 <ID::Bench::IDKernelPerformanceTest()+0xf07>
+    29b0:	mov    $0x2,%eax
+    29b5:	jmp    1947 <ID::Bench::IDKernelPerformanceTest()+0x17a7>
+    29ba:	mov    $0x2,%eax
+    29bf:	jmp    2133 <ID::Bench::IDKernelPerformanceTest()+0x1f93>
+    29c4:	mov    $0x1,%eax
+    29c9:	jmp    156e <ID::Bench::IDKernelPerformanceTest()+0x13ce>
+    29ce:	mov    $0x1,%eax
+    29d3:	jmp    d0b <ID::Bench::IDKernelPerformanceTest()+0xb6b>
+    29d8:	mov    $0x1,%eax
+    29dd:	jmp    1d57 <ID::Bench::IDKernelPerformanceTest()+0x1bb7>
+    29e2:	mov    $0x2,%eax
+    29e7:	jmp    93e <ID::Bench::IDKernelPerformanceTest()+0x79e>
+    29ec:	mov    $0x2,%eax
+    29f1:	jmp    d65 <ID::Bench::IDKernelPerformanceTest()+0xbc5>
+    29f6:	mov    $0x2,%eax
+    29fb:	jmp    15c8 <ID::Bench::IDKernelPerformanceTest()+0x1428>
+    2a00:	mov    $0x2,%eax
+    2a05:	jmp    1db1 <ID::Bench::IDKernelPerformanceTest()+0x1c11>
+    2a0a:	mov    $0x1,%eax
+    2a0f:	jmp    20cc <ID::Bench::IDKernelPerformanceTest()+0x1f2c>
+    2a14:	mov    $0x2,%eax
+    2a19:	jmp    58e <ID::Bench::IDKernelPerformanceTest()+0x3ee>
+    2a1e:	mov    $0x2,%eax
+    2a23:	jmp    110e <ID::Bench::IDKernelPerformanceTest()+0xf6e>
+    2a28:	mov    $0x1,%eax
+    2a2d:	jmp    8d7 <ID::Bench::IDKernelPerformanceTest()+0x737>
+    2a32:	mov    $0x1,%eax
+    2a37:	jmp    534 <ID::Bench::IDKernelPerformanceTest()+0x394>
+    2a3c:	mov    $0x1,%eax
+    2a41:	jmp    10a7 <ID::Bench::IDKernelPerformanceTest()+0xf07>
+    2a46:	mov    $0x2,%eax
+    2a4b:	jmp    19ae <ID::Bench::IDKernelPerformanceTest()+0x180e>
+    2a50:	mov    $0x1,%eax
+    2a55:	jmp    1947 <ID::Bench::IDKernelPerformanceTest()+0x17a7>
+    2a5a:	vsubsd %xmm1,%xmm0,%xmm0
+    2a5e:	vcvttsd2si %xmm0,%rsi
+    2a63:	btc    $0x3f,%rsi
+    2a68:	jmp    25b2 <ID::Bench::IDKernelPerformanceTest()+0x2412>
+    2a6d:	vsubsd %xmm0,%xmm1,%xmm0
+    2a71:	vcvttsd2si %xmm0,%rsi
+    2a76:	btc    $0x3f,%rsi
+    2a7b:	jmp    237b <ID::Bench::IDKernelPerformanceTest()+0x21db>
+    2a80:	vsubsd %xmm0,%xmm1,%xmm0
+    2a84:	vcvttsd2si %xmm0,%r12
+    2a89:	btc    $0x3f,%r12
+    2a8e:	jmp    2510 <ID::Bench::IDKernelPerformanceTest()+0x2370>
+    2a93:	vsubsd %xmm0,%xmm1,%xmm0
+    2a97:	vcvttsd2si %xmm0,%r13
+    2a9c:	btc    $0x3f,%r13
+    2aa1:	jmp    241d <ID::Bench::IDKernelPerformanceTest()+0x227d>
+    2aa6:	vsubsd %xmm0,%xmm1,%xmm0
+    2aaa:	vcvttsd2si %xmm0,%r12
+    2aaf:	btc    $0x3f,%r12
+    2ab4:	jmp    2561 <ID::Bench::IDKernelPerformanceTest()+0x23c1>
+    2ab9:	vsubsd %xmm0,%xmm1,%xmm0
+    2abd:	vcvttsd2si %xmm0,%r14
+    2ac2:	btc    $0x3f,%r14
+    2ac7:	jmp    24bf <ID::Bench::IDKernelPerformanceTest()+0x231f>
+    2acc:	vsubsd %xmm0,%xmm1,%xmm0
+    2ad0:	vcvttsd2si %xmm0,%r12
+    2ad5:	btc    $0x3f,%r12
+    2ada:	jmp    23cc <ID::Bench::IDKernelPerformanceTest()+0x222c>
+    2adf:	vsubsd %xmm0,%xmm1,%xmm0
+    2ae3:	vcvttsd2si %xmm0,%rdi
+    2ae8:	btc    $0x3f,%rdi
+    2aed:	jmp    246e <ID::Bench::IDKernelPerformanceTest()+0x22ce>
+    2af2:	nop
+    2af3:	nop
+    2af4:	nop
+    2af5:	nop
+    2af6:	nop
+    2af7:	nop
+    2af8:	nop
+    2af9:	nop
+    2afa:	nop
+    2afb:	nop
+    2afc:	nop
+    2afd:	nop
+    2afe:	nop
+    2aff:	nop

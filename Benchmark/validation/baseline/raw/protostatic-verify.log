@@ -1,0 +1,21 @@
+MODE=STATIC (MONOLITHIC=ON, Release) BUILD_EXIT=0
+BUILD_ISSUES=0
+FixturePrototype.exe EXIT=0 :: fixture-prototype: PASS
+FixtureZeroPrototype.exe EXIT=0 :: fixture-zero-plugin: PASS
+FixtureCaseControls.exe EXIT=0 :: fixture-case-controls: PASS
+FixtureNegativeCases_EXIT=0
+-- [legal-control] IDFixtureLegalCases -> exit 0
+-- [expect-fail] self_dependency -> exit 2, category SelfDependency OK
+-- [expect-fail] ambiguous_provider -> exit 2, category AmbiguousProvider OK
+-- [expect-fail] missing_provider -> exit 2, category MissingProvider OK
+-- [expect-fail] cycle -> exit 2, category Cycle OK
+-- [expect-fail] hash_collision -> exit 2, category NameHashCollision OK
+-- [expect-fail] duplicate_candidate -> exit 2, category DuplicateCandidate OK
+-- [expect-fail] empty_inner_group -> exit 2, category EmptyRequirementGroup OK
+-- [expect-fail] unknown_candidate -> exit 2, category UnknownCandidate OK
+-- [expect-fail] active_overflow -> exit 2, category TooManyActive OK
+-- [expect-fail] evidence_mismatch -> exit 2, category EvidenceProviderMismatch OK
+-- [expect-fail] invalid_name -> exit 2, category InvalidName OK
+-- [expect-fail] duplicate_plugin -> exit 2, category DuplicatePlugin OK
+-- 反向用例汇总：12 条按预期类别失败，0 条不符合预期
+-- 反向用例批次通过（每条都有同环境合法对照且错误类别匹配）

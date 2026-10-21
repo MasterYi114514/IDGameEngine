@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Fixture.Api",
+    "target": "IDFixtureApi",
+    "namespace": "ID::Fixture::Api",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Fixture.Api", "api_revision": 1}
+    ],
+    "lifecycle": "none"
+}

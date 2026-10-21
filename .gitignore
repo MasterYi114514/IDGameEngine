@@ -7,6 +7,10 @@
 # -----------------------------------------------------------------------------
 [Bb]in/
 [Bb]uild/
+# 仓库根下任意 build* 实验/临时构建目录（build-p2-*、build-release 等；cmake-build-* 见第 5 节）
+/build*/
+# CTest 产物目录（构建目录内或工程根的 Testing/）
+Testing/
 [Oo]ut/
 [Dd]ebug/
 [Rr]elease/
@@ -71,6 +75,10 @@ gcm.cache/
 
 # Benchmark 运行产物：单文件、每次运行覆盖，不入库
 Benchmark/report.txt
+
+# Benchmark 测试/校验构建目录统一位置（见 skills/benchmark/SKILL.md 第 4.1 节）；
+# 上文 [Bb]uild/ 已覆盖，这里显式登记以免该规则被改动后失去覆盖
+/Benchmark/build/
 
 # -----------------------------------------------------------------------------
 # 5. IDE 与编辑器本地配置 (IDE & Editor Local State)

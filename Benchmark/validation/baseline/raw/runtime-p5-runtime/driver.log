@@ -1,0 +1,16 @@
+[  6%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 12%] Linking CXX shared library ..\out\shared\bin\libID.dll
+[ 31%] Built target ID
+[ 43%] Built target IDPluginStub
+[ 50%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj
+[ 56%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/RuntimeFixture.cpp.obj
+[ 62%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_lifecycle_cases.cpp.obj
+[ 68%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_service_cases.cpp.obj
+[ 75%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+[ 81%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_provision_cases.cpp.obj
+[ 87%] Linking CXX executable out\bin\PluginRuntimeCases.exe
+copy kernel DLL into runtime validation out/bin
+[ 93%] Built target PluginRuntimeCases
+[100%] runtime cases: run PluginRuntimeCases + verify exit/console/report + official report isolation
+-- runtime 校验批次通过：两条零插件探针 exit 0，主矩阵 exit 0，passed=278，failed=0，skipped=0，groups=lifecycle=7 zero=14 initfail=33 register=41 state=18 slot=31 upstream=12 plan=86 provision=32 ，console==report.txt
+[100%] Built target PluginRuntimeCasesRun

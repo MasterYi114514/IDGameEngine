@@ -1,0 +1,19 @@
+﻿[  6%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/BootstrapLog.cpp.obj
+[ 13%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/Memory.cpp.obj
+[ 20%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/SlabSpan.cpp.obj
+[ 26%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 33%] Linking CXX shared library ..\out\shared\bin\libID.dll
+[ 33%] Built target ID
+[ 40%] Building CXX object IDPlugin/CMakeFiles/IDPluginStub.dir/Stub/IDPluginStub.cpp.obj
+[ 46%] Linking CXX static library ..\out\shared\lib\libIDPluginStub.a
+[ 46%] Built target IDPluginStub
+[ 53%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj
+[ 60%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/RuntimeFixture.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_lifecycle_cases.cpp.obj
+[ 73%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_service_cases.cpp.obj
+[ 80%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+[ 86%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_provision_cases.cpp.obj
+[ 93%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/__/__/src/support/benchmark_support.cpp.obj
+[100%] Linking CXX executable out\bin\PluginRuntimeCases.exe
+copy kernel DLL into runtime validation out/bin
+[100%] Built target PluginRuntimeCases

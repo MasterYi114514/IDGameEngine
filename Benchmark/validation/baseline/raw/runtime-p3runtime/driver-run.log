@@ -1,0 +1,37 @@
+[ 37%] Built target ID
+[ 50%] Built target IDPluginStub
+[ 93%] Built target PluginRuntimeCases
+[100%] runtime cases: run PluginRuntimeCases + verify exit/console/report + official report isolation
+-- runtime 批次问题：
+运行退出码 Illegal instruction != 0（任一 Check 失败即失败）
+stderr 出现 ASSERT FAILED：用例触发了断言 abort 路径
+用例组 lifecycle 只有 0 条 PASS（要求 >= 3）
+用例组 zero 只有 0 条 PASS（要求 >= 3）
+用例组 initfail 只有 0 条 PASS（要求 >= 3）
+用例组 register 只有 0 条 PASS（要求 >= 3）
+用例组 state 只有 0 条 PASS（要求 >= 3）
+用例组 slot 只有 0 条 PASS（要求 >= 3）
+用例组 upstream 只有 0 条 PASS（要求 >= 3）
+用例组 plan 只有 0 条 PASS（要求 >= 3）
+console 缺少 result 汇总行
+console 缺少 SUMMARY 的 exit code 行
+
+-- console 摘要：passed=- failed=0 skipped=0 groups=lifecycle=0 zero=0 initfail=0 register=0 state=0 slot=0 upstream=0 plan=0 
+cmake.exe : CMake Error at F:/IDGameEngine/Benchmark/validation/runtime/cmake/RunRuntimeCases.cmake:272 (message):
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792418757099-rsdaoy.ps1:955 字符: 8
++ $out = & cmake --build F:\IDGameEngine\cmake-build-p3runtime --target ...
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CMake Error at ...:272 (message)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  runtime 校验批次失败（详见
+  F:/IDGameEngine/Benchmark/validation/runtime/../baseline/raw/runtime-p3runtime）
+
+
+mingw32-make[3]: *** [Benchmark\validation\runtime\CMakeFiles\PluginRuntimeCasesRun.dir\build.make:70: Benchmark/valida
+tion/runtime/CMakeFiles/PluginRuntimeCasesRun] Error 1
+mingw32-make[2]: *** [CMakeFiles\Makefile2:360: Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCasesRun.dir/all] 
+Error 2
+mingw32-make[1]: *** [CMakeFiles\Makefile2:367: Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCasesRun.dir/rule]
+ Error 2
+mingw32-make: *** [Makefile:189: PluginRuntimeCasesRun] Error 2

@@ -1,0 +1,22 @@
+#pragma once
+
+#include "Common/Core.hpp"
+
+/**
+ *  逐插件导出头模板（CMake configure_file 生成，勿手改）
+ *  1. STATIC 归并（ID_STATIC_PLUGIN_LINK）时本插件 API 宏为空；
+ *  2. Windows SHARED 时只有本插件自己的 build 宏 @IDF_MODULE_UPPER@_BUILD_DLL 决定 export/import；
+ *  3. 本头不包含任何上游/下游插件头，避免包含上游时导出归属错误。
+ */
+
+#if defined(ID_STATIC_PLUGIN_LINK)
+    #define ID_FIXTURE_@IDF_MODULE_UPPER@_API
+#elif defined(_WIN32)
+    #if defined(ID_FIXTURE_@IDF_MODULE_UPPER@_BUILD_DLL)
+        #define ID_FIXTURE_@IDF_MODULE_UPPER@_API __declspec(dllexport)
+    #else
+        #define ID_FIXTURE_@IDF_MODULE_UPPER@_API __declspec(dllimport)
+    #endif
+#else
+    #define ID_FIXTURE_@IDF_MODULE_UPPER@_API __attribute__((visibility("default")))
+#endif

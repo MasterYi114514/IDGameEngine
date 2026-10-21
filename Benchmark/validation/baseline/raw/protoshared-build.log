@@ -1,0 +1,30 @@
+[ 31%] Built target ID
+[ 43%] Built target IDPluginStub
+[ 56%] Built target IDFixtureAlpha
+[ 68%] Built target IDFixtureBeta
+[ 75%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixturePlan.cpp.obj
+[ 81%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDFixtureAssembly.a
+[ 87%] Built target IDFixtureAssembly
+[ 93%] Linking CXX executable F:\IDGameEngine\bin\bin\FixturePrototype.exe
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[ 88%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj
+[100%] Linking CXX executable F:\IDGameEngine\bin\bin\FixtureZeroPrototype.exe
+[100%] Built target FixtureZeroPrototype
+[ 23%] Built target ID
+[ 33%] Built target IDPluginStub
+[ 38%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_active_overflow.cpp.obj
+[ 42%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_mismatch.cpp.obj
+[ 90%] Built target IDFixtureLegalCases
+[ 95%] Linking CXX executable F:\IDGameEngine\bin\bin\FixtureCaseControls.exe
+[100%] Built target FixtureCaseControls
+[ 83%] Built target ID
+[100%] Built target fixture_scale_active_128
+[ 83%] Built target ID
+[100%] Built target fixture_scale_32x32x1
+[ 83%] Built target ID
+[100%] Built target fixture_scale_64x32x4
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_scale_probe.dir/src/scale/scale_probe.cpp.obj
+[100%] Built target fixture_scale_probe

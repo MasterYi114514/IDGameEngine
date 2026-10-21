@@ -1,0 +1,5 @@
+COMMAND: g++ ... -fconstexpr-ops-limit=33554432 -c probe_fixture_construct_128x32x1.cpp
+CWD: F:\IDGameEngine
+EXIT: 0
+WALL_SECONDS: 2.88
+

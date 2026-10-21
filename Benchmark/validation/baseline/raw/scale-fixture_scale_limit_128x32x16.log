@@ -1,0 +1,309 @@
+﻿[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_scale_limit_128x32x16.dir/src/scale/scale_limit_128x32x16.cpp.obj
+cmake : In file included from F:/IDGameEngine/Benchmark/validation/prototype/include/FixtureStressSupport.hpp:8,
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792401596791-i36mrn.ps1:954 字符: 704
++ ... New(); $o = cmake --build cmake-build-protoshared --target $t 2>&1; $ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (In file include...sSupport.hpp:8,:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+                 from F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_limit_128x32x16.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_limit_128x32x16.cpp:19:49:   in 'constexpr' expansion of
+ 'ID::Bench::Fixture::sort_and_validate<std::tuple<PluginDeclaration<0, 0>, PluginDeclaration<1, 16>, PluginDeclaration
+<2, 32>, PluginDeclaration<3, 48>, PluginDeclaration<4, 64>, PluginDeclaration<5, 80>, PluginDeclaration<6, 96>, Plugin
+Declaration<7, 112>, PluginDeclaration<8, 128>, PluginDeclaration<9, 144>, PluginDeclaration<10, 160>, PluginDeclaratio
+n<11, 176>, PluginDeclaration<12, 192>, PluginDeclaration<13, 208>, PluginDeclaration<14, 224>, PluginDeclaration<15, 2
+40>, PluginDeclaration<16, 256>, PluginDeclaration<17, 272>, PluginDeclaration<18, 288>, PluginDeclaration<19, 304>, Pl
+uginDeclaration<20, 320>, PluginDeclaration<21, 336>, PluginDeclaration<22, 352>, PluginDeclaration<23, 368>, PluginDec
+laration<24, 384>, PluginDeclaration<25, 400>, PluginDeclaration<26, 416>, PluginDeclaration<27, 432>, PluginDeclaratio
+n<28, 448>, PluginDeclaration<29, 464>, PluginDeclaration<30, 480>, PluginDeclaration<31, 496>, PluginDeclaration<32, 5
+12>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, Pl
+uginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDec
+laration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaratio
+n<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 5
+12>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, Pl
+uginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDec
+laration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaratio
+n<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 5
+12>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, Pl
+uginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDec
+laration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaratio
+n<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 5
+12>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, Pl
+uginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDec
+laration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaratio
+n<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 5
+12>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, Pl
+uginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDec
+laration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaratio
+n<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 5
+12>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, Pl
+uginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<32, 512>, PluginDec
+laration<32, 512>, PluginDeclaration<32, 512>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0
+>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaratio
+n<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDecl
+aration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, Plug
+inDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>
+, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration
+<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDecla
+ration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, Plugi
+nDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>,
+ PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<
+0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclar
+ation<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, Plugin
+Declaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, 
+PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0
+, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclara
+tion<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginD
+eclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, P
+luginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0,
+ 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclarat
+ion<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDe
+claration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, Pl
+uginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 
+0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclarati
+on<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDec
+laration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, Plu
+ginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0
+>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaration<0, 0>, PluginDeclaratio
+n<0, 0>, PluginDeclaration<0, 0> >, 128>({anonymous}::kCatalog, {anonymous}::kSelected)'
+   19 |     constexpr auto kPlan     = sort_and_validate(kCatalog, kSelected);
+      |                                ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~
+F:/IDGameEngine/Benchmark/validation/prototype/include/FixturePluginApi.hpp:1147:33:   in 'constexpr' expansion of 'ID:
+:Bench::Fixture::detail::bind_catalog<128, 4096, std::tuple<ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fix
+ture::PluginDeclaration<1, 16>, ID::Bench::Fixture::PluginDeclaration<2, 32>, ID::Bench::Fixture::PluginDeclaration<3, 
+48>, ID::Bench::Fixture::PluginDeclaration<4, 64>, ID::Bench::Fixture::PluginDeclaration<5, 80>, ID::Bench::Fixture::Pl
+uginDeclaration<6, 96>, ID::Bench::Fixture::PluginDeclaration<7, 112>, ID::Bench::Fixture::PluginDeclaration<8, 128>, I
+D::Bench::Fixture::PluginDeclaration<9, 144>, ID::Bench::Fixture::PluginDeclaration<10, 160>, ID::Bench::Fixture::Plugi
+nDeclaration<11, 176>, ID::Bench::Fixture::PluginDeclaration<12, 192>, ID::Bench::Fixture::PluginDeclaration<13, 208>, 
+ID::Bench::Fixture::PluginDeclaration<14, 224>, ID::Bench::Fixture::PluginDeclaration<15, 240>, ID::Bench::Fixture::Plu
+ginDeclaration<16, 256>, ID::Bench::Fixture::PluginDeclaration<17, 272>, ID::Bench::Fixture::PluginDeclaration<18, 288>
+, ID::Bench::Fixture::PluginDeclaration<19, 304>, ID::Bench::Fixture::PluginDeclaration<20, 320>, ID::Bench::Fixture::P
+luginDeclaration<21, 336>, ID::Bench::Fixture::PluginDeclaration<22, 352>, ID::Bench::Fixture::PluginDeclaration<23, 36
+8>, ID::Bench::Fixture::PluginDeclaration<24, 384>, ID::Bench::Fixture::PluginDeclaration<25, 400>, ID::Bench::Fixture:
+:PluginDeclaration<26, 416>, ID::Bench::Fixture::PluginDeclaration<27, 432>, ID::Bench::Fixture::PluginDeclaration<28, 
+448>, ID::Bench::Fixture::PluginDeclaration<29, 464>, ID::Bench::Fixture::PluginDeclaration<30, 480>, ID::Bench::Fixtur
+e::PluginDeclaration<31, 496>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32
+, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixt
+ure::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<
+32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fi
+xture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaratio
+n<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::
+Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclarat
+ion<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench
+::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclar
+ation<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Ben
+ch::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDecl
+aration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::B
+ench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDe
+claration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID:
+:Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Plugin
+Declaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, I
+D::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Plug
+inDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>,
+ ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Pl
+uginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512
+>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::
+PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 5
+12>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture
+::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32,
+ 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixtu
+re::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<3
+2, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fix
+ture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration
+<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::F
+ixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclarati
+on<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench:
+:Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclara
+tion<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Benc
+h::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDecla
+ration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Be
+nch::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDec
+laration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::
+Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginD
+eclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID
+::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDecla
+ration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixt
+ure::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>,
+ ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDe
+claration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::F
+ixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 
+0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plugi
+nDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench
+::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<
+0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Pl
+uginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Be
+nch::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclarati
+on<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture:
+:PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID:
+:Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclar
+ation<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixtu
+re::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, 
+ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDec
+laration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fi
+xture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0
+>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plugin
+Declaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench:
+:Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0
+, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plu
+ginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Ben
+ch::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaratio
+n<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::
+PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::
+Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclara
+tion<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixtur
+e::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, I
+D::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDecl
+aration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fix
+ture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>
+, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginD
+eclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::
+Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0,
+ 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plug
+inDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Benc
+h::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration
+<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::P
+luginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::B
+ench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclarat
+ion<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture
+::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID
+::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDecla
+ration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixt
+ure::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>,
+ ID::Bench::Fixture::PluginDeclaration<0, 0> >, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 2
+0, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 
+50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+ 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107
+, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 13
+1, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 1
+55, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 
+179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202,
+ 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226
+, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 25
+0, 251, 252, 253, 254, 255>(state, (* & catalog), (std::make_index_sequence<256>(), std::make_index_sequence<256>()))'
+ 1147 |             detail::bind_catalog(state, catalog, std::make_index_sequence<kCatalogSize>{});
+      |             ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:/IDGameEngine/Benchmark/validation/prototype/include/FixturePluginApi.hpp:886:25:   in 'constexpr' expansion of 'ID::
+Bench::Fixture::detail::bind_entry<128, 4096, ID::Bench::Fixture::PluginDeclaration<32, 512> >((* & state), (cursor ++)
+, (* & std::get<86, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<1, 16>, ID::Benc
+h::Fixture::PluginDeclaration<2, 32>, ID::Bench::Fixture::PluginDeclaration<3, 48>, ID::Bench::Fixture::PluginDeclarati
+on<4, 64>, ID::Bench::Fixture::PluginDeclaration<5, 80>, ID::Bench::Fixture::PluginDeclaration<6, 96>, ID::Bench::Fixtu
+re::PluginDeclaration<7, 112>, ID::Bench::Fixture::PluginDeclaration<8, 128>, ID::Bench::Fixture::PluginDeclaration<9, 
+144>, ID::Bench::Fixture::PluginDeclaration<10, 160>, ID::Bench::Fixture::PluginDeclaration<11, 176>, ID::Bench::Fixtur
+e::PluginDeclaration<12, 192>, ID::Bench::Fixture::PluginDeclaration<13, 208>, ID::Bench::Fixture::PluginDeclaration<14
+, 224>, ID::Bench::Fixture::PluginDeclaration<15, 240>, ID::Bench::Fixture::PluginDeclaration<16, 256>, ID::Bench::Fixt
+ure::PluginDeclaration<17, 272>, ID::Bench::Fixture::PluginDeclaration<18, 288>, ID::Bench::Fixture::PluginDeclaration<
+19, 304>, ID::Bench::Fixture::PluginDeclaration<20, 320>, ID::Bench::Fixture::PluginDeclaration<21, 336>, ID::Bench::Fi
+xture::PluginDeclaration<22, 352>, ID::Bench::Fixture::PluginDeclaration<23, 368>, ID::Bench::Fixture::PluginDeclaratio
+n<24, 384>, ID::Bench::Fixture::PluginDeclaration<25, 400>, ID::Bench::Fixture::PluginDeclaration<26, 416>, ID::Bench::
+Fixture::PluginDeclaration<27, 432>, ID::Bench::Fixture::PluginDeclaration<28, 448>, ID::Bench::Fixture::PluginDeclarat
+ion<29, 464>, ID::Bench::Fixture::PluginDeclaration<30, 480>, ID::Bench::Fixture::PluginDeclaration<31, 496>, ID::Bench
+::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclar
+ation<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Ben
+ch::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDecl
+aration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::B
+ench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDe
+claration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID:
+:Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Plugin
+Declaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, I
+D::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Plug
+inDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>,
+ ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Pl
+uginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512
+>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::
+PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 5
+12>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture
+::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32,
+ 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixtu
+re::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<3
+2, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fix
+ture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration
+<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::F
+ixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclarati
+on<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench:
+:Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclara
+tion<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Benc
+h::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDecla
+ration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Be
+nch::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDec
+laration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::
+Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginD
+eclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID
+::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Plugi
+nDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, 
+ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::Plu
+ginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>
+, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::P
+luginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 51
+2>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture:
+:PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<32, 512>, ID::Bench::Fixture::PluginDeclaration<0, 0
+>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plugin
+Declaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench:
+:Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0
+, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plu
+ginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Ben
+ch::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaratio
+n<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::
+PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::
+Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclara
+tion<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixtur
+e::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, I
+D::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDecl
+aration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fix
+ture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>
+, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginD
+eclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::
+Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0,
+ 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plug
+inDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Benc
+h::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration
+<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::P
+luginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::B
+ench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclarat
+ion<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture
+::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID
+::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDecla
+ration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixt
+ure::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>,
+ ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDe
+claration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::F
+ixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 
+0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plugi
+nDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench
+::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<
+0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Pl
+uginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Be
+nch::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclarati
+on<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture:
+:PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID:
+:Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclar
+ation<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixtu
+re::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, 
+ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDec
+laration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fi
+xture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0
+>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::Plugin
+Declaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench:
+:Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0, 0>, ID::Bench::Fixture::PluginDeclaration<0
+, 0> >((* & catalog))))'
+  886 |             ((bind_entry(state, static_cast<uint16_t>(cursor++), std::get<Index>(catalog))), ...);
+      |              ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+F:/IDGameEngine/Benchmark/validation/prototype/include/FixturePluginApi.hpp:795:71: error: 'constexpr' evaluation opera
+tion count exceeds limit of 33554432 (use '-fconstexpr-ops-limit=' to increase the limit)
+  795 |                     uint16_t  slot   = static_cast<uint16_t>(identity.id & kCatalogSlotMask);
+      |                                                              ~~~~~~~~~^~
+F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_limit_128x32x16.cpp:21:31: error: non-constant condition
+ for static assertion
+   21 |     static_assert(kPlan.error == ErrorCode::None, "scale_limit_128x32x16: 期望因操作数上限而不是语义错误失败");
+      |                   ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_limit_128x32x16.cpp:22:38: error: non-constant condition
+ for static assertion
+   22 |     static_assert(kPlan.active_count == 128, "scale_limit_128x32x16: active 数必须为 128");
+      |                   ~~~~~~~~~~~~~~~~~~~^~~~~~
+mingw32-make[3]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_scale_limit_128x32x16.dir\build.make:79: Benchm
+ark/validation/prototype/CMakeFiles/fixture_scale_limit_128x32x16.dir/src/scale/scale_limit_128x32x16.cpp.obj] Error 1
+mingw32-make[2]: *** [CMakeFiles\Makefile2:1445: Benchmark/validation/prototype/CMakeFiles/fixture_scale_limit_128x32x1
+6.dir/all] Error 2
+mingw32-make[1]: *** [CMakeFiles\Makefile2:1452: Benchmark/validation/prototype/CMakeFiles/fixture_scale_limit_128x32x1
+6.dir/rule] Error 2
+mingw32-make: *** [Makefile:592: fixture_scale_limit_128x32x16] Error 2

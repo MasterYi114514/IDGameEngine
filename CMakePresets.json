@@ -1,0 +1,88 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "dev：宿主 + Benchmark，SHARED",
+      "description": "日常开发：内核与插件以 SHARED 链接，构建 Sandbox 与 Benchmark。产物在 <build>/out/shared/。",
+      "binaryDir": "${sourceDir}/build/dev",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ID_ASSEMBLY_PROFILE": "default",
+        "ID_MONOLITHIC_BUILD": "OFF",
+        "ID_ENABLE_AVX2": "ON",
+        "ID_BUILD_SANDBOX": "ON",
+        "ID_BUILD_BENCHMARK": "ON",
+        "ID_BUILD_ASSEMBLY_SMOKE": "ON"
+      }
+    },
+    {
+      "name": "dev-mono",
+      "displayName": "dev-mono：宿主 + Benchmark，STATIC + 可支持的 IPO",
+      "description": "静态归并验证：插件以 STATIC 编译，IPO 由 CheckIPOSupported 探测；不支持时 configure 会显式告警并从 IDBuildInfo.txt 的 ipo 行体现。产物在 <build>/out/static/。",
+      "binaryDir": "${sourceDir}/build/dev-mono",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ID_ASSEMBLY_PROFILE": "default",
+        "ID_MONOLITHIC_BUILD": "ON",
+        "ID_ENABLE_AVX2": "ON",
+        "ID_BUILD_SANDBOX": "ON",
+        "ID_BUILD_BENCHMARK": "ON",
+        "ID_BUILD_ASSEMBLY_SMOKE": "ON"
+      }
+    },
+    {
+      "name": "ship",
+      "displayName": "ship：只交付产品（宿主与测试均关闭）",
+      "description": "交付构建：不构建 Sandbox、不构建 Benchmark、不构建组装层冒烟与全部校验资产；保留内核、选中插件、组装库、验证门控与安装导出目标。产物在 <build>/out/<mode>/。",
+      "binaryDir": "${sourceDir}/build/ship",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ID_ASSEMBLY_PROFILE": "default",
+        "ID_MONOLITHIC_BUILD": "OFF",
+        "ID_ENABLE_AVX2": "ON",
+        "ID_BUILD_SANDBOX": "OFF",
+        "ID_BUILD_BENCHMARK": "OFF",
+        "ID_BUILD_ASSEMBLY_SMOKE": "OFF"
+      }
+    },
+    {
+      "name": "log",
+      "displayName": "log：只组装 ID.Log（IDLog 开发与 IntelliSense）",
+      "description": "IDLog 开发用：只选中 ID.Log，产物在 Benchmark/build/log。这是开发/校验构建，不是交付构建。",
+      "binaryDir": "${sourceDir}/Benchmark/build/log",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ID_ASSEMBLY_PROFILE": "log",
+        "ID_MONOLITHIC_BUILD": "OFF",
+        "ID_ENABLE_AVX2": "ON",
+        "ID_BUILD_SANDBOX": "ON",
+        "ID_BUILD_BENCHMARK": "OFF",
+        "ID_BUILD_ASSEMBLY_SMOKE": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "dev",
+      "configurePreset": "dev"
+    },
+    {
+      "name": "dev-mono",
+      "configurePreset": "dev-mono"
+    },
+    {
+      "name": "ship",
+      "configurePreset": "ship"
+    },
+    {
+      "name": "log",
+      "configurePreset": "log"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+[  6%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/BootstrapLog.cpp.obj
+[ 13%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/Memory.cpp.obj
+[ 20%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/SlabSpan.cpp.obj
+[ 26%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginManager.cpp.obj
+[ 33%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 40%] Linking CXX shared library F:\IDGameEngine\bin\bin\libID.dll
+[ 40%] Built target ID
+[ 46%] Building CXX object IDPlugin/CMakeFiles/IDPluginStub.dir/Stub/IDPluginStub.cpp.obj
+[ 53%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDPluginStub.a
+[ 53%] Built target IDPluginStub
+[ 60%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/RuntimeFixture.cpp.obj
+[ 73%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_lifecycle_cases.cpp.obj
+[ 80%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_service_cases.cpp.obj
+[ 86%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+[ 93%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/__/__/src/support/benchmark_support.cpp.obj
+cmake.exe : In file included from F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_main.cpp:3:
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792418742962-ss5ejr.ps1:955 字符: 8
++ $out = & cmake --build F:\IDGameEngine\cmake-build-p3runtime --target ...
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (In file include...ime_main.cpp:3::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeFixture.hpp:13:51: warning: '/*' within comment [-Wcomment]
+   13 |  *  1. 全部插件角色都在测试内定义，不使用 IDPlugin/** 里的任何真实插件；每个角色只有四个
+In file included from F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeFixture.cpp:1:
+F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeFixture.hpp:13:51: warning: '/*' within comment [-Wcomment]
+   13 |  *  1. 全部插件角色都在测试内定义，不使用 IDPlugin/** 里的任何真实插件；每个角色只有四个
+In file included from F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_service_cases.cpp:4:
+F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeFixture.hpp:13:51: warning: '/*' within comment [-Wcomment]
+   13 |  *  1. 全部插件角色都在测试内定义，不使用 IDPlugin/** 里的任何真实插件；每个角色只有四个
+In file included from F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_lifecycle_cases.cpp:4:
+F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeFixture.hpp:13:51: warning: '/*' within comment [-Wcomment]
+   13 |  *  1. 全部插件角色都在测试内定义，不使用 IDPlugin/** 里的任何真实插件；每个角色只有四个
+In file included from F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_plan_cases.cpp:5:
+F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeFixture.hpp:13:51: warning: '/*' within comment [-Wcomment]
+   13 |  *  1. 全部插件角色都在测试内定义，不使用 IDPlugin/** 里的任何真实插件；每个角色只有四个
+[100%] Linking CXX executable out\bin\PluginRuntimeCases.exe
+澶嶅埗 ID 鍐呮牳 DLL 鍒?runtime 鏍￠獙杈撳嚭鐩綍锛堟潵婧?F:/IDGameEngine/bin/bin/libID.dll锛?
+[100%] Built target PluginRuntimeCases

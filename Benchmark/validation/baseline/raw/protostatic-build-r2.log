@@ -1,0 +1,54 @@
+﻿[ 29%] Built target ID
+[ 41%] Built target IDPluginStub
+[ 47%] Linking CXX static library ..\..\out\lib\libIDFixtureAlpha.a
+[ 52%] Built target IDFixtureAlpha
+[ 58%] Building CXX object Benchmark/validation/prototype/plugins/fixture_beta/CMakeFiles/IDFixtureBeta.dir/src/FixtureBetaModule.cpp.obj
+[ 64%] Linking CXX static library ..\..\out\lib\libIDFixtureBeta.a
+[ 64%] Built target IDFixtureBeta
+[ 70%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixturePlan.cpp.obj
+[ 76%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixtureDeterminism.cpp.obj
+[ 82%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixtureProductEntry.cpp.obj
+[ 88%] Linking CXX static library out\lib\libIDFixtureAssembly.a
+[ 88%] Built target IDFixtureAssembly
+[ 94%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj
+[100%] Linking CXX executable out\bin\FixturePrototype.exe
+cmake : D:\Code\Environment\MinGW\mingw64\bin\ar.exe: CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj: p
+lugin needed to handle lto object
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792401480579-mi6kis.ps1:954 字符: 210
++ ... CODE"; $b = cmake --build cmake-build-protostatic --target FixturePro ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\Code\Environ...ndle lto object:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[ 88%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj
+[100%] Linking CXX executable out\bin\FixtureZeroPrototype.exe
+D:\Code\Environment\MinGW\mingw64\bin\ar.exe: CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj: plug
+in needed to handle lto object
+[100%] Built target FixtureZeroPrototype
+[ 17%] Built target ID
+[ 25%] Built target IDPluginStub
+[ 28%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_self_dependency.cpp.obj
+[ 32%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_ambiguous_provider.cpp.obj
+[ 35%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_missing_provider.cpp.obj
+[ 39%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_cycle.cpp.obj
+[ 42%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_hash_collision.cpp.obj
+[ 46%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_candidate.cpp.obj
+[ 50%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_empty_inner_group.cpp.obj
+[ 53%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_candidate.cpp.obj
+[ 57%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_active_overflow.cpp.obj
+[ 60%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_mismatch.cpp.obj
+[ 64%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_invalid_name.cpp.obj
+[ 67%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_plugin.cpp.obj
+[ 71%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_requirements.cpp.obj
+[ 75%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_candidates.cpp.obj
+[ 78%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_catalog.cpp.obj
+[ 82%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_active.cpp.obj
+[ 85%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_active.cpp.obj
+[ 92%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_selection_mismatch.cpp.obj
+[ 92%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_edge_mismatch.cpp.obj
+[ 92%] Built target IDFixtureLegalCases
+[ 96%] Linking CXX executable out\bin\FixtureCaseControls.exe
+[100%] Built target FixtureCaseControls

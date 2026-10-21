@@ -1,0 +1,153 @@
+# perf-getservice 原始反汇编：最终 Benchmark.exe 中的服务查表调用点（Release / SHARED / LTO=OFF）
+# 构建目录：F:\IDGameEngine\cmake-build-p5-release   exe SHA256：054322FE9552B50F93273766B17DD496FC2E7A7ADC7D7533C555473844A258A4
+# 命令：objdump -dC --no-show-raw-insn --start-address=<start> --stop-address=<stop> <exe>（各段起止均为指令边界）
+# 寄存器来源：r15 = &ID::PluginRuntime::s_instance（段 E）；rsi = &(anonymous)::mix_round（段 D）
+# 布局依据：m_service_slots 在对象偏移 0；ServiceSlot::Math == 2 ⇒ 槽位地址 = 实例 + 0x10
+#           状态成员偏移（libID.dll 交叉核对）：m_active_plan=0x200、m_state=0x208、m_current_owner=0x20a、m_registered_count=0x20c
+
+================================================================================
+段 A：槽位查表循环（4 份内联副本中的第一份，calibrate 阶段）——一次槽位 load + 函数表成员 load + 目标守卫 + 内联快路径
+  A1 140003382  mov 0x10(%r15),%rdx   ← get_service：m_service_slots[Math]，一次 L1 load
+  A2 140003386  mov (%rdx),%rdx       ← table->mix 成员 load（被测调用表达式的一部分，不是 get_service）
+  A3 140003389  cmp %rsi,%rdx / jne   ← GCC 对已知目标的 devirtualization 守卫（kServiceTable 是同 TU constexpr）
+  A4 相等分支：imul/lea 内联 mix_round 主体，本分支不含间接调用
+================================================================================
+
+
+F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140003366 <ID::Bench::IDKernelPerformanceTest()+0x1d06>:
+   140003366:	xor    %ebx,%ebx
+   140003368:	mov    $0x3039,%edi
+   14000336d:	xor    %eax,%eax
+   14000336f:	mov    0xb0(%rsp),%r13
+   140003377:	movl   $0x0,0xa0(%rsp)
+   140003382:	mov    0x10(%r15),%rdx
+   140003386:	mov    (%rdx),%rdx
+   140003389:	cmp    %rsi,%rdx
+   14000338c:	jne    140003557 <ID::Bench::IDKernelPerformanceTest()+0x1ef7>
+   140003392:	lea    0x1(%rbx),%rcx
+   140003396:	add    %edi,%eax
+   140003398:	cmp    $0x3ff,%rbx
+   14000339f:	je     1400033f5 <ID::Bench::IDKernelPerformanceTest()+0x1d95>
+   1400033a1:	imul   $0x9e3779b1,%ecx,%ecx
+   1400033a7:	lea    0x3039(%rcx),%edx
+   1400033ad:	test   $0x1,%cl
+   1400033b0:	je     1400033e0 <ID::Bench::IDKernelPerformanceTest()+0x1d80>
+   1400033b2:	add    %edx,%eax
+   1400033b4:	cmp    $0x3faf4a4f,%ecx
+   1400033ba:	lea    -0x61c85616(%rcx),%edx
+   1400033c0:	je     1400033f5 <ID::Bench::IDKernelPerformanceTest()+0x1d95>
+   1400033c2:	nopl   0x0(%rax,%rax,1)
+   1400033ca:	data16 cs nopw 0x0(%rax,%rax,1)
+   1400033d5:	data16 cs nopw 0x0(%rax,%rax,1)
+   1400033e0:	lea    -0x61c8864f(%rax,%rdx,2),%eax
+   1400033e7:	add    $0x3c6ef362,%edx
+   1400033ed:	cmp    $0xdde6f439,%edx
+   1400033f3:	jne    1400033e0 <ID::Bench::IDKernelPerformanceTest()+0x1d80>
+   1400033f5:	mov    %eax,0xa0(%rsp)
+   1400033fc:	lea    0xa0(%rsp),%rcx
+   140003404:	xor    %ebx,%ebx
+   140003406:	mov    $0x3039,%edi
+   14000340b:	call   14000b4c0 <ID::Bench::KeepAliveSink(void const*)>
+
+================================================================================
+段 B：同一调用点的守卫失败分支——真正的间接调用 call *%rdx（槽位表项指向其它实现时走这里）
+  段 A 的 jne 目标为 140003557；140003529 是同函数另一份副本的同类目标
+================================================================================
+
+
+F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140003522 <ID::Bench::IDKernelPerformanceTest()+0x1ec2>:
+   140003522:	vcvtsi2sd %r12,%xmm7,%xmm6
+   140003527:	jmp    14000359c <ID::Bench::IDKernelPerformanceTest()+0x1f3c>
+   140003529:	mov    %ebx,%ecx
+   14000352b:	add    $0x1,%rbx
+   14000352f:	call   *%rdx
+   140003531:	add    0x80(%rsp),%eax
+   140003538:	cmp    $0x400,%rbx
+   14000353f:	mov    %eax,0x80(%rsp)
+   140003546:	je     14000349c <ID::Bench::IDKernelPerformanceTest()+0x1e3c>
+   14000354c:	sub    $0x61c8864f,%edi
+   140003552:	jmp    14000342a <ID::Bench::IDKernelPerformanceTest()+0x1dca>
+   140003557:	mov    %ebx,%ecx
+   140003559:	add    $0x1,%rbx
+   14000355d:	call   *%rdx
+   14000355f:	add    0xa0(%rsp),%eax
+   140003566:	cmp    $0x400,%rbx
+   14000356d:	mov    %eax,0xa0(%rsp)
+   140003574:	je     1400033fc <ID::Bench::IDKernelPerformanceTest()+0x1d9c>
+   14000357a:	sub    $0x61c8864f,%edi
+   140003580:	jmp    140003382 <ID::Bench::IDKernelPerformanceTest()+0x1d22>
+
+================================================================================
+段 C：同轮对照实现 GlobalTableCall（volatile 全局表指针 g_control_table，位于 __data_start__）
+  140002f1c 取 g_control_table 地址 + 140002f23 volatile load；随后同样的目标守卫与 call *%rdx
+================================================================================
+
+
+F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140002f00 <ID::Bench::IDKernelPerformanceTest()+0x18a0>:
+   140002f00:	add    $0x1,%rbx
+   140002f04:	add    %edi,%eax
+   140002f06:	cmp    $0x400,%rbx
+   140002f0d:	mov    %eax,0xa0(%rsp)
+   140002f14:	je     140002f4a <ID::Bench::IDKernelPerformanceTest()+0x18ea>
+   140002f16:	sub    $0x61c8864f,%edi
+   140002f1c:	mov    0x100dd(%rip),%rdx        # 140013000 <__data_start__>
+   140002f23:	mov    (%rdx),%rdx
+   140002f26:	cmp    %rsi,%rdx
+   140002f29:	je     140002f00 <ID::Bench::IDKernelPerformanceTest()+0x18a0>
+   140002f2b:	mov    %ebx,%ecx
+   140002f2d:	add    $0x1,%rbx
+   140002f31:	call   *%rdx
+   140002f33:	add    0xa0(%rsp),%eax
+   140002f3a:	cmp    $0x400,%rbx
+   140002f41:	mov    %eax,0xa0(%rsp)
+   140002f48:	jne    140002f16 <ID::Bench::IDKernelPerformanceTest()+0x18b6>
+
+================================================================================
+段 D：rsi 的来源——140002ebb 把 mix_round 地址装入 rsi，因此段 A 的 cmp/jne 是"函数指针是否等于已知目标"守卫
+================================================================================
+
+
+F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140002eb6 <ID::Bench::IDKernelPerformanceTest()+0x1856>:
+   140002eb6:	call   140001530 <(anonymous namespace)::record(char const*, (anonymous namespace)::Sample const&, double, char const*, std::basic_string_view<char, std::char_traits<char> >) [clone .constprop.0]>
+   140002ebb:	lea    -0x1a02(%rip),%rsi        # 1400014c0 <(anonymous namespace)::mix_round(unsigned int)>
+   140002ec2:	xor    %eax,%eax
+   140002ec4:	movl   $0x0,0xa0(%rsp)
+   140002ecf:	jmp    140002f1c <ID::Bench::IDKernelPerformanceTest()+0x18bc>
+   140002ed1:	nopl   (%rax)
+
+================================================================================
+段 E：r15 的来源——14000168e 从导入指针 __imp__ZN2ID13PluginRuntime10s_instanceE 装载实例地址
+================================================================================
+
+
+F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140001685 <ID::Bench::IDKernelPerformanceTest()+0x25>:
+   140001685:	vmovaps %xmm8,0xf0(%rsp)
+   14000168e:	mov    0x1bda3(%rip),%r15        # 14001d438 <__imp__ZN2ID13PluginRuntime10s_instanceE>
+   140001695:	xor    %esi,%esi
+   140001697:	mov    $0x400,%ebx
+

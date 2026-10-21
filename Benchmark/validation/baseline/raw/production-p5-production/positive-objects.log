@@ -1,0 +1,18 @@
+MODE: production-p5-production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p5-production
+CWD: F:/IDGameEngine/cmake-build-p5-production/Benchmark/validation/production
+TARGET: IDProductionPositiveCases
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p5-production/Benchmark/validation/production --target IDProductionPositiveCases
+EXIT: 0
+REGISTERED: positive_basics;positive_graph;positive_ownership;positive_permutation;positive_storage;positive_uneven
+
+[ 50%] Built target ID
+[ 50%] Building CXX object Benchmark/validation/production/CMakeFiles/IDProductionPositiveCases.dir/src/positive/positive_basics.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/production/CMakeFiles/IDProductionPositiveCases.dir/src/positive/positive_graph.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/production/CMakeFiles/IDProductionPositiveCases.dir/src/positive/positive_ownership.cpp.obj
+[ 83%] Building CXX object Benchmark/validation/production/CMakeFiles/IDProductionPositiveCases.dir/src/positive/positive_permutation.cpp.obj
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/IDProductionPositiveCases.dir/src/positive/positive_storage.cpp.obj
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/IDProductionPositiveCases.dir/src/positive/positive_uneven.cpp.obj
+[100%] Built target IDProductionPositiveCases
+
+

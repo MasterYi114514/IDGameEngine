@@ -1,0 +1,44 @@
+MODE: protofix
+BUILD_DIR: F:/IDGameEngine/cmake-build-protofix
+CWD: F:/IDGameEngine/cmake-build-protofix/Benchmark/validation/prototype
+TARGET: IDFixtureLegalCases
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protofix/Benchmark/validation/prototype --target IDFixtureLegalCases
+EXIT: 0
+
+[  3%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/BootstrapLog.cpp.obj
+[  6%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/Memory.cpp.obj
+[  9%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/SlabSpan.cpp.obj
+[ 12%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 15%] Linking CXX shared library ..\out\shared\bin\libID.dll
+[ 15%] Built target ID
+[ 18%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_self_dependency.cpp.obj
+[ 21%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_ambiguous_provider.cpp.obj
+[ 24%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_missing_provider.cpp.obj
+[ 27%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_cycle.cpp.obj
+[ 30%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_hash_collision.cpp.obj
+[ 33%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_candidate.cpp.obj
+[ 36%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_empty_inner_group.cpp.obj
+[ 39%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_candidate.cpp.obj
+[ 42%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_active_overflow.cpp.obj
+[ 45%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_mismatch.cpp.obj
+[ 48%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_invalid_name.cpp.obj
+[ 51%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_plugin.cpp.obj
+[ 54%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_requirements.cpp.obj
+[ 57%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_candidates.cpp.obj
+[ 60%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_catalog.cpp.obj
+[ 63%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_active.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_active.cpp.obj
+[ 69%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_selection_mismatch.cpp.obj
+[ 72%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_edge_mismatch.cpp.obj
+[ 75%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_duplicate_selection.cpp.obj
+[ 78%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_duplicate_binding.cpp.obj
+[ 81%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_duplicate_edge.cpp.obj
+[ 87%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_cycle_long.cpp.obj
+[ 87%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_capacity.cpp.obj
+[ 90%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_self_dependency_prefix_collision.cpp.obj
+[ 93%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_name_boundaries.cpp.obj
+[ 96%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_name_internal_nul.cpp.obj
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_name_first_char.cpp.obj
+[100%] Built target IDFixtureLegalCases
+
+

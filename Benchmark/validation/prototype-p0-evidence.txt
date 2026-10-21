@@ -1,0 +1,854 @@
+================================================================================
+P0 证据记录 —— 编译期插件声明与静态产品组装原型
+================================================================================
+性质：这是"实测证据记录"，不是设计文档，也不是 Benchmark 报告。
+      运行时报告永远是唯一一份 Benchmark/report.txt；本文件记录 P0 各项验证的
+      真实命令、退出码、产物与读数，供独立 review 与 P1 交接核对。
+      所有 raw 日志都在 Benchmark/validation/baseline/raw/ 下；反向用例批次按构建模式
+      分目录保存（raw/protoshared/、raw/protostatic/，各自 28 条逐用例日志 + 合法对照 +
+      两个驱动器自检 + 索引，见第 8 节）；正文引用时给出目录与文件名。
+
+结论摘要（详细依据见下文逐项）：
+  - 三项 consteval 操作族、拥有存储、不等长/空二维输入、确定性拓扑：通过（真实编译）。
+  - JSON → CMake（选中集合/链接边/身份宏/构建证据）→ C++ 重新推导并 static_assert：闭环成立；
+    生成头改为模板 + configure_file，plugin.json / profile 已加入 CMAKE_CONFIGURE_DEPENDS。
+  - 28 条反向用例都**真实断言错误类别**（不是"任意错误算通过"），每条都有同环境合法对照，
+    驱动器自检（故意写错期望类别）会被判为不符；SHARED 与 STATIC 两个构建目录均为 28/28。
+    证据层修正（见第 8 节）：两个模式各自写 raw/protoshared/ 与 raw/protostatic/，
+    各有 28 条完整逐用例日志 + 索引，不再共用目录、不再手工改名；
+    判定新增"静态断言失败条数恰好 1"，并加了"类别正确但辅助断言失败"的第二个驱动器自检。
+    此前补入的 9 条（仍计入 28 条）：重复证据 3 类各 1 条、证据容量越界 1 条、
+    同前缀长名碰撞 1 条、9 节点环 + 残余下游 1 条、名字 96/97 与内部 NUL 与首字符共 3 条。
+  - 容量契约（32 需求组 / 16 候选 / 256 catalog / 128 active）有结构化诊断与合法对照；
+    环路径记录容量已从写死的 8 提到 active 上限 128，并按"下游 -> 上游"真实闭合。
+  - 构建证据比对（compare_evidence）本轮改为**双向一一匹配 + 索引前边界检查**：
+    重复记录不能再顶替另一条真实记录（三类各有独立反向用例与合法对照）。
+  - STATIC / SHARED / 零插件三种产品各有独立输出目录与完整产物证据；本轮重新运行并保存了
+    真实 stdout / 命令 / 工作目录 / 退出码与产物 SHA256（第 7 节）。
+  - 编译期成本：本轮做完"声明单趟化 + 紧凑候选键 + 按实际需求数建图/指纹"后，
+    默认 -fconstexpr-ops-limit=33554432 下通过的组合从 128/256/32/4 提升到 **128/256/32/8**
+    （28,544 个候选叶子）；满组合 128/256/32/16 在默认限制下**仍然超限失败**，但在
+    按编译器限定的有限预算 134,217,728 下真实编译通过（16.24 s），并且带绑定数/指纹断言。详见第 3 节。
+  - 运行期仍是既有 `ID::PluginManager` 单例；生产 `PluginRuntime`、状态机、槽位所有权
+    均未实现（计划书 P3），能力/槽位/接口修订属 P1/P2，本原型不含。
+
+--------------------------------------------------------------------------------
+1. 工程、环境与产物隔离
+--------------------------------------------------------------------------------
+工程根      : F:\IDGameEngine（由工作台 workbench_config_local.json 的 Paths 解析）
+被测代码    : Benchmark/validation/prototype/**（新增，fixture）
+唯一改动的既有文件：Benchmark/CMakeLists.txt（默认 OFF 的 option + add_subdirectory）
+生产代码    : ID/**、IDPlugin/**、Sandbox/**、Assemble/**、根 CMake、工作台配置 均未改动
+工具链      : GCC 16.2.0 (MinGW-w64, x86_64-posix-seh) / CMake 4.4.4 / MinGW Makefiles
+CPU/OS      : 13th Gen Intel Core i7-13700（16C/24T）/ Windows 11 26200
+常量求值限制（本机实测，非文档抄录）：
+  - 操作数上限 33554432：编译器错误文本 "exceeds limit of 33554432" 实测确认
+  - 循环迭代上限 262144：探针 TU 触发 "'constexpr' loop iteration count exceeds limit of 262144"
+  - 递归深度上限：本实现为迭代式，不依赖递归深度
+
+编译参数的有限、有依据选择（本轮新增，只作用于原型压力验证目标）：
+  参数     : -fconstexpr-ops-limit=134217728（默认值是 33554432 的 4 倍，是一个**明确的有限值**）
+  作用目标 : 仅 fixture_scale_target_128x32x16（src/scale/scale_target_128x32x16.cpp）
+             由 cmake/../prototype/CMakeLists.txt 第 9 节在 CMAKE_CXX_COMPILER_ID == "GNU" 分支里
+             用 target_compile_options 单独追加；普通生产目标、普通 Benchmark 目标都不加。
+  依据     : 同一组合 128/256/32/16 在默认 33554432 下超限失败（raw/scale-fixture_scale_limit_128x32x16-r2.log，
+             错误文本 "exceeds limit of 33554432"）；优化后该组合在 67108864 下已能通过
+             （raw/scale-opt-128x32x16-67108864.log，exit 0，14.51 s），因此 134217728 是**留有余量的有限上界**，
+             不是"无依据地无限提高"。
+  核实参数真的生效：
+     cmake-build-protoshared/Benchmark/validation/prototype/CMakeFiles/fixture_scale_target_128x32x16.dir/flags.make
+       CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -fconstexpr-ops-limit=134217728
+     同一目录 fixture_scale_limit_128x32x16.dir/flags.make 的 CXX_FLAGS 只有 -O3 -DNDEBUG -std=c++20，
+     说明默认限制档没有被偷偷放宽。
+  实测     : 目标真实编译通过，exit 0，16.24 s（raw/scale-fixture_scale_target_128x32x16-r2.log），
+             TU 内带 active=128 / 去重边数=3568 / provider 绑定 / 指纹断言。
+  回归命令 : cmake --build cmake-build-protoshared --target fixture_scale_target_128x32x16
+             cmake --build cmake-build-protoshared --target fixture_scale_limit_128x32x16   # 预期 exit != 0
+  未测     : MSVC / clang 未安装；两者没有对应的同名选项（clang 用 -fconstexpr-steps），
+             因此本参数与"满组合通过"只在 GCC 16.2.0 上成立，不能据此宣称其它编译器通过。
+  局限     : 这是"有证据的有限目标参数"，不是把默认限制的失败抹掉：
+             默认限制下满组合仍然失败，P1 必须继续优化（见第 4 节 D2）。
+
+构建目录（全部被 .gitignore 的 cmake-build-*/ 覆盖）：
+  cmake-build-release        : Release / MONOLITHIC=OFF / 普通 Benchmark 基线（原型 OFF）
+  cmake-build-protoshared    : Release / MONOLITHIC=OFF / ID_BUILD_VALIDATION_PROTOTYPE=ON
+  cmake-build-protostatic    : Release / MONOLITHIC=ON  / 同一开关
+  cmake-build-protostatic-dbg: Debug   / MONOLITHIC=ON  / 无 IPO，用于符号核对
+
+产物隔离（本轮修正）：原型子工程把 RUNTIME/LIBRARY/ARCHIVE 输出目录都指到
+  <build>/Benchmark/validation/prototype/out/{bin,lib}
+SHARED 模式下额外把 $<TARGET_FILE:ID> 复制到自己的 out/bin（POST_BUILD，来源写在
+  CMakeLists 注释与 raw/protoshared-artifacts.log），不再与根工程 bin/bin 互相覆盖。
+  因此 STATIC/SHARED/Debug/零插件的产物可以同时存在并逐项核对。
+
+默认 OFF 校验：cmake-build-release（原型 OFF）的 `--target help` 里 fixture 目标数 = 0，
+  普通 Benchmark 目标仍存在，说明默认构建没有被 P0 资产污染。
+  cmake-build-protoshared 里 `--target Benchmark` 也构建通过（raw/protoshared-build-r5.log），
+  证明启用原型不影响普通 Benchmark 目标本身。
+
+日志版本说明：raw/protoshared-verify.log、raw/protostatic-verify.log 与
+  raw/protoshared-build.log、raw/protostatic-build.log 是上一轮的摘要日志，只保留作历史；
+  本文件引用的可复核证据是 protoshared-build-r4/r5/r6.log、protoshared-artifacts.log、
+  protostatic-build-r2/r3.log、protostatic-artifacts.log、protostatic-dbg-*.log、
+  scale-*.log。
+  反向用例日志自本轮起按模式分目录：raw/protoshared/**、raw/protostatic/**（见第 8 节）。
+  raw root 下遗留的 negative-<case>.log、9 个 negative-<case>-static.log 与
+  negative-summary-shared/static.log 是旧共用目录布局的历史残留（19 条 STATIC 用例的
+  逐条日志已被 SHARED 批次覆盖），保留但不作为 28/28 的证据。
+  提醒：根工程 bin/bin 仍被所有构建目录共用，本轮构建会覆盖其中的 ID/Benchmark 产物；
+  原型自己的产物已隔离到各自的 out/ 目录，见第 1 节。
+
+--------------------------------------------------------------------------------
+2. P0 验证矩阵
+--------------------------------------------------------------------------------
+[1] 三个 consteval 操作族
+  register_plugin(const char(&)[N]) / declare_dependencies(identity, groups) / sort_and_validate(catalog, selected)
+  证据：include/FixturePluginApi.hpp；FixturePlan.cpp、28 个 case TU、8 个 scale TU 均真实编译。
+  三者都是 consteval：运行期调用会直接编译失败，因此不可能出现"运行期改写单例"。
+
+[2] 二维不等长与空外层
+  tuple-of-arrays（各组长度不同）与矩形重载都实现；空外层 std::tuple<> 合法；
+  空内层 std::array<std::string_view,0> 被诊断为 EmptyRequirementGroup（case_empty_inner_group）。
+  生成器侧同样用 tuple（每组一个 std::array + std::tuple{...}），与手写路径同一入口。
+
+[3] 拥有存储 / 复制无悬空 view
+  src/assembly/FixtureDeterminism.cpp（编译期 static_assert）：
+  - 从局部 char 缓冲区构造身份后把缓冲区整块改写，身份仍返回原名字；
+  - 声明的候选同样持有副本；PluginIdentity / PluginDeclaration 都是 trivially copyable；
+  - 复制后的身份、声明、AssemblyResult 仍可读。
+  PluginIdentity 里保留 16 字节前缀字（prefix0/prefix1），仍是从名字字节派生的冗余副本，
+  不是 view；sizeof(PluginIdentity) ≤ 144 由 static_assert 固定。
+  本轮把候选改成**紧凑拥有存储**（SoA）：
+  - 逐候选只存 (length, offset, id, prefix0, prefix1) 五个标量，名字字节按实际长度写进
+    candidate_pool；池按"候选上限 × 名字上限"预留，是拥有语义下的最坏情况上界；
+  - 名字仍然完整保存，比对时先比标量键、必须时再逐字节确认——**没有**退化成"只比碰撞哈希"，
+    也没有返回指向常量求值局部对象的 view；
+  - 候选校验路径每个候选只碰 30 字节标量 + 必要的名字字节，不再复制 144 字节身份结构。
+  候选名字的读取统一走 PluginDeclaration::candidate_view(index)（FixtureDeterminism 已改用该入口）。
+
+[4] JSON → CMake → C++ 闭环
+  单一源：plugins/fixture_alpha/plugin.json、plugins/fixture_beta/plugin.json；
+           catalog：assembly/catalog.cmake；profile：fixture_default.json(2)、fixture_zero.json(0)。
+  CMake 解析（cmake/IDFixtureResolve.cmake）实测输出：
+      fixture 产品选择：ID.Fixture.Alpha;ID.Fixture.Beta
+      fixture 链接边  ：IDFixtureBeta|IDFixtureAlpha|IDFIXTUREALPHA
+      fixture 零插件选择数：（空）
+  派生并真实生效：
+      - 逐需求 provider（0 个/多个直接 FATAL_ERROR，不按顺序挑）；
+      - 真实链接边 → target_link_libraries(Beta PUBLIC Alpha)；
+      - PUBLIC 身份宏 → Beta 编译宏：-DID_FIXTURE_BETA_BUILD_DLL=1 -DID_USE_PLUGIN_IDFIXTUREALPHA=1
+        Alpha 编译宏：-DID_FIXTURE_ALPHA_BUILD_DLL=1（没有任何身份宏，证明未无差别注入）
+        Beta 源码 #if !defined(ID_USE_PLUGIN_IDFIXTUREALPHA) → #error，缺宏直接编译失败；
+        Beta 源码 #if defined(ID_FIXTURE_ALPHA_BUILD_DLL) → #error，证明上游 build 宏未向下传播。
+      - 构建证据（选中集合/逐需求 provider/链接边）→ 生成头 → C++ compare_evidence 逐项比对。
+  本轮修正（计划书 8.4 的局部要求）：
+      - 生成头不再用 file(WRITE) 直接写最终文件，改为 templates/Assembly.generated.hpp.in +
+        configure_file(@ONLY)（内容不变时不刷新时间戳）；
+      - 每个 plugin.json 与 profile 都 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS)，
+        改 JSON 后无需手工清缓存即可重新配置。
+
+[5] 两个模块的独立导出头
+  templates/PluginExport.generated.hpp.in 由 CMake 为每个模块 configure_file 生成：
+  STATIC（ID_STATIC_PLUGIN_LINK）→ 宏为空；Windows SHARED → 只有本模块 build 宏决定 dllexport/import。
+  SHARED 导出表实测（raw/protoshared-artifacts.log，objdump -p）：
+      libIDFixtureAlpha.dll：FixtureAlphaPublish / FixtureAlphaState / FixtureAlphaKernelInstance /
+                             FixtureAlphaHeapProbe / 四个回调
+      libIDFixtureBeta.dll ：FixtureBetaState / FixtureBetaKernelInstance / FixtureBetaHeapProbe / 四个回调
+      宿主 EXE 的导入表含 libID.dll、libIDFixtureAlpha.dll、libIDFixtureBeta.dll。
+
+[6] SHARED：共享唯一内核（旧单例，不是新的 PluginRuntime）
+  三模块（宿主 EXE、Alpha DLL、Beta DLL）都从 libID.dll 导入 ID；
+  运行 out/bin/FixturePrototype.exe 的真实输出（退出码 0）：
+      kernel-instance: host=00007ffadbb0e040 alpha=00007ffadbb0e040 beta=00007ffadbb0e040
+                       shared=yes (legacy ID::PluginManager singleton, PluginRuntime not implemented in P0)
+      fixture-prototype: PASS
+  三个地址相等 → 进程内只有一个 ID 内核实例。这里用的是**既有** `ID::PluginManager::instance()`，
+  P0 没有实现生产 `PluginRuntime`（P3 范围），也没有实现状态机与槽位所有权。
+
+[7] SHARED：每模块 new/delete 桩
+  把 IDPluginStub 以普通 PRIVATE 方式链进模块时，若模块自身不分配，链接器不会抽取桩对象；
+  按计划书 9.4 允许的"该桩专用的链接保留机制"，只对 **IDPluginStub** 做 whole-archive
+  （cmake/IDFixtureModule.cmake，MSVC 用 /WHOLEARCHIVE），不对任何插件库做全量保留。
+  改后实测：libIDFixtureAlpha.dll / libIDFixtureBeta.dll 导入并调用 ID_AlignedAlloc/Free；
+  宿主 EXE 也导入（raw/protoshared-artifacts.log）。
+  注意：堆探针必须用 volatile 让地址逃逸，否则 -O3 会把 new/delete 整对消除。
+
+[8] STATIC：归档真实回调引用、桩提取、最终入口调用
+  证据：raw/protostatic-dbg-symbols.log（Debug、无 IPO、独立构建目录与独立 out/）。
+      nm -C --defined-only FixturePrototype.exe：
+        T FixtureProductStart / FixtureProductStop                  ← 入口对象已从归档提取
+        T FixtureAlpha*/FixtureBeta* 全部回调与状态导出              ← 回调对象已从归档提取
+        T operator new/delete 共 **16 个** 重载，各一份               ← 桩对象已提取且只有一组
+      nm -C -u：operator new/delete 未定义符号数 = 0（没有回落到 CRT）
+      归档成员（ar t）：libIDFixtureAlpha.a = FixtureAlphaModule.cpp.obj；
+                        libIDFixtureBeta.a  = FixtureBetaModule.cpp.obj；
+                        libIDFixtureAssembly.a = FixturePlan/FixtureDeterminism/FixtureProductEntry.obj
+      objdump -p：不依赖 libID.dll / 任何 fixture DLL（内核与模块都静态归并）
+  运行：out/bin/FixturePrototype.exe 退出码 0，输出 kernel-instance ... shared=yes / PASS。
+  **LTO 警告（如实披露，不假称无警告）**：MONOLITHIC Release 构建时 ar 打印
+      "ar.exe: CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj:
+       plugin needed to handle lto object"
+  同一信息另见 raw/protostatic-build-r2.log。构建 exit 0、程序可运行；Release 下 nm 看不到
+  .obj 级符号，所以符号唯一性结论只来自上面的 Debug 无 IPO 构建，不用 Release 冒充。
+
+[9] 零插件产品
+  独立 profile fixture_zero.json（enabled_plugins 为空）→ kSelectedCount=0 与
+  std::array<PluginIdentity,0> kSelected（显式元素类型与数量，不依赖空 CTAD）。
+  FixtureZeroPrototype.exe 只链 ID + IDPluginStub，不链接任何 fixture 模块；
+  编译期 static_assert（计划无错、active=0、edge=0）通过；运行输出
+  "fixture-zero-plugin: PASS"，退出码 0（SHARED 与 STATIC 两个目录都验证）。
+
+[10] 反向编译用例（28 条 + 合法对照 + 两个驱动器自检）
+  驱动器：cmake/RunNegativeCases.cmake（自定义目标 FixtureNegativeCases）。
+  判定（缺一不可，见脚本头部注释）：
+      合法对照 exit 0；目标 exit != 0；输出含静态断言失败文本；
+      失败条数**恰好 1**（只允许类别断言失败，辅助断言不得单独失败）；
+      输出含 ID_ASSEMBLY_ERROR_EXPECTED:<类别>；输出**不含** ID_ASSEMBLY_ERROR_MISMATCH。
+      静态断言失败文本取 GNU 措辞 "static assertion failed"：本机只有 GCC 16.2.0 实测，
+      MSVC / clang 未安装、未验证；措辞或计数方式不同时必须重新核实，不能把本批结论平移过去。
+  机制：CaseCommon.hpp 的 error_matches<Expected> 与 error_differs<Expected> 是一对互斥的
+  常量谓词，配成两条 static_assert：
+      实际类别 == 期望 → 只有 error_differs 失败，消息带 EXPECTED:<类别>；
+      实际类别 != 期望 → 只有 error_matches 失败，消息带 MISMATCH:<类别>。
+  所以"任意错误都算通过"的假阳性不可能出现；期望类别写错时必然出现 MISMATCH。
+  新增的"失败条数 == 1"判据补的是另一类假阳性：类别断言对、但环闭合/成员集合/边界前置等
+  辅助断言单独失败时，输出仍然"有 EXPECTED、没有 MISMATCH"。实测该情形会产生 2 条失败，
+  因此"恰好 1 条"能把它判掉；这也说明 28 条的通过不是靠删掉辅助断言换来的。
+  日志布局（本轮修正，见第 8 节）：每个构建模式写自己的目录，逐条名字不再需要人工区分：
+      raw/protoshared/negative-<case>.log        SHARED 的 28 条完整编译输出
+      raw/protostatic/negative-<case>.log        STATIC 的 28 条完整编译输出
+      raw/<mode>/negative-legal-control.log      同环境合法对照
+      raw/<mode>/negative-wrong_expectation.log  自检一（期望类别写错）
+      raw/<mode>/negative-aux_assert_failure.log 自检二（类别对、辅助断言失败）
+      raw/<mode>/negative-summary.log            汇总
+      raw/<mode>/negative-index.txt              可复核索引（构建目录/CWD/工具链/逐条判定列）
+      raw/<mode>/batch-owner.txt                 目录归属（被别的构建目录复用时报错）
+      raw/<mode>/negative-batch-stdout.log       批次控制台输出（含 configure 与判定行）
+      raw/<mode>/negative-batch-command.txt      批次命令 / shell CWD / EXIT / 运行时间
+  每条日志头部自带 MODE / BUILD_DIR / CWD / TARGET / EXPECTED_MARKER / COMMAND / EXIT /
+  STATIC_ASSERT_FAILED_COUNT / HAS_EXPECTED / HAS_MISMATCH，可离线逐项复核。
+  旧布局（raw root 下的 negative-<case>.log 与手工改名的 summary）只保留了 9 条 STATIC 副本，
+  其余 19 条不存在（同名文件的时间戳落在随后的 SHARED 批次里），不再作为 28/28 的证据；
+  如实说明见第 8 节。
+
+  实测（本轮两个模式各 28/28：判定行 exit!=0、失败条数=1、EXPECTED 命中、无 MISMATCH）：
+    目标                            期望类别                      实测
+    case_self_dependency            SelfDependency                OK
+    case_ambiguous_provider         AmbiguousProvider             OK
+    case_missing_provider           MissingProvider               OK
+    case_cycle                      Cycle                         OK（另断言 error_is_cycle、成员集合与闭合）
+    case_hash_collision             NameHashCollision             OK（先断言夹具身份合法）
+    case_duplicate_candidate        DuplicateCandidate            OK
+    case_empty_inner_group          EmptyRequirementGroup         OK
+    case_unknown_candidate          UnknownCandidate              OK
+    case_active_overflow            TooManyActive                 OK（128 合法 / 129 拒绝）
+    case_evidence_mismatch          EvidenceProviderMismatch      OK
+    case_invalid_name               InvalidName                   OK
+    case_duplicate_plugin           DuplicatePlugin               OK
+    case_too_many_requirements      TooManyRequirements           OK（32 合法 / 33 拒绝）
+    case_too_many_candidates        TooManyCandidates             OK（16 合法 / 17 拒绝）
+    case_too_many_catalog           TooManyCatalog                OK（256 合法 / 257 拒绝）
+    case_unknown_active             UnknownActive                 OK（合法对照 2 个 active）
+    case_duplicate_active           DuplicateActive               OK（合法对照两个不同插件）
+    case_evidence_selection_mismatch EvidenceSelectionMismatch    OK（改坏选中集合）
+    case_evidence_edge_mismatch     EvidenceEdgeMismatch          OK（改坏链接边）
+    --- 补入的 9 条（仍计入 28 条）---
+    case_evidence_duplicate_selection {Alpha,Alpha} 代替 {Alpha,Beta}
+                                    EvidenceSelectionMismatch     OK
+    case_evidence_duplicate_binding 两条 (Beta,req0->Alpha) 代替 (Beta,req1->Gamma)
+                                    EvidenceProviderMismatch      OK
+    case_evidence_duplicate_edge    两条 Alpha->Beta 代替 Alpha->Gamma
+                                    EvidenceEdgeMismatch          OK
+    case_evidence_capacity          证据计数 == 计划条数但 > 数组容量（三类）
+                                    EvidenceSelectionMismatch     OK（另在合法对照侧断言绑定/边容量越界类别）
+    case_self_dependency_prefix_collision 前 16 字节相同 + 强制 ID 相同 + 完整名字不同
+                                    NameHashCollision             OK（旧实现会误报 SelfDependency）
+    case_cycle_long                 9 节点环 + 2 个环下游残余节点
+                                    Cycle                         OK（error_node_count==9、成员恰为环、路径闭合）
+    case_name_boundaries            96 字节合法 / 97 字节拒绝
+                                    InvalidName                   OK
+    case_name_internal_nul          名字内部 NUL（第 14 字节）
+                                    InvalidName                   OK
+    case_name_first_char            数字开头 / 连字符开头
+                                    InvalidName                   OK
+  驱动器自检一：[self-check] wrong_expectation -> 已按预期拒绝（错误类别不符（出现 MISMATCH 标记））。
+  该目标（case_wrong_expectation.cpp）的输入必然产生 SelfDependency，却把期望写成
+  DuplicatePlugin；如果驱动器哪天退化成"只看编译失败"，这条自检会立即失败。
+  驱动器自检二：[self-check] aux_assert_failure -> 已按预期拒绝（失败断言数=2）。
+  该目标（case_aux_assert_failure.cpp）的类别断言是写对的（输出有 EXPECTED:SelfDependency、
+  没有 MISMATCH），只有一条辅助断言故意失败：自依赖诊断在建立 active 表之前返回，
+  active_count 实际为 0，断言却要求 2（GCC 提示 "the comparison reduces to '(0 == 2)'"）。
+  旧判据会把它判成通过；现在因"失败断言数 != 1"被拒绝，且驱动器要求拒绝理由必须含
+  "失败断言数"，防止它因环境错误等其它原因碰巧被拒绝而掩盖判据失效。
+  两个自检都不计入 28 条，日志分别在各模式的 negative-wrong_expectation.log 与
+  negative-aux_assert_failure.log。
+  新增用例的"区分力"在合法对照侧也有断言：例如 case_evidence_duplicate_* 的合法分支会真的
+  把证据改成重复记录并断言 compare_evidence 返回对应不一致类别——若实现退化成"只查存在 + 数量相等"，
+  合法对照会直接编译失败，而不是让反向用例变成假通过。
+
+[11] 容量上限契约
+  kMaxRequirements=32 / kMaxCandidatesPerGroup=16 / kMaxCatalog=256 / kMaxActive=128
+  都已在实现里强制：
+    - declare_dependencies 在构造期记录 TooManyRequirements / TooManyCandidates；
+    - sort_and_validate 的收集阶段**在任何结果索引写入之前**再复核一遍（防止绕过声明期诊断）；
+    - provider 行宽固定 kMaxRequirements，绑定值先写临时行，整插件合法后才写结果索引；
+    - catalog 数量超过 256 时，诊断来自 sort_and_validate 的
+      `if constexpr (kCatalogSize > kMaxCatalog) { TooManyCatalog; return; }` **提前返回**。
+      更正（本轮）：上一版本把这里写成"在收集第 257 条时报 TooManyCatalog"，与实现不符——
+      这条输入形状下 collect_entry 的 `catalog_count >= kMaxCatalog` 守卫**不会被执行**，
+      它只是"声明元组长度被绕过"时的防御性护栏。诊断类别不变，但机制叙述必须如实。
+    - 组内重复候选的诊断位置也从声明期移到绑定阶段（catalog 下标位图，O(k)），
+      类别仍是 DuplicateCandidate；见 [15] 的错误优先级说明。
+  合法对照：32 组、16 候选、256 条、128 active 各有一条通过的 TU（见 [10] 与第 3 节）。
+
+[12] 环诊断（本轮扩容 + 真实闭环）
+  case_cycle（2 节点）与 case_cycle_long（9 节点环 + 2 个环下游残余节点）都断言：
+    error_is_cycle == true、error_node_count == 环长度、成员恰为环上节点、且
+    CaseCommon::cycle_path_is_closed 逐条验证 error_nodes[i+1] 是 error_nodes[i] 的真实上游、
+    末尾回到 error_nodes[0]。
+  实现（旧的 8 成员上限已删除，容量改为 kMaxActive=128）：
+    从任一未排序节点沿"下游 -> 上游"游走。任何未排序节点都至少有一个未排序上游——
+    它从未把入度减到 0，而能减到 0 的前提是全部上游都已排序；因此游走必然在 ≤active 步内
+    遇到重复节点，第一次重复的位置就是环入口。丢掉环之前的残余前缀后，剩下的成员即真实环。
+    error_nodes 的方向口径固定为"下游在前、上游在后、末尾闭合回首个"，因此残余下游节点
+    （例如 Tail.0 -> Ring.0、Tail.1 -> Tail.0）不会被算作环成员。
+  为什么旧实现会错：记录数组写死 8 个，9 节点环在第 8 个成员处退出循环且 error_is_cycle 保持 false；
+  另外它从"第一个仍有入度的节点"沿正向边（provider -> dependent）前进，起点若是纯残余下游
+  就会走进死胡同并只记录残余节点。
+
+[13] 哈希碰撞（合法身份 + 强制 ID）与同前缀长名回归
+  FixtureTestSupport::make_colliding_identity 复制合法名字后强制写入 Alpha 的真实 ID。
+  非法分支先 static_assert 该夹具 is_valid == true（证明不是 InvalidName 兜底），
+  再要求类别严格等于 NameHashCollision。实现按"先比 ID、再比长度+前缀+字节"判定：
+  同 ID 但名字不同 → NameHashCollision；同 ID 同名 → DuplicatePlugin。
+  本轮修掉一条真实缺陷：绑定阶段的自依赖判等只比 (长度, ID, prefix0, prefix1)，
+  对超过 16 字节的名字等价于"前缀 + 哈希相同即同名"，于是真实碰撞会被误报成 SelfDependency。
+  现在自依赖必须**完整名字相等**（name_equals 先比标量键，键全同再逐字节确认）。
+  回归用例 case_self_dependency_prefix_collision：两个 17 字节名字前 16 字节相同、第 17 字节不同，
+  候选被强制成"自身 ID"，期望类别是 NameHashCollision（旧实现报 SelfDependency）；
+  同 TU 的合法对照用真实哈希，A 依赖 B 必须组装成功，并断言强制 ID 后类别确实变成碰撞。
+
+[15] 构建证据比对（compare_evidence）：双向一一匹配 + 索引前边界检查
+  旧实现的两个漏洞（本轮修复，均由新增反向用例锁定）：
+    - 只检查"每条证据名字/记录能在计划里找到 + 数量相等"，因此
+      selected{Alpha,Alpha} 可以顶替 {Alpha,Beta}、两条相同 provider 记录可以顶替
+      "两个不同需求各绑一个上游"、两条相同边可以顶替另一条边；
+    - 证据计数大于数组容量时会先按下标读再判断，等于在常量求值里越界访问。
+  现实现：
+    - 选中集合：count 必须等于 plan.active_count 且不超过证据容量；每条名字必须命中一个
+      **尚未被消费**的 active 下标（consumed_active 位图）；
+    - 逐需求绑定：count 必须等于所有 active 的 active_requirement 之和且不超过证据容量；
+      每条记录消费一个不同的 (active, requirement) 槽（consumed_binding 位图），
+      requirement 必须小于该 active 的实际需求数，provider 必须 < active_count 且名字一致；
+    - 链接边：count 必须等于 plan.edge_count 且不超过证据容量；每条记录消费一条尚未被消费的
+      真实边（consumed_edge 位图）。
+  三类共 4 条新用例（重复 3 条 + 容量越界 1 条）都驱动真实类别，且合法对照侧用同一实现断言
+  "重复/越界必须被判不一致"，避免反向用例退化成假通过。
+
+[14] 确定性与固定图语义（src/assembly/FixtureDeterminism.cpp）
+  - 打乱 catalog 顺序、选中集合顺序、组内候选顺序后，规范化 active 表、拓扑序、
+    逐需求 provider 与指纹逐项相同（static_assert）。
+  - 同一上游满足下游两个不同需求：两条 provider 记录都保留，拓扑边只计一次（edge_count == 1）。
+  - 未选后端形成的潜在环不误判：A 依赖 [B,C]、B 依赖 A、C 无上游。
+    选中 {A,C} → 合法且只有 C→A 一条边；选中 {A,B} → 必须报 Cycle。
+
+--------------------------------------------------------------------------------
+3. 常量求值成本与最大合法规模（本机、默认限制）
+--------------------------------------------------------------------------------
+先说结论（**默认限制**与**有限目标参数**两套，必须分开读）：
+  A. 默认 -fconstexpr-ops-limit=33554432（不加任何编译参数）：
+     - 本轮优化后实测通过的最大组合是 **128 active / 256 catalog / 32 需求 / 每组 8 候选**
+       （28,544 个候选叶子），目标 fixture_scale_max_legal_128x32x8（exit 0，强制重编 10.68 s）；
+     - 优化前该档是失败的，当时的默认最大档是 32×4（14,272 叶子，3.6 s）。也就是说
+       本轮把默认预算下的合法上界提高了一倍候选数。
+     - 满组合 128/256/32/16（57,088 叶子）在默认限制下**仍然失败**
+       （raw/scale-fixture_scale_limit_128x32x16-r2.log，exit 2，6.69 s，
+       错误文本 "'constexpr' evaluation operation count exceeds limit of 33554432"）。
+     - 因此**不能**宣称"推荐最大规模在默认限制通过"。
+  B. 有限目标参数 -fconstexpr-ops-limit=134217728（只加在 fixture_scale_target_128x32x16）：
+     - 满组合真实编译通过，exit 0，16.24 s
+       （raw/scale-fixture_scale_target_128x32x16-r2.log）；
+     - TU 内不是"只要编译过就算"，而是断言 error==None、active_count==128、
+       去重边数==3568（= 逐需求绑定总数）、最后一个 active 的首个需求绑定到上一个插件、指纹非 0；
+     - 参数的依据、生效核实、作用范围与未测编译器见第 1 节；这是"有证据的有限参数"，
+       不是把默认限制的失败抹掉。
+  C. P1 仍必须继续优化：默认预算下满组合未通过是明确的阻塞项（见 D2）。
+
+成本分析（沿用上一轮的结论，本轮补充定位）：
+  上一轮已做过的消融证明：收集/建索引/建 active 表在满规模下只要 1.5~1.6 s 就通过，
+  超限全部发生在**逐候选的校验/绑定阶段**；成本 ~ 候选叶子数 × 每次候选的常量求值语句数。
+  本轮在这个基础上处理四类可量化的浪费：
+    (1) 每个候选要跑 4 趟名字循环（格式校验 / 复制 / 前缀字 / FNV-1a）→ 合并成 1 趟；
+    (2) 声明期还有一次 O(k²) 的同组重复前缀扫描（k 最多 16，等于每候选最多 15 次 same_name）
+        → 删除，改为绑定阶段用 catalog 下标位图 O(k) 判重（类别仍为 DuplicateCandidate）；
+    (3) 每个候选是一个 144 字节的 PluginIdentity 对象（含 bool/count/padding），构造、写入、
+        读取都要按对象整体计费 → 改成 SoA 紧凑键（5 个标量）+ 名字池；
+    (4) 建图/指纹/证据比对按每 active 固定 32 个需求槽遍历，而实际需求数常常远小于 32
+        → 记录 active_requirement，按实际需求数遍历，provider 也不再整体预填哨兵。
+
+本轮实现优化（三个接口、拥有存储语义、完整 catalog 候选校验、唯一 provider 语义都没变）：
+  a. detail::identity_from_chars 单趟完成"校验 + 复制 + 前缀字 + FNV-1a"；
+  b. 候选改成紧凑拥有存储：candidate_length / candidate_offset / candidate_id /
+     candidate_prefix0 / candidate_prefix1 + candidate_pool（名字字节按实际长度写入）；
+     读候选只碰标量，名字比较走 name_equals（先比键、必要时逐字节），
+     不允许"只比哈希"或返回 view；
+  c. add_candidate 去掉 O(k²) 重复扫描（判重下移到 bind_entry 的位图）；
+  d. AssemblyResult 增加 active_requirement；build_graph / fingerprint / compare_evidence
+     都按实际需求数遍历，不再每 active 固定 32；
+  e. bind_entry 的自依赖判等改为完整名字相等（见 [13]），并在绑定成功时写 active_requirement。
+
+本轮实测（同一方法 = g++ -fsyntax-only -O3 -DNDEBUG -std=c++20 直接测 scale_probe.cpp，
+完整命令/退出码/秒数在 raw/scale-opt-<label>.log）：
+  label                        组合                 结果           秒数
+  128x32x4-default            128/256/32/4         exit 0         4.89
+  128x32x8-default            128/256/32/8         exit 0         10.22     ← 优化前该档失败
+  128x32x16-default           128/256/32/16        exit 1         5.79
+  128x32x16-67108864          128/256/32/16        exit 0         14.51     ← 优化前该档失败
+  128x32x16-134217728         128/256/32/16        exit 0         14.80
+  与上一轮记录对比（注意方法/负载不同，只有"通过与否"和"需要多少预算"可直接比）：
+  - 上一轮：默认最大档 32×4；32×8 失败；32×16 需要 134,217,728（67,108,864 仍失败，17.3 s）。
+  - 本轮：默认最大档 32×8；32×16 在 67,108,864 已能通过，134,217,728 仍有富余。
+    结论：候选级操作数至少下降一半以上（同一预算能容纳 2 倍候选）。
+  - 绝对秒数本轮普遍偏高（32×4：上一轮 3.0 s → 本轮 4.89 s；32×16@134M：7.9 s → 14.8 s），
+    与机器当前负载/会话有关，**不能**当作"变慢"的性能结论，也不能反过来当作加速证明。
+
+规模阶梯（cmake --build cmake-build-protoshared --target <target>，每个目标先 touch 源文件
+强制重编；完整输出与秒数在 raw/scale-<target>-r2.log）：
+  目标                                  组合                 结果     编译时间
+  fixture_scale_active_128              128 / 128 / 0  / 1    通过     1.23 s
+  fixture_scale_32x32x1                 32  / 64  / 32 / 1    通过     0.89 s
+  fixture_scale_64x32x4                 64  / 128 / 32 / 4    通过     2.32 s
+  fixture_scale_max_legal_128x32x4      128 / 256 / 32 / 4    通过     5.52 s
+  fixture_scale_max_legal_128x32x8      128 / 256 / 32 / 8    通过     10.68 s   ← 本轮新上界
+  fixture_scale_probe（默认档）          64  / 128 / 32 / 4    通过     2.42 s
+  fixture_scale_target_128x32x16        128 / 256 / 32 / 16   通过     16.24 s   ← 有限参数档
+  fixture_scale_limit_128x32x16         128 / 256 / 32 / 16   超限失败 6.69 s   ← 默认限制档
+  失败信息：'constexpr' evaluation operation count exceeds limit of 33554432
+  （这是 ops 上限，不是 loop iteration 上限；loop 上限 262144 在更早的探针里单独确认过）。
+  编译时间随机器负载波动，档位之间的相对关系才是稳定信号，绝对值不可当性能指标。
+
+易踩点：PowerShell 5.1 里 "-fconstexpr-ops-limit=$n" 不会被展开，g++ 会收到空值并报
+  "should be a non-negative integer"；必须写 "-fconstexpr-ops-limit=$n"（显式字符串拼接）。
+  另外 PS 5.1 里 g++ 的 stderr 会按 NativeCommandError 抛出：批量脚本必须把
+  $ErrorActionPreference 设为 Continue，否则第一个"预期失败"的档会中断整个测量脚本。
+
+--------------------------------------------------------------------------------
+4. 已发现的缺陷/风险（供 P1/P2，不在 P0 擅自修复）
+--------------------------------------------------------------------------------
+D1. 模块桩不会被自动抽取（已在本 fixture 内用"只对桩做 whole-archive"绕过）。
+    生产 id_add_plugin 目前用 target_link_libraries(... PRIVATE IDPluginStub)，
+    对从不分配的模块不会抽到桩对象 → 这些模块里的 new/delete 会落到 CRT。
+    P2 应决定统一的保留机制（桩专用 whole-archive/WHOLEARCHIVE 或对象注入），并逐模块验证符号。
+
+D2. 声明数据结构的编译期成本仍然过高（本轮从 32×4 优化到 32×8，32×16 仍未进默认预算）。
+    已完成：候选改成 SoA 紧凑键 + 名字池（不再逐候选 144 字节结构）、声明单趟化、
+    去掉 O(k²) 判重、按实际需求数建图/指纹。结果见第 3 节。
+    仍未解决的部分（P1）：
+    - 名字池按"候选上限 × 名字上限"预留，即使实际名字都很短也要占 96 字节/候选；
+      这是"拥有存储 + 长度只在值里"这一约束下的最坏情况上界。真正的紧凑化需要让池容量
+      与"实际名字总长"挂钩（例如生成器把总长作为模板参数带进来），否则 57k 叶子仍是 ~5.5 MB。
+    - PlanState 仍是"按容量上限定长"的工作区（catalog 身份 256×144 字节 + 槽表 + 边表），
+      每次 sort_and_validate 都要整体初始化；P1 应按实际 catalog/需求规模参数化。
+    在完成这些之前，**不要**把"每组 16 候选"当成默认限制下的已达成契约；
+    本轮满组合的通过依赖第 1 节那条有限的 -fconstexpr-ops-limit=134217728。
+
+D3. 既有 benchmark 指标 plugin.service_lookup_and_call 在 MONOLITHIC=ON + LTO 下会被常量折叠
+    （actual=n/a、ungraded、SUMMARY 记 1 failed），而同一份代码 MONOLITHIC=OFF 下是 0.25 ns。
+    这是改造前就存在的问题，本次未改该指标实现。baseline 里的 0.23 ns 只能当"同一构建、
+    相邻时段"的保存读数，不能用来证明"热路径没有额外间接层"（见基线文件 4/5 节与 7.2）。
+    做 STATIC/SHARED 对比前必须先让该指标不可折叠，并由 benchmark-developer 另派测量。
+
+D4. CMake 侧只做 schema/名字/唯一 provider 预检；能力、槽位、接口修订的唯一性仍是 P1/P2 范围
+    （本原型不含 capability/slot 契约，fixture 只用"需求组候选集合"表达需求）。
+    计划书 §16.1 里"槽 63/槽 64""同 capability/同 slot 两个提供者""接口修订不达标""宏冲突"
+    等条目本 P0 未覆盖，属于 P1/P2。
+
+D5. 运行期完全沿用旧路径：`ID::PluginManager::instance()` 单例 + fixture 自己的四阶段绑定表
+    （FixtureProductEntry.cpp），没有 PluginRuntime、没有状态机、没有槽位所有权检查。
+    P0 只证明"编译期计划 + 真实链接 + 回调被调用"，不证明运行期契约。
+
+D6. 反向用例的错误优先级在合并校验/绑定后与旧实现略有差异（如实保留，不掩盖）：
+    旧实现先校验完 catalog 全部条目再绑定；新实现按 catalog 顺序边校验边绑定
+    （同一插件内仍然"先校验后写 provider 行"）。
+    本轮又移动了一条：组内重复候选从"声明期"下移到"绑定阶段"（用 catalog 下标位图判重），
+    因此它相对其它类别的先后可能与旧实现不同。
+    对单错误输入（全部 28 条反向用例都是单错误）结果相同；**同时存在多个错误时报告的类别
+    可能与旧实现不同**。计划书 §7 没有规定多错误优先级，这里作为已知行为记录；
+    多错误的确定性优先级属于 P1 待定义项（需要先定义"哪个错误先报"的规则，再补用例），
+    本轮不擅自发明规则。
+    内部阶段顺序（当前实现，不是契约）：收集/容量复核 → catalog 同名/碰撞索引 → active 规范化
+    （未知/重复/上限）→ 逐候选校验与绑定（候选格式、自依赖、未知候选、组内重复、
+    缺失/歧义 provider）→ 建图与环 → 指纹。
+
+D7. 本轮的测量方法边界（避免误读第 3 节）：
+    - 跨轮次的绝对秒数不可比（不同会话、不同机器负载、cmake 构建含 make 开销）；
+      可比的只有"同一预算下通过/失败"和"满组合需要多少预算"。
+    - 32×16 通过依赖的是有限编译参数（第 1 节），默认限制下仍失败；
+      因此本文件同时保留"默认限制失败目标"和"有限参数通过目标"两份证据，缺一不可。
+    - 编译期成本不是运行时性能：本轮没有任何 Benchmark 指标改动，也没有新的性能评级。
+
+--------------------------------------------------------------------------------
+5. 未验证项（不得当成已通过）
+--------------------------------------------------------------------------------
+U1. MSVC / clang / 其它机器：本机只有 MinGW GCC 16.2.0，未安装其它工具链。
+    MSVC 分支的 /WHOLEARCHIVE 保留写法只做了代码路径准备，未编译验证。
+U2. LTO/IPO 下的符号可观察性：MONOLITHIC Release 使用 LTO，nm 看不到 .obj 级符号，
+    因此符号唯一性证据来自无 IPO 的 Debug STATIC 构建；Release 只验证了"链接无重复定义 +
+    运行通过"，并如实记录 ar 的 "plugin needed to handle lto object" 警告。
+U3. 未观察：subagent 运行时模型/上下文（1M）/模式（Max）无法从工具侧核实。
+U4. 反向用例只在 Release 的 SHARED 与 STATIC 两个目录跑过（各自 28/28，日志分别在
+    raw/protoshared/ 与 raw/protostatic/，见第 8 节）；Debug 目录未跑批次，
+    驱动器按标记匹配（与自然语言诊断文本无关），但没有 Debug 实测记录。
+    本轮也没有重建无 IPO 的 Debug STATIC 目录：Release STATIC 的 ar/nm 只能看到归档成员与
+    0 个未定义 operator new/delete；符号唯一性证据仍沿用上一轮 raw/protostatic-dbg-symbols.log，
+    本轮未重跑。
+U5. 未做性能评级：本文件只记录编译期成本与运行时 PASS/FAIL，没有 Benchmark 指标，
+    因此没有六档评级；本轮也没有重新测量 baseline 里保存的 0.23 ns 读数（不可折叠局限仍在，见 D3）。
+U6. 32×16 满组合仍未在**默认限制**通过（见第 3 节 A 与 D2），"推荐最大规模在默认预算内通过"
+    这一 P0 子项仍未达标；本轮达成的是"默认预算上界 32×8"+"有限参数档 32×16 真实通过"。
+U7. 编译器矩阵：-fconstexpr-ops-limit 是 GCC 专有选项，MSVC / clang 未安装、未验证；
+    参考实现的 clang 对应选项是 -fconstexpr-steps，语义与计数方式都不同，不能照搬数值。
+
+--------------------------------------------------------------------------------
+6. 复现清单（完整命令，CWD 一律 F:\IDGameEngine）
+--------------------------------------------------------------------------------
+  # 1) 配置（SHARED；STATIC 把 -DID_MONOLITHIC_BUILD=ON 加上，Debug 另换构建目录）
+  cmake -S . -B cmake-build-protoshared -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DID_BUILD_VALIDATION_PROTOTYPE=ON
+  #    exit 0；日志见 raw/protoshared-build-r4.log 之前的配置输出
+
+  # 2) 产品与合法对照
+  cmake --build cmake-build-protoshared --target FixturePrototype FixtureZeroPrototype FixtureCaseControls --parallel
+  #    exit 0；日志 raw/protoshared-build-r4.log
+
+  # 3) 28 条反向用例 + 合法对照 + 两个驱动器自检
+  #    日志目录由构建目录名自动派生：cmake-build-protoshared -> raw/protoshared/
+  #    （STATIC 自动落 raw/protostatic/，不需要改脚本，也不需要手工区分文件名）
+  cmake --build cmake-build-protoshared --target FixtureNegativeCases
+  #    exit 0；逐条输出 raw/protoshared/negative-<case>.log（28 条）
+  #    合法对照 raw/protoshared/negative-legal-control.log
+  #    自检 raw/protoshared/negative-wrong_expectation.log、negative-aux_assert_failure.log
+  #    汇总 raw/protoshared/negative-summary.log、索引 raw/protoshared/negative-index.txt
+  #    批次控制台输出 raw/protoshared/negative-batch-stdout.log
+
+  # 4) 运行三个 SHARED 产品（产物在 cmake-build-protoshared/Benchmark/validation/prototype/out/bin）
+  .\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixturePrototype.exe      # exit 0
+  .\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureZeroPrototype.exe  # exit 0
+  .\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureCaseControls.exe   # exit 0
+
+  # 5) STATIC（Release）与无 IPO 的 Debug STATIC
+  cmake -S . -B cmake-build-protostatic -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DID_MONOLITHIC_BUILD=ON -DID_BUILD_VALIDATION_PROTOTYPE=ON
+  cmake --build cmake-build-protostatic --target FixturePrototype FixtureZeroPrototype FixtureCaseControls --parallel
+  cmake --build cmake-build-protostatic --target FixtureNegativeCases   # 落 raw/protostatic/
+  cmake -S . -B cmake-build-protostatic-dbg -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug -DID_MONOLITHIC_BUILD=ON -DID_BUILD_VALIDATION_PROTOTYPE=ON
+  cmake --build cmake-build-protostatic-dbg --target FixturePrototype FixtureZeroPrototype --parallel
+  #    日志 raw/protostatic-build-r2.log、raw/protostatic-dbg-build-r2.log、
+  #         raw/protostatic-dbg-symbols.log；
+  #    STATIC 反向批次日志 raw/protostatic/**（旧的 raw/protostatic-negative-r2.log 是 19 条时期的摘要）
+
+  # 6) 规模阶梯（逐个目标；要复现编译时间请先 touch 对应 scale_*.cpp）
+  cmake --build cmake-build-protoshared --target fixture_scale_active_128
+  cmake --build cmake-build-protoshared --target fixture_scale_32x32x1
+  cmake --build cmake-build-protoshared --target fixture_scale_64x32x4
+  cmake --build cmake-build-protoshared --target fixture_scale_max_legal_128x32x4   # 默认限制，通过
+  cmake --build cmake-build-protoshared --target fixture_scale_max_legal_128x32x8   # 默认限制的实测最大组合
+  cmake --build cmake-build-protoshared --target fixture_scale_probe
+  cmake --build cmake-build-protoshared --target fixture_scale_target_128x32x16     # 有限参数档，必须通过
+  cmake --build cmake-build-protoshared --target fixture_scale_limit_128x32x16      # 默认限制档，预期超限失败
+  #    日志 raw/scale-<target>-r2.log；直接编译器探针 raw/scale-opt-<label>.log
+
+  # 7) 预算诊断（仅信息性，不用作通过依据）
+  g++ -O3 -DNDEBUG -std=c++20 -IBenchmark/validation/prototype/include \
+      -Icmake-build-protoshared/Benchmark/validation/prototype/generated -IID/include \
+      -DIDF_PROBE_ACTIVE=128 -DIDF_PROBE_CATALOG=256 -DIDF_PROBE_REQUIREMENTS=32 -DIDF_PROBE_CANDIDATES=16 \
+      -fconstexpr-ops-limit=134217728 -fsyntax-only Benchmark/validation/prototype/src/scale/scale_probe.cpp
+  #    exit 0；raw/scale-required-limit.log 同时保存 67108864（exit 1）与 134217728（exit 0）
+
+  # 8) 默认 OFF 不受影响
+  cmake --build cmake-build-release --target help   # 输出里没有任何 fixture 目标
+
+  # 9) 本轮运行期原始输出（可直接照抄复核；日志里有 COMMAND / CWD / EXE_SHA256 / EXIT / SECONDS）
+  #    SHARED：out/bin 下运行，工作目录就是产物目录
+  .\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixturePrototype.exe
+  .\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureZeroPrototype.exe
+  .\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureCaseControls.exe
+  #    STATIC：同一组命令，构建目录换成 cmake-build-protostatic
+
+--------------------------------------------------------------------------------
+7. 本轮运行期原始输出与产物 hash（重新运行，不是摘要）
+--------------------------------------------------------------------------------
+日志文件（都在 Benchmark/validation/baseline/raw/，内容为 COMMAND / CWD / EXE_SHA256 /
+EXIT / SECONDS + 真实 stdout+stderr 全文）：
+  proto-run-shared.log             FixturePrototype.exe（SHARED）
+  proto-run-zero-shared.log        FixtureZeroPrototype.exe（SHARED）
+  proto-run-case-control-shared.log FixtureCaseControls.exe（SHARED）
+  proto-run-static.log / proto-run-zero-static.log / proto-run-case-control-static.log
+  proto-artifact-hashes-shared.log  / proto-artifact-hashes-static.log
+  proto-artifacts-static.log        归档成员、nm、objdump 依赖检查
+
+SHARED（CWD = cmake-build-protoshared/Benchmark/validation/prototype/out/bin，EXIT 0，0.077 s）：
+  kernel-instance: host=00007ffad727e040 alpha=00007ffad727e040 beta=00007ffad727e040
+                   shared=yes (legacy ID::PluginManager singleton, PluginRuntime not implemented in P0)
+  fixture-prototype: PASS
+  FixtureZeroPrototype.exe    -> "fixture-zero-plugin: PASS"，EXIT 0
+  FixtureCaseControls.exe     -> "fixture-case-controls: PASS"，EXIT 0
+
+STATIC（CWD = cmake-build-protostatic/.../out/bin，EXIT 0，0.083 s）：
+  kernel-instance: host=00007ff6a3901080 alpha=00007ff6a3901080 beta=00007ff6a3901080
+                   shared=yes (legacy ID::PluginManager singleton, PluginRuntime not implemented in P0)
+  fixture-prototype: PASS
+  FixtureZeroPrototype.exe    -> "fixture-zero-plugin: PASS"，EXIT 0
+  FixtureCaseControls.exe     -> "fixture-case-controls: PASS"，EXIT 0
+  说明：三个地址相等只证明"进程内只有一个既有 ID::PluginManager 单例"（P0 沿用旧运行期），
+  不代表已经有生产 PluginRuntime。
+
+产物 SHA256（本文件记录时对应的二进制；重新构建后 hash 会变，属正常）：
+  SHARED  FixturePrototype.exe       6E82F35383F1D4A33B0596DFB15D0234742CFD5EC426CC8FE287B51FA478120E  101646 B
+  SHARED  FixtureZeroPrototype.exe   35C5A7E2A263E41388D53DEECE35D10B3B5263C8AA79E5B0A334571B51FC40CC   84742 B
+  SHARED  FixtureCaseControls.exe    C33E38CAEBE84DFC9594A42FD90F452EF84DE42F0B6AFBA0572C7A07D2C802E3   93126 B
+  SHARED  libID.dll                  2B8A895E1706A8AFD6DB644507E5AF74EAFDE7EC94F0C3AC6460A03F9E700635   90972 B
+  SHARED  libIDFixtureAlpha.dll      3B023E30D132930429C6E8357CD57102BF0330B2607450F4A97D62310537CA01   53498 B
+  SHARED  libIDFixtureBeta.dll       48B7BEFE813ACD12D8206A4562082EAB0AEC5339E77DCFA0CE9FD0C687778BA5   53476 B
+  STATIC  FixturePrototype.exe       27403EDD4CB88A8A2447734BE8C026E66D3E8A02B33B534871D47D317F42111E  307802 B
+  STATIC  FixtureZeroPrototype.exe   0B02551644E7EE38195D3C378C2715312C20FB43CC432392B45F3E99754F7F18   84742 B
+  STATIC  FixtureCaseControls.exe    A4F8FCA1914D92FFE40837F9F49519C7E47F41B7BB25B2CC8FF49C98B71FA077   93126 B
+  STATIC  libIDFixtureAlpha.a        35EB7E118A1E89125DA53993C9F1E443E0F246233A6E3C7610A11C22FA4FD56E
+  STATIC  libIDFixtureBeta.a         F6D2C65879C7CB164A0CFD90EF18E4CB911D5C7E0043B0F836653A8780A3B8EA
+  STATIC  libIDFixtureAssembly.a     199E09D974957F8EB8100EB8BE2282BBC848D7ECC243FF58E05295467828F592
+
+STATIC 结构核对（proto-artifacts-static.log）：
+  - ar t：Alpha 归档 = FixtureAlphaModule.cpp.obj；Beta = FixtureBetaModule.cpp.obj；
+    Assembly = FixturePlan / FixtureDeterminism / FixtureProductEntry 三个 obj；
+  - nm -C --defined-only 里 operator new/delete 共 16 个重载各一份；
+  - nm -C -u：未定义的 operator new/delete 符号数 = 0（没有回落到 CRT）；
+  - objdump -p：不依赖 libID.dll 或任何 fixture DLL（内核与模块都静态归并）。
+    注意：Release STATIC 走 LTO，nm 看不到 .obj 级回调符号（FixtureProductStart 显示为 A），
+    这与上一轮记录的 ar "plugin needed to handle lto object" 警告是同一现象，如实保留。
+
+本轮**没有**重新测量 baseline 里的 0.23 ns 读数，也没有修改任何 Benchmark 指标实现；
+D3 里"该指标在 MONOLITHIC+LTO 下会被常量折叠、因此不能当热路径证据"的局限仍然成立。
+
+--------------------------------------------------------------------------------
+8. 反向用例日志隔离与判据增强（证据层修正；不改算法与能力范围）
+--------------------------------------------------------------------------------
+8.1 原缺陷（原声明不成立，在这里如实更正）
+  - 旧记录写"STATIC 的每条用例输出另存 raw/negative-<case>-static.log"，实测只有 **9/28**
+    条带 -static 后缀（时间戳 18:03:51–18:03:55，正好是补入的 9 条）；其余 19 条不存在。
+    同名的 raw/negative-<case>.log 的时间戳是 18:04:50–18:05:05（晚于 STATIC 那次批次），
+    即这批共用文件名已被随后的 SHARED 批次覆盖——这是"19 条 STATIC 输出无法复核"的直接事实。
+  - 根因：prototype/CMakeLists.txt 的 IDF_RAW_LOG_DIR 固定为 ../baseline/raw，两个构建目录
+    共用同一目录与同一套文件名（negative-<case>.log、negative-summary.log）；
+    negative-summary-shared.log / negative-summary-static.log 是人工改名得到的副本，
+    不是驱动器行为，无法用它们复核"两个模式各有 28 条完整输出"。
+  - 本节只修日志布局与判据，不动 consteval 接口、不动 134217728 预算档、
+    不动 maxscale 算法、不重跑规模阶梯与全矩阵。
+
+8.2 修正内容
+  a) 目录自动化：CMakeLists 由构建目录名派生模式名（cmake-build-protoshared -> raw/protoshared，
+     cmake-build-protostatic -> raw/protostatic），FixtureNegativeCases 把 RAW_LOG_DIR /
+     RAW_LOG_MODE / BUILD_DIR / BATCH_CWD / 构建类型 / MONOLITHIC / 生成器 / 编译器身份
+     传给 RunNegativeCases.cmake；驱动器写该模式自己的路径，summary 与逐条日志不再需要改名。
+  b) 归属护栏：驱动器在目录里写 batch-owner.txt；若同一目录已被另一个构建目录使用，
+     在写任何日志之前 FATAL_ERROR，而不是静默混写（实测见 8.4）。
+  c) 日志头：每条日志写明 MODE / BUILD_DIR / CWD / TARGET / EXPECTED_MARKER / COMMAND /
+     EXIT / STATIC_ASSERT_FAILED_COUNT / HAS_EXPECTED / HAS_MISMATCH。
+  d) 索引：raw/<mode>/negative-index.txt 记录构建目录、CWD、构建类型、MONOLITHIC、生成器、
+     编译器与逐条判定列
+     （KIND|CASE|MARKER|TARGET|EXIT|ASSERT_FAIL_COUNT|HAS_EXPECTED|HAS_MISMATCH|VERDICT|LOG）。
+  e) 判据增强：新增"静态断言失败条数恰好 1"，与"EXPECTED present、MISMATCH absent"同时检查。
+     该文本与计数取自 GNU 工具链输出，本机只有 GCC 16.2.0 实测；MSVC / clang 未安装、未验证，
+     措辞不同时必须重新核实，不能把本批 PASS 结论平移。
+  f) 自检二：新增 src/cases/case_aux_assert_failure.cpp（类别断言写对 + 一条辅助断言故意失败），
+     必须被拒绝，且拒绝理由必须含"失败断言数"；它证明 28 条的通过不是靠删辅助断言换来的。
+     两个自检都不计入 28 条。
+  g) 计数文字修正：CaseControlMain.cpp 的"12 个 case TU"→28、case_wrong_expectation.cpp 的
+     "12 条反向用例"→28；第 2 节 [1] 的 case/scale TU 计数改为实际 28/8。
+  h) 进度行改 ASCII：FixtureNegativeCases 的 COMMENT 改用英文。原因是 minGW make 会把
+     COMMENT 按本机 ANSI 码页回显，重定向到日志文件后中文变乱码（旧批次日志里可见）；
+     判定行由驱动器自己用 message() 写，始终是 UTF-8，不受此影响。
+
+8.3 本轮实际执行的命令、CWD 与退出码（真实运行，不是推断）
+  # SHARED
+  cmd /c "cd /d F:\IDGameEngine && cmake --build cmake-build-protoshared --target FixtureNegativeCases"
+    exit 0；批次 stdout：raw/protoshared/negative-batch-stdout.log
+    configure 行确认：反向用例原始日志目录 .../baseline/raw/protoshared（模式 protoshared，
+    构建目录 F:/IDGameEngine/cmake-build-protoshared）
+    驱动器记录的 CWD：F:/IDGameEngine/cmake-build-protoshared/Benchmark/validation/prototype
+  # STATIC
+  cmd /c "cd /d F:\IDGameEngine && cmake --build cmake-build-protostatic --target FixtureNegativeCases"
+    exit 0；批次 stdout：raw/protostatic/negative-batch-stdout.log
+    驱动器记录的 CWD：F:/IDGameEngine/cmake-build-protostatic/Benchmark/validation/prototype
+  说明：add_custom_target 的命令由 CMake 在 prototype 的构建目录下执行，所以日志里的 CWD 是
+  构建目录，不是 shell 的 F:\IDGameEngine；两者都如实记录，不混用。
+  上面两条命令、shell CWD 与退出码另存为 raw/protoshared/negative-batch-command.txt 与
+  raw/protostatic/negative-batch-command.txt（与批次 stdout 并列，便于离线复核）。
+
+8.4 核验结果（可逐条复核）
+  - 两个目录各 36 个文件 = 28 条 case 日志 + legal-control + wrong_expectation +
+    aux_assert_failure + summary + index + batch-owner + 批次 stdout + 批次命令记录。
+  - 28×2 条 case 日志逐文件统计（python 读取日志文本，按 "static assertion failed" /
+    "ID_ASSEMBLY_ERROR_EXPECTED:" / "ID_ASSEMBLY_ERROR_MISMATCH" 计数）：
+    失败条数全部为 1、EXPECTED 全部为 1、MISMATCH 全部为 0；EXIT 全部为 2；
+    每条都带本模式的 MODE 与 BUILD_DIR。
+  - 自检一：EXIT=2、失败条数=1、HAS_MISMATCH=TRUE → 拒绝理由"错误类别不符（出现 MISMATCH 标记）"。
+  - 自检二：EXIT=2、失败条数=2、HAS_EXPECTED=TRUE、HAS_MISMATCH=FALSE → 拒绝理由
+    "失败断言数=2（判据要求恰好 1 条…）"，GCC 另提示 "the comparison reduces to '(0 == 2)'"。
+  - 互不覆盖（最后一次运行）：28 条 case 日志时间窗 protoshared 18:23:59–18:24:14、
+    protostatic 18:24:19–18:24:33，两窗不重叠；每条日志头部的 MODE / BUILD_DIR 与所在目录
+    一致——一旦被另一模式覆盖，这两个字段立刻暴露。索引 STARTED/FINISHED 与批次 stdout
+    时间戳对齐（SHARED 18:23:58–18:24:15，STATIC 18:24:18–18:24:34）。
+    批次命令记录（negative-batch-command.txt）是运行后补写的说明文件，时间戳晚于批次，
+    记录的是最后一次运行的命令与时间，不参与"是否被覆盖"的判断。
+  - 归属护栏实测（18:18:13，此时两个目录已各写入完整一批日志）：把 BUILD_DIR 换成
+    cmake-build-protostatic 去写 raw/protoshared，驱动器在写日志前停止，exit 1；
+    证据 raw/negative-logdir-guard-check.log（含"已记录
+    F:/IDGameEngine/cmake-build-protoshared / 当前 F:/IDGameEngine/cmake-build-protostatic"）。
+  - 重复运行一致：同一批共运行 4 次（18:17 / 18:20 / 18:22 / 18:24），每次都是 28/28、
+    0 failed，拒因一致。前三次之间只改过注释与文档；最后一次只把索引里的
+    HAS_EXPECTED / HAS_MISMATCH 两列由硬编码 yes/no 改为记录真实标志位（判定逻辑未变）。
+    本文件引用的时间与日志对应最后一次（18:24）。
+  - 汇总行：两个模式都是"28 条按预期类别失败，0 条不符合预期"。
+
+8.5 结论与未变项
+  - 证据层闭环：SHARED / STATIC 各有 28 条完整逐条输出 + 合法对照 + 两个自检 + 索引，
+    互不覆盖，summary 不再依赖人工改名；对应文件都在各自模式目录内。
+  - 技术 P0 结论不变：28 条反向用例在两个模式下都按期望类别失败、合法对照 exit 0、
+    两个驱动器自检生效；本轮没有改动算法、接口与产品行为。
+  - 仍按原报告保留的风险与未测项：默认 -fconstexpr-ops-limit=33554432 下满组合
+    128/256/32/16 仍失败（D2 / U6），134217728 只是有依据的有限参数档；
+    MSVC / clang 未安装、未验证（U1 / U7），"失败条数 == 1"的判据同样只依赖 GNU 文本。
+  - 本轮没有重跑规模阶梯与运行期：第 3 节的编译成本读数与第 7 节的 stdout / SHA256 证据原样保留；
+    没有 Debug 目录的反向批次（U4 仍成立），也没有新增性能评级（U5 仍成立）。
+
+--------------------------------------------------------------------------------
+9. 补记（P5 复验轮，2026-10-19 23:2x）：4 处旧运行期 API 探针已迁移
+--------------------------------------------------------------------------------
+9.1 背景：P4 已退役 PluginManager 的运行期接口（单例、逐个登记、initialize_all/shutdown_all、
+  运行期槽表），PluginManager 只剩三个 consteval 操作且不可实例化。因此本文第 7 节引用的
+  `&ID::PluginManager::instance()` 与 D5 里"运行期完全沿用 PluginManager::instance() 单例"
+  的措辞在本轮复验时已经无法编译，属于实现状态变化，不是本文当时的错误记录。
+9.2 本轮改动（只改 Benchmark/validation/prototype，未改内核；28 条反向用例期望一字未动）：
+  - PrototypeMain.cpp、ZeroPluginMain.cpp、fixture_alpha/FixtureAlphaModule.cpp、
+    fixture_beta/FixtureBetaModule.cpp 的 4 处探针改为 `&ID::PluginRuntime::instance()`
+    （只取地址，不 start/shutdown），相应 include 由 Kernel/Plugin.hpp 换成
+    Kernel/PluginRuntime.hpp；FixtureAlphaApi.hpp 的 @return 注释同步。
+  - 探针语义不变："模块导出的内核实例地址必须与宿主一致"。因此第 7 节
+    "shared=yes" 的结论仍成立，只是被取地址的对象从旧单例换成了 PluginRuntime。
+  - D5 里"没有 PluginRuntime、没有状态机"的描述**对原型运行时路径仍然成立**：
+    FixtureProductEntry.cpp 仍用自己的四阶段绑定表，没有调用 PluginRuntime::start；
+    变的只是"内核唯一实例"这一条探针指向的对象。
+9.3 本轮实测（详见 p5-revalidation-evidence.txt 第 5 节）：
+  SHARED：configure/build exit 0；FixturePrototype / FixtureZeroPrototype / FixtureCaseControls
+          全部 exit 0，kernel-instance 三个地址相等；FixtureNegativeCases PASSED 28 / FAILED 0。
+  STATIC：configure/build exit 0；两个原型程序 exit 0，三处地址相等。
+  因此本文第 6/7 节的 28 条结论在 P5 之后依然可复现，但**二进制 SHA256 与 stdout 的
+  kernel-instance 行文案已随探针迁移变化**（旧 hash 只代表迁移前的二进制）。
+================================================================================
+--------------------------------------------------------------------------------
+10. 补记（MSVC 缺陷修复轮）：两个真实缺陷的复现/修复 + GNU 未回归
+--------------------------------------------------------------------------------
+10.1 本轮范围
+  只改 Benchmark/validation/prototype/** 与本文（追加，不改写上面任何历史结论）；
+  未改 ID/**、IDPlugin/**、Sandbox/**、Assemble/**、根 CMake，也没有改 P0 的任何期望或断言。
+  两个缺陷都是"先真实复现、再修、再复跑"，复现日志与修复日志分开保存（raw/msvc-protofix2/）。
+
+10.2 缺陷 1（MSVC 下 lambda 体内调用 consteval）复现 -> 修复
+  复现（修复前真实构建，MSVC 19.52 + 生成器 Visual Studio 18 2026，Debug）：
+    cmake --build cmake-build-msvc-protofix2 --config Debug --target FixturePrototype
+      exit 1：FixtureDeterminism.cpp(175,16) error C7595「对即时函数的调用不是常量表达式」×1
+              FixtureDeterminism.cpp(166/179/180/182) error C2131「表达式的计算结果不是常数」×4
+              日志 raw/msvc-protofix2/msvc-build-repro-defect1.log
+    根因：第 4 节把 consteval 的 sort_and_validate 调用写在就地 lambda 体内，GCC 接受、MSVC 不接受。
+  修复（只换包装，不动断言）：提成命名 consteval 函数，与第 3 节 make_determinism_plan 同一写法
+    consteval auto make_shared_upstream_plan() noexcept { ...原 lambda 函数体逐字保留... }
+    constexpr auto kSharedUpstream = make_shared_upstream_plan();
+  语义等价证据：
+    - 函数体逐字保留：同名 register_plugin、同样两条需求、同样的 sort_and_validate 调用与实参顺序；
+    - 没有增删或弱化任何断言：当前文件 static_assert 行数 22；第 4 节的 3 条断言
+      （error == None、edge_count == 1、两个需求各自保留绑定）一字未动；
+    - 全文件 lambda 计数 = 0；命名 consteval 函数 3 个
+      （make_determinism_plan / make_shared_upstream_plan / make_potential_cycle_plan）；
+    - GCC 侧同一份代码仍编译通过并运行通过（见 10.5），说明没有改成任一编译器专用写法。
+10.3 缺陷 2（多配置生成器下 DLL 与 exe 不同目录）复现 -> 修复
+  复现（修复前真实运行）：多配置生成器给 RUNTIME_OUTPUT_DIRECTORY 自动追加 /Debug，
+    exe 落在 out/bin/Debug，而 idf_copy_kernel_runtime 仍把 ID.dll 复制到 out/bin：
+      out/bin/ID.dll（错位副本）  vs  out/bin/Debug/FixtureZeroPrototype.exe
+    运行 out\bin\Debug\FixtureZeroPrototype.exe -> exit -1073741515（0xC0000135，DLL 未找到），无任何输出
+      日志 raw/msvc-protofix2/msvc-run-repro-defect2.log
+  修复：复制目标由 ${IDF_OUT_BIN} 改为 $<TARGET_FILE_DIR:${TARGET}>，即复制到该可执行文件的真实运行目录，
+    多配置下自动带 /Debug、/Release、/MinSizeRel、/RelWithDebInfo。
+    vcxproj 实测四份逐配置命令（raw/msvc-protofix2/msvc-artifacts.log）：
+      cmake -E copy_if_different .../out/shared/bin/Debug/ID.dll        .../prototype/out/bin/Debug
+      cmake -E copy_if_different .../out/shared/bin/Release/ID.dll      .../prototype/out/bin/Release
+      cmake -E copy_if_different .../out/shared/bin/MinSizeRel/ID.dll   .../prototype/out/bin/MinSizeRel
+      cmake -E copy_if_different .../out/shared/bin/RelWithDebInfo/ID.dll .../prototype/out/bin/RelWithDebInfo
+    修复后 out/bin/Debug 内与 exe 同目录出现 ID.dll，三个 exe 全部 exit 0（见 10.5）。
+    GNU 单配置不回归：$<TARGET_FILE_DIR:exe> 仍等于 out/bin，libID.dll 仍与 exe 同目录
+    （raw/protofix2-gcc/gcc-artifacts.log，产物路径未变化）。
+    修复前遗留的 out/bin/ID.dll 是缺陷 2 产生的错位副本，本轮已删除，避免产物布局证据含混；
+    只删该构建目录里的这一个副本，不涉及用户产物与其它构建目录。
+10.4 另外发现（不属本轮两个缺陷，如实报告，未扩大改动）
+  a) MSVC 下 FixtureCaseControls（同环境合法对照）首次构建失败，与上面两个缺陷无关：
+     IDFixtureLegalCases 与 28+2 个 case OBJECT 目标都没有吃到项目基线的 /utf-8，
+     MSVC 按系统代码页 936 解析无 BOM 的 UTF-8 源，中文 static_assert 消息被误判为 DBCS：
+       case_active_overflow.cpp(26,51) error C2001「字符串字面量中的换行符」等，exit 1（39.8 s）
+       日志 raw/msvc-protofix2/msvc-build-casecontrols.log
+     为了让验收项"三个 exe"在 MSVC 下真的能跑，只给这些 case 目标补 /utf-8（MSVC 分支；不加优化参数）：
+       vcxproj 实测 <AdditionalOptions>%(AdditionalOptions) /utf-8</AdditionalOptions>（仅此一项）
+       GCC 分支完全不受影响：28 条反向用例的期望与判据一字未动。
+     补后构建 exit 0（36.0 s），FixtureCaseControls.exe 运行 exit 0。
+  b) 残留警告（如实记录、未处理）：FixtureCaseControls 构建有 1 条
+       CaseControlMain.cpp(1,1) warning C4819「文件包含不能在当前代码页(936)中表示的字符」
+     该文件的非 ASCII 内容只在注释里、程序输出全 ASCII，只影响"按 Unicode 保存"的提示；
+     没有顺手给该 exe 目标也加 /utf-8，以免超出本轮授权范围。
+  c) MSVC 的 28 条反向用例批次仍然没有运行：驱动器判据依赖 GNU 措辞
+     （"static assertion failed" 文本 + 失败条数），GCC 结论不可平移到 MSVC。
+10.5 本轮真实命令、退出码与产物（CWD 一律 F:\IDGameEngine）
+  MSVC：干净目录 cmake-build-msvc-protofix2，Debug；实例 D:/Software/VS2026/Insiders
+    cmake -S . -B cmake-build-msvc-protofix2 -G "Visual Studio 18 2026" -A x64 -DCMAKE_GENERATOR_INSTANCE=D:/Software/VS2026/Insiders -DID_BUILD_VALIDATION_PROTOTYPE=ON
+      exit 0（raw/msvc-protofix2/msvc-configure.log）
+    cmake --build cmake-build-msvc-protofix2 --config Debug --target FixturePrototype
+      exit 1（修复前 = 缺陷 1 复现）
+    cmake --build cmake-build-msvc-protofix2 --config Debug --target FixtureZeroPrototype
+      exit 0（修复前即可构建，用于复现缺陷 2）
+    out\bin\Debug\FixtureZeroPrototype.exe -> exit -1073741515（修复前 = 缺陷 2 复现）
+    cmake --build cmake-build-msvc-protofix2 --config Debug --target FixturePrototype FixtureZeroPrototype IDFixtureAlpha IDFixtureBeta --parallel
+      exit 0，0 条 warning C（修复后；raw/msvc-protofix2/msvc-build-fixed.log）
+      产物：out/bin/Debug/{FixturePrototype.exe, FixtureZeroPrototype.exe, ID.dll, IDFixtureAlpha.dll, IDFixtureBeta.dll}
+            内核 DLL 原始产物 out/shared/bin/Debug/ID.dll
+    cmake --build cmake-build-msvc-protofix2 --config Debug --target FixtureCaseControls --parallel
+      补 /utf-8 前 exit 1，补后 exit 0（36.0 s，1 条 C4819）
+    三个 exe 运行（CWD = 产物目录 out/bin/Debug）：
+      FixturePrototype.exe      exit 0  kernel-instance: host=00007FFAD9A16040 alpha=... beta=... shared=yes
+                                       fixture-prototype: PASS
+      FixtureZeroPrototype.exe  exit 0  fixture-zero-plugin: PASS
+      FixtureCaseControls.exe   exit 0  fixture-case-controls: PASS
+      日志 raw/msvc-protofix2/msvc-run-fixed.log、msvc-run-3exe.log
+  GNU：干净目录 cmake-build-protofix2-gcc，GCC 16.2.0 / MinGW Makefiles / Release / MONOLITHIC=OFF
+    cmake -S . -B cmake-build-protofix2-gcc -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DID_BUILD_VALIDATION_PROTOTYPE=ON
+      exit 0（raw/protofix2-gcc/gcc-configure.log）
+    cmake --build cmake-build-protofix2-gcc --target FixturePrototype FixtureZeroPrototype FixtureCaseControls --parallel
+      exit 0，11.3 s，0 条 warning（raw/protofix2-gcc/gcc-build.log）
+    三个 exe（CWD = out/bin）：exit 0 / 0 / 0；kernel-instance 三个地址相等、shared=yes、
+      fixture-prototype PASS、fixture-zero-plugin PASS、fixture-case-controls PASS
+      （raw/protofix2-gcc/gcc-run-3exe.log；libID.dll 仍与 exe 同目录）
+    cmake --build cmake-build-protofix2-gcc --target FixtureNegativeCases
+      exit 0，16 s；PASSED 28 / FAILED 0；合法对照 IDFixtureLegalCases exit 0；
+      自检一 wrong_expectation 被"MISMATCH"拒绝；自检二 aux_assert_failure 被"失败断言数=2"拒绝
+      （raw/protofix2-gcc/negative-batch-stdout.log、negative-index.txt、negative-summary.log）
+      28 条逐用例日志的 STATIC_ASSERT_FAILED_COUNT 全部 = 1（逐文件统计）
+
+10.6 raw 隔离与文件数（本轮新增两个模式目录，互不覆盖）
+  raw/msvc-protofix2 : 10 个文件（本轮命令与运行日志；MSVC 侧只做构建与运行，不跑反向批次）
+  raw/protofix2-gcc  : 39 个文件 = 28 条 case 日志 + legal-control + 2 个自检 + summary + index +
+                       batch-owner + batch-stdout + 本轮 4 个命令/产物日志
+  batch-owner.txt 记录 F:/IDGameEngine/cmake-build-protofix2-gcc；两个目录都没有写官方
+  Benchmark/report.txt，也没有改变官方目标。
+
+10.7 本轮未验证（不得当成已通过）
+  - MSVC 的 28 条反向用例批次与"恰好 1 条断言失败"判据（依赖 GNU 文本，见 10.4c）；
+  - MSVC 的 Release / MinSizeRel / RelWithDebInfo：只核实了 vcxproj 里的逐配置复制命令，
+    实际只构建并运行了 Debug；
+  - MSVC 的 MONOLITHIC=ON（LTCG/IPO）、安装导出后的 find_package 消费、clang 与非 Windows 平台；
+  - 本轮没有重跑第 3 节的规模阶梯（读数保持原样），也没有新增任何 Benchmark 指标或性能评级。
+
+================================================================================

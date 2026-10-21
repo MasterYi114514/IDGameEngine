@@ -1,0 +1,38 @@
+@PACKAGE_INIT@
+
+# =============================================================================
+# IDGameEngine 包配置（由 cmake/IDInstall.cmake 生成，勿手改）
+#
+# 用法：
+#   find_package(IDGameEngine REQUIRED)
+#   target_link_libraries(<app> PRIVATE IDGameEngine)
+#   ID::Engine::start() / ID::Engine::shutdown()
+#
+# 本包只描述**一个**已经组装好的产品：本 prefix 里的内核、选中插件与组装库配套，
+# 未选中的插件既不在这里，也不在链接清单里。换后端或换插件集合要换一个产品（重新组装）。
+# =============================================================================
+
+set(IDGameEngine_PRODUCT_ASSEMBLY "@ID_INSTALL_PRODUCT_NAME@")
+set(IDGameEngine_PRODUCT_MODE     "@ID_INSTALL_PRODUCT_MODE@")
+set(IDGameEngine_PRODUCT_MANIFEST "${PACKAGE_PREFIX_DIR}/@ID_INSTALL_ASSEMBLY_DIR@/ProductManifest.txt")
+
+# ---- MSVC 消费方的默认静态 CRT ----------------------------------------------
+# 本产品的选中插件与分配桩都以静态 CRT 构建（Release `/MT`、Debug `/MTd`）：模块里的普通
+# new/delete 经分配桩路由到内核分配器，跨模块必须共用同一套 C++ 运行时，否则同一个块会在
+# 不同的堆上释放。CMake 没有 INTERFACE_MSVC_RUNTIME_LIBRARY，静态 CRT 无法作为导出 target
+# 的 usage requirement 传播给消费方，因此这里补一个普通变量的默认值：
+#   1. 只在 MSVC 且消费方没有自己设置 CMAKE_MSVC_RUNTIME_LIBRARY 时生效，不覆盖显式取值；
+#   2. 变量必须在该消费方 target 创建之前生效——find_package 要在定义 target 之前调用；
+#   3. 非 MSVC（MinGW/GCC 等）分支完全不受影响；消费方之后仍可自行覆盖本变量。
+# 这不改变导出 target 的 ABI 或链接清单，只是让消费方默认与产品使用同一套 C++ 运行时。
+if(MSVC AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    message(STATUS
+        "IDGameEngine: 插件/桩以静态 CRT 构建，已为消费方设置 "
+        "CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>；"
+        "find_package 必须在创建 target 之前调用，消费方可自行覆盖")
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/IDGameEngineTargets.cmake")
+
+check_required_components(IDGameEngine)

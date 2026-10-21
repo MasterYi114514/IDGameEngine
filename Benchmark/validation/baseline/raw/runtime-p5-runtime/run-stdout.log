@@ -1,0 +1,296 @@
+=== IDGameEngine Benchmark Report ===
+generated     : 2026-10-19 23:30:16
+compiler      : GCC 16.2.0
+build         : Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+timer         : QPC (freq=10000000, resolution=100 ns) | affinity=core 0
+cpu           : 13th Gen Intel(R) Core(TM) i7-13700
+report        : F:/IDGameEngine/cmake-build-p5-runtime/Benchmark/validation/runtime/out/report.txt
+--------------------------------------------------------------------
+
+## ID.PluginRuntime — Security
+  [PASS] domain.precondition_idle         expect=Idle actual=Idle
+  [PASS] domain.precondition_slots_empty  non_null_slots=0 expect=0
+  [PASS] lifecycle.start_ok               expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] lifecycle.start_ready            expect=Ready actual=Ready
+  [PASS] lifecycle.register_init_order    D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i
+  [PASS] lifecycle.shutdown_ok            expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] lifecycle.shutdown_idle          expect=Idle actual=Idle
+  [PASS] lifecycle.shutdown_unload_order  D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i,C.s,A.s,B.s,D.s,C.u,A.u,B.u,D.u
+  [PASS] lifecycle.slots_empty_after_shutdown non_null_slots=0 expect=0
+  [PASS] zero.null_view_start_ok          expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] zero.null_view_ready             expect=Ready actual=Ready
+  [PASS] zero.null_view_no_callbacks     
+  [PASS] zero.null_view_shutdown_ok       expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] zero.null_view_idle              expect=Idle actual=Idle
+  [PASS] zero.null_view_shutdown_no_callbacks
+  [PASS] zero.null_view_slots_empty       non_null_slots=0 expect=0
+  [PASS] zero.empty_view_start_ok         expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] zero.empty_view_ready            expect=Ready actual=Ready
+  [PASS] zero.empty_view_no_callbacks    
+  [PASS] zero.empty_view_shutdown_ok      expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] zero.empty_view_idle             expect=Idle actual=Idle
+  [PASS] zero.empty_view_shutdown_no_callbacks
+  [PASS] zero.empty_view_slots_empty      non_null_slots=0 expect=0
+  [PASS] initfail.control_start_ok        expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] initfail.control_order           A.r,B.r,C.r,A.i,B.i,C.i
+  [PASS] initfail.control_full_order      A.r,B.r,C.r,A.i,B.i,C.i,C.s,B.s,A.s,C.u,B.u,A.u
+  [PASS] initfail.first.code              expect=InitFailed actual=InitFailed at=Initializing plugin=0 slot=-1
+  [PASS] initfail.first.plugin            expect=0 actual=0
+  [PASS] initfail.first.idle              expect=Idle actual=Idle
+  [PASS] initfail.first.rollback_order    A.r,B.r,C.r,A.i,A.s,C.u,B.u,A.u
+  [PASS] initfail.first.slots_empty       non_null_slots=0 expect=0
+  [PASS] initfail.first.shutdown_idempotent expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] initfail.first.shutdown_no_callbacks A.r,B.r,C.r,A.i,A.s,C.u,B.u,A.u
+  [PASS] initfail.first.retry_ok          expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] initfail.first.retry_order       A.r,B.r,C.r,A.i,B.i,C.i
+  [PASS] initfail.first.retry_idle        expect=Idle actual=Idle
+  [PASS] initfail.middle.code             expect=InitFailed actual=InitFailed at=Initializing plugin=1 slot=-1
+  [PASS] initfail.middle.plugin           expect=1 actual=1
+  [PASS] initfail.middle.idle             expect=Idle actual=Idle
+  [PASS] initfail.middle.rollback_order   A.r,B.r,C.r,A.i,B.i,B.s,A.s,C.u,B.u,A.u
+  [PASS] initfail.middle.slots_empty      non_null_slots=0 expect=0
+  [PASS] initfail.middle.shutdown_idempotent expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] initfail.middle.shutdown_no_callbacks A.r,B.r,C.r,A.i,B.i,B.s,A.s,C.u,B.u,A.u
+  [PASS] initfail.middle.retry_ok         expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] initfail.middle.retry_order      A.r,B.r,C.r,A.i,B.i,C.i
+  [PASS] initfail.middle.retry_idle       expect=Idle actual=Idle
+  [PASS] initfail.last.code               expect=InitFailed actual=InitFailed at=Initializing plugin=2 slot=-1
+  [PASS] initfail.last.plugin             expect=2 actual=2
+  [PASS] initfail.last.idle               expect=Idle actual=Idle
+  [PASS] initfail.last.rollback_order     A.r,B.r,C.r,A.i,B.i,C.i,C.s,B.s,A.s,C.u,B.u,A.u
+  [PASS] initfail.last.slots_empty        non_null_slots=0 expect=0
+  [PASS] initfail.last.shutdown_idempotent expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] initfail.last.shutdown_no_callbacks A.r,B.r,C.r,A.i,B.i,C.i,C.s,B.s,A.s,C.u,B.u,A.u
+  [PASS] initfail.last.retry_ok           expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] initfail.last.retry_order        A.r,B.r,C.r,A.i,B.i,C.i
+  [PASS] initfail.last.retry_idle         expect=Idle actual=Idle
+  [PASS] state.start_ok                   expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] state.start_order                D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i
+  [PASS] state.repeat_start_already_started expect=AlreadyStarted actual=AlreadyStarted at=Ready plugin=65535 slot=-1
+  [PASS] state.repeat_start_still_ready   expect=Ready actual=Ready
+  [PASS] state.repeat_start_no_callbacks  D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i
+  [PASS] state.shutdown_ok                expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] state.shutdown_order             D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i,C.s,A.s,B.s,D.s,C.u,A.u,B.u,D.u
+  [PASS] state.idle_shutdown_idempotent   expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] state.idle_shutdown_stays_idle   expect=Idle actual=Idle
+  [PASS] state.idle_shutdown_no_callbacks D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i,C.s,A.s,B.s,D.s,C.u,A.u,B.u,D.u
+  [PASS] state.reentry_start_ok           expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] state.reentry_ready              expect=Ready actual=Ready
+  [PASS] state.reentry_in_register_busy   expect=Busy actual=Busy
+  [PASS] state.reentry_in_init_busy       expect=Busy actual=Busy
+  [PASS] state.reentry_flow_unchanged     D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i
+  [PASS] state.reentry_shutdown_idle      expect=Idle actual=Idle
+  [PASS] state.reentry_shutdown_order     D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i,C.s,A.s,B.s,D.s,C.u,A.u,B.u,D.u
+  [PASS] state.reentry_slots_empty        non_null_slots=0 expect=0
+  [PASS] register.control_start_ok        expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] register.control_ready           expect=Ready actual=Ready
+  [PASS] register.control_order           U.r,V.r,U.i,V.i
+  [PASS] register.control_slot2_table     expect=00007ff7d0171af0 actual=00007ff7d0171af0 slot=2
+  [PASS] register.control_slot3_table     expect=00007ff7d0172430 actual=00007ff7d0172430 slot=3
+  [PASS] register.control_shutdown_ok     expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] register.control_full_order      U.r,V.r,U.i,V.i,V.s,U.s,V.u,U.u
+  [PASS] register.control_slots_empty     non_null_slots=0 expect=0
+  [PASS] register.missing_slot.code       expect=RegisterSlotMissing actual=RegisterSlotMissing at=Registering plugin=0 slot=2
+  [PASS] register.missing_slot.plugin     expect=0 actual=0
+  [PASS] register.missing_slot.slot       expect=2 actual=2
+  [PASS] register.missing_slot.idle       expect=Idle actual=Idle
+  [PASS] register.missing_slot.rollback_order U.r,U.u
+  [PASS] register.missing_slot.slots_empty non_null_slots=0 expect=0
+  [PASS] register.missing_slot.legal_control expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] register.missing_slot.legal_control_order U.r,V.r,U.i,V.i
+  [PASS] register.wrong_owner.code        expect=ServiceOwnerMismatch actual=ServiceOwnerMismatch at=Registering plugin=0 slot=3
+  [PASS] register.wrong_owner.plugin      expect=0 actual=0
+  [PASS] register.wrong_owner.slot        expect=3 actual=3
+  [PASS] register.wrong_owner.idle        expect=Idle actual=Idle
+  [PASS] register.wrong_owner.rollback_order U.r,U.u
+  [PASS] register.wrong_owner.slots_empty non_null_slots=0 expect=0
+  [PASS] register.wrong_owner.legal_control expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] register.wrong_owner.legal_control_order U.r,V.r,U.i,V.i
+  [PASS] register.duplicate_publish.code  expect=ServiceDuplicatePublish actual=ServiceDuplicatePublish at=Registering plugin=0 slot=2
+  [PASS] register.duplicate_publish.plugin expect=0 actual=0
+  [PASS] register.duplicate_publish.slot  expect=2 actual=2
+  [PASS] register.duplicate_publish.idle  expect=Idle actual=Idle
+  [PASS] register.duplicate_publish.rollback_order U.r,U.u
+  [PASS] register.duplicate_publish.slots_empty non_null_slots=0 expect=0
+  [PASS] register.duplicate_publish.legal_control expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] register.duplicate_publish.legal_control_order U.r,V.r,U.i,V.i
+  [PASS] register.slot_out_of_range.code  expect=ServiceSlotOutOfRange actual=ServiceSlotOutOfRange at=Registering plugin=0 slot=64
+  [PASS] register.slot_out_of_range.plugin expect=0 actual=0
+  [PASS] register.slot_out_of_range.slot  expect=64 actual=64
+  [PASS] register.slot_out_of_range.idle  expect=Idle actual=Idle
+  [PASS] register.slot_out_of_range.rollback_order U.r,U.u
+  [PASS] register.slot_out_of_range.slots_empty non_null_slots=0 expect=0
+  [PASS] register.out_of_range_probe_code expect=ServiceSlotOutOfRange actual=ServiceSlotOutOfRange
+  [PASS] register.slot_out_of_range.legal_control expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] register.slot_out_of_range.legal_control_order U.r,V.r,U.i,V.i
+  [PASS] slot.slot63_start_ok             expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] slot.slot63_ready                expect=Ready actual=Ready
+  [PASS] slot.slot63_order                E.r,E.i
+  [PASS] slot.slot63_published            expect=00007ff7d0171af0 actual=00007ff7d0171af0 slot=63
+  [PASS] slot.slot63_indirect_call        expect=42 actual=42
+  [PASS] slot.slot63_shutdown_ok          expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] slot.slot63_full_order           E.r,E.i,E.s,E.u
+  [PASS] slot.slot63_slots_empty          non_null_slots=0 expect=0
+  [PASS] slot.slot64_rejected             expect=ServiceSlotOutOfRange actual=ServiceSlotOutOfRange at=Registering plugin=0 slot=64
+  [PASS] slot.slot64_reported_slot        expect=64 actual=64
+  [PASS] slot.slot64_stays_idle           expect=Idle actual=Idle
+  [PASS] slot.slot64_probe_code           expect=ServiceSlotOutOfRange actual=ServiceSlotOutOfRange
+  [PASS] slot.slot64_leaves_slot63_empty  expect=1 actual=1
+  [PASS] slot.slot64_rollback_order       E.r,E.u
+  [PASS] slot.slot64_no_residual_slots    non_null_slots=0 expect=0
+  [PASS] slot.slot64_legal_control        expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] slot.slot64_legal_control_ready  expect=Ready actual=Ready
+  [PASS] slot.cross_revoke_start_ok       expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] slot.cross_revoke_shutdown_ok    expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] slot.cross_revoke_idle           expect=Idle actual=Idle
+  [PASS] slot.cross_revoke_rejected       expect=ServiceOwnerMismatch actual=ServiceOwnerMismatch
+  [PASS] slot.cross_revoke_keeps_owner_table expect=1 actual=1
+  [PASS] slot.cross_revoke_slots_empty    non_null_slots=0 expect=0
+  [PASS] slot.ready_start_ok              expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] slot.ready_publish_rejected      expect=ServicePublishRejected actual=ServicePublishRejected at=Ready plugin=65535 slot=2
+  [PASS] slot.ready_publish_slot          expect=2 actual=2
+  [PASS] slot.ready_publish_keeps_table   expect=00007ff7d0171af0 actual=00007ff7d0171af0 slot=2
+  [PASS] slot.ready_revoke_rejected       expect=ServiceRevokeRejected actual=ServiceRevokeRejected at=Ready plugin=65535 slot=2
+  [PASS] slot.ready_revoke_keeps_table    expect=00007ff7d0171af0 actual=00007ff7d0171af0 slot=2
+  [PASS] slot.ready_shutdown_ok           expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] slot.ready_all_slots_empty       non_null_slots=0 expect=0
+  [PASS] upstream.start_ok                expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] upstream.ready                   expect=Ready actual=Ready
+  [PASS] upstream.start_order             U.r,V.r,U.i,V.i
+  [PASS] upstream.downstream_saw_service  expect=1 actual=1
+  [PASS] upstream.downstream_add_result   expect=42 actual=42
+  [PASS] upstream.downstream_square_result expect=49 actual=49
+  [PASS] upstream.slot_table_identity     expect=00007ff7d0171af0 actual=00007ff7d0171af0 slot=2
+  [PASS] upstream.host_add_result         expect=3 actual=3
+  [PASS] upstream.host_square_result      expect=144 actual=144
+  [PASS] upstream.shutdown_ok             expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] upstream.full_order              U.r,V.r,U.i,V.i,V.s,U.s,V.u,U.u
+  [PASS] upstream.slots_empty             non_null_slots=0 expect=0
+  [PASS] plan.control_before_batch        expect=1 actual=1
+  [PASS] plan.too_many_plugins.code       expect=PlanTooManyPlugins actual=PlanTooManyPlugins at=Idle plugin=65535 slot=-1
+  [PASS] plan.too_many_plugins.idle       expect=Idle actual=Idle
+  [PASS] plan.too_many_plugins.no_callbacks
+  [PASS] plan.too_many_plugins.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.abi_mismatch.code           expect=PlanAbiMismatch actual=PlanAbiMismatch at=Idle plugin=65535 slot=-1
+  [PASS] plan.abi_mismatch.idle           expect=Idle actual=Idle
+  [PASS] plan.abi_mismatch.no_callbacks  
+  [PASS] plan.abi_mismatch.legal_control  同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.struct_size_mismatch.code   expect=PlanStructSizeMismatch actual=PlanStructSizeMismatch at=Idle plugin=65535 slot=-1
+  [PASS] plan.struct_size_mismatch.idle   expect=Idle actual=Idle
+  [PASS] plan.struct_size_mismatch.no_callbacks
+  [PASS] plan.struct_size_mismatch.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.topo_duplicate.code         expect=PlanInvalidTopology actual=PlanInvalidTopology at=Idle plugin=0 slot=-1
+  [PASS] plan.topo_duplicate.idle         expect=Idle actual=Idle
+  [PASS] plan.topo_duplicate.no_callbacks
+  [PASS] plan.topo_duplicate.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.topo_duplicate.plugin       expect=0 actual=0
+  [PASS] plan.topo_out_of_range.code      expect=PlanInvalidTopology actual=PlanInvalidTopology at=Idle plugin=4 slot=-1
+  [PASS] plan.topo_out_of_range.idle      expect=Idle actual=Idle
+  [PASS] plan.topo_out_of_range.no_callbacks
+  [PASS] plan.topo_out_of_range.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.topo_out_of_range.plugin    expect=4 actual=4
+  [PASS] plan.record_duplicate_id.code    expect=PlanInvalidRecord actual=PlanInvalidRecord at=Idle plugin=1 slot=-1
+  [PASS] plan.record_duplicate_id.idle    expect=Idle actual=Idle
+  [PASS] plan.record_duplicate_id.no_callbacks
+  [PASS] plan.record_duplicate_id.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.record_duplicate_id.plugin  expect=1 actual=1
+  [PASS] plan.record_zero_id.code         expect=PlanInvalidRecord actual=PlanInvalidRecord at=Idle plugin=0 slot=-1
+  [PASS] plan.record_zero_id.idle         expect=Idle actual=Idle
+  [PASS] plan.record_zero_id.no_callbacks
+  [PASS] plan.record_zero_id.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.record_empty_name.code      expect=PlanInvalidRecord actual=PlanInvalidRecord at=Idle plugin=0 slot=-1
+  [PASS] plan.record_empty_name.idle      expect=Idle actual=Idle
+  [PASS] plan.record_empty_name.no_callbacks
+  [PASS] plan.record_empty_name.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.record_name_too_long.code   expect=PlanInvalidRecord actual=PlanInvalidRecord at=Idle plugin=0 slot=-1
+  [PASS] plan.record_name_too_long.idle   expect=Idle actual=Idle
+  [PASS] plan.record_name_too_long.no_callbacks
+  [PASS] plan.record_name_too_long.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.records_null.code           expect=PlanNullPointer actual=PlanNullPointer at=Idle plugin=65535 slot=-1
+  [PASS] plan.records_null.idle           expect=Idle actual=Idle
+  [PASS] plan.records_null.no_callbacks  
+  [PASS] plan.records_null.legal_control  同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.provisions_null.code        expect=PlanNullPointer actual=PlanNullPointer at=Idle plugin=65535 slot=-1
+  [PASS] plan.provisions_null.idle        expect=Idle actual=Idle
+  [PASS] plan.provisions_null.no_callbacks
+  [PASS] plan.provisions_null.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.slot_owner_vs_provision.code expect=PlanInvalidSlotOwner actual=PlanInvalidSlotOwner at=Idle plugin=0 slot=2
+  [PASS] plan.slot_owner_vs_provision.idle expect=Idle actual=Idle
+  [PASS] plan.slot_owner_vs_provision.no_callbacks
+  [PASS] plan.slot_owner_vs_provision.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.slot_owner_vs_provision.slot expect=2 actual=2
+  [PASS] plan.slot_owner_without_provision.code expect=PlanInvalidSlotOwner actual=PlanInvalidSlotOwner at=Idle plugin=0 slot=5
+  [PASS] plan.slot_owner_without_provision.idle expect=Idle actual=Idle
+  [PASS] plan.slot_owner_without_provision.no_callbacks
+  [PASS] plan.slot_owner_without_provision.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.slot_owner_without_provision.slot expect=5 actual=5
+  [PASS] plan.slot_owner_out_of_range.code expect=PlanInvalidSlotOwner actual=PlanInvalidSlotOwner at=Idle plugin=9 slot=5
+  [PASS] plan.slot_owner_out_of_range.idle expect=Idle actual=Idle
+  [PASS] plan.slot_owner_out_of_range.no_callbacks
+  [PASS] plan.slot_owner_out_of_range.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.slot_owner_out_of_range.plugin expect=9 actual=9
+  [PASS] plan.provision_slot_64.code      expect=PlanInvalidProvision actual=PlanInvalidProvision at=Idle plugin=0 slot=64
+  [PASS] plan.provision_slot_64.idle      expect=Idle actual=Idle
+  [PASS] plan.provision_slot_64.no_callbacks
+  [PASS] plan.provision_slot_64.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.provision_slot_64.slot      expect=64 actual=64
+  [PASS] plan.provision_owner_out_of_range.code expect=PlanInvalidProvision actual=PlanInvalidProvision at=Idle plugin=4 slot=2
+  [PASS] plan.provision_owner_out_of_range.idle expect=Idle actual=Idle
+  [PASS] plan.provision_owner_out_of_range.no_callbacks
+  [PASS] plan.provision_owner_out_of_range.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.provision_owner_out_of_range.plugin expect=4 actual=4
+  [PASS] plan.provision_revision_zero.code expect=PlanInvalidProvision actual=PlanInvalidProvision at=Idle plugin=0 slot=2
+  [PASS] plan.provision_revision_zero.idle expect=Idle actual=Idle
+  [PASS] plan.provision_revision_zero.no_callbacks
+  [PASS] plan.provision_revision_zero.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.provision_duplicate_slot.code expect=PlanInvalidSlotOwner actual=PlanInvalidSlotOwner at=Idle plugin=1 slot=2
+  [PASS] plan.provision_duplicate_slot.idle expect=Idle actual=Idle
+  [PASS] plan.provision_duplicate_slot.no_callbacks
+  [PASS] plan.provision_duplicate_slot.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.zero_plugins_with_provision.code expect=PlanInvalidProvision actual=PlanInvalidProvision at=Idle plugin=65535 slot=-1
+  [PASS] plan.zero_plugins_with_provision.idle expect=Idle actual=Idle
+  [PASS] plan.zero_plugins_with_provision.no_callbacks
+  [PASS] plan.zero_plugins_with_provision.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] plan.control_after_batch         expect=1 actual=1
+  [PASS] provision.noslot_start_ok        expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] provision.noslot_ready           expect=Ready actual=Ready
+  [PASS] provision.noslot_start_order     N.r,N.i
+  [PASS] provision.noslot_slots_stay_empty non_null_slots=0 expect=0
+  [PASS] provision.noslot_shutdown_ok     expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] provision.noslot_idle            expect=Idle actual=Idle
+  [PASS] provision.noslot_full_order      N.r,N.i,N.s,N.u
+  [PASS] provision.noslot_slots_empty_after_shutdown non_null_slots=0 expect=0
+  [PASS] provision.mixed_start_ok         expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] provision.mixed_ready            expect=Ready actual=Ready
+  [PASS] provision.mixed_start_order      N.r,U.r,N.i,U.i
+  [PASS] provision.mixed_slot2_published  expect=00007ff7d0171af0 actual=00007ff7d0171af0 slot=2
+  [PASS] provision.mixed_slot2_indirect_call expect=42 actual=42
+  [PASS] provision.mixed_slot_owner_count expect=1 actual=1
+  [PASS] provision.mixed_slot_owner_is_slot_provider expect=1 actual=1
+  [PASS] provision.mixed_shutdown_ok      expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] provision.mixed_idle             expect=Idle actual=Idle
+  [PASS] provision.mixed_full_order       N.r,U.r,N.i,U.i,U.s,N.s,U.u,N.u
+  [PASS] provision.mixed_slots_empty      non_null_slots=0 expect=0
+  [PASS] provision.minus_two_slot.code    expect=PlanInvalidProvision actual=PlanInvalidProvision at=Idle plugin=0 slot=-2
+  [PASS] provision.minus_two_slot.idle    expect=Idle actual=Idle
+  [PASS] provision.minus_two_slot.no_callbacks
+  [PASS] provision.minus_two_slot.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] provision.minus_two_slot.reported_slot expect=-2 actual=-2
+  [PASS] provision.noslot_owner_without_slot.code expect=PlanInvalidSlotOwner actual=PlanInvalidSlotOwner at=Idle plugin=0 slot=7
+  [PASS] provision.noslot_owner_without_slot.idle expect=Idle actual=Idle
+  [PASS] provision.noslot_owner_without_slot.no_callbacks
+  [PASS] provision.noslot_owner_without_slot.legal_control 同环境 A-B-C-D 合法生命周期仍进入 Ready 并回到 Idle
+  [PASS] provision.noslot_owner_without_slot.reported_slot expect=7 actual=7
+  [PASS] provision.control_after_batch_noslot expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] provision.control_after_batch_shutdown expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] provision.control_after_batch_idle expect=Idle actual=Idle
+  [PASS] domain.postcondition_idle        expect=Idle actual=Idle
+  [PASS] domain.postcondition_slots_empty non_null_slots=0 expect=0
+  result: 278 passed / 0 failed / 0 skipped
+
+--------------------------------------------------------------------
+SUMMARY
+  security    : 1 domains / 278 passed / 0 failed / 0 skipped
+  performance : 1 domains / 0 metrics
+                world-class=0  excellent=0  good=0  fair=0  poor=0  terrible=0  ungraded=0
+  exit code   : 0

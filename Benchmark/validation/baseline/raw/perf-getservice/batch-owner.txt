@@ -1,0 +1,10 @@
+# 本目录与唯一构建目录的绑定（同 batch-owner.txt 约定，避免两个构建目录共用原始证据）
+PURPOSE      : perf-getservice —— §16.4 get_service 热路径反汇编核对（只读取证，不产生报告）
+BUILD_DIR    : F:\IDGameEngine\cmake-build-p5-release
+BUILD_CONFIG : CMAKE_BUILD_TYPE=Release  ID_MONOLITHIC_BUILD=OFF  ID_BUILD_BENCHMARK=ON
+GENERATOR    : MinGW Makefiles
+COMPILER     : GCC 16.2.0 (D:/Code/Environment/MinGW/mingw64/bin/c++.exe)
+TOOL         : GNU objdump / nm (GNU Binutils) 2.47.20260726
+CAPTURED_AT  : 2026-10-20 00:01:5x（构建）；反汇编在同一批操作内完成
+OFFICIAL_REPORT : F:\IDGameEngine\Benchmark\report.txt 未被本目录任何操作改写
+                  SHA256 225DF67ABA340BA4F9C5922B13927A36D0FF85176FBEB6684A158C0FAD8ACFBA

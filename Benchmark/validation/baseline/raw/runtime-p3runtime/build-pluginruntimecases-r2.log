@@ -1,0 +1,15 @@
+-- runtime 校验原始日志目录：F:/IDGameEngine/Benchmark/validation/runtime/../baseline/raw/runtime-p3runtime（构建目录 F:/IDGameEngine/cmake-build-p3runtime）
+-- runtime 校验报告目录：F:/IDGameEngine/cmake-build-p3runtime/Benchmark/validation/runtime/out（不覆盖 F:/IDGameEngine/Benchmark/report.txt）
+-- Configuring done (0.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-p3runtime
+[ 40%] Built target ID
+[ 53%] Built target IDPluginStub
+[ 60%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/RuntimeFixture.cpp.obj
+[ 73%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_lifecycle_cases.cpp.obj
+[ 80%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_service_cases.cpp.obj
+[ 86%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+[ 93%] Linking CXX executable out\bin\PluginRuntimeCases.exe
+copy kernel DLL into runtime validation out/bin
+[100%] Built target PluginRuntimeCases

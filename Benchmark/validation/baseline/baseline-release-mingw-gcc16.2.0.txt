@@ -1,0 +1,172 @@
+================================================================================
+改造前基线（before-refactor baseline）—— plugin.service_lookup_and_call 与 ID.Kernel 全域
+================================================================================
+性质说明：
+  1. 本文是「基线快照 / 证据日志」，不是 Benchmark 报告。运行时报告永远是唯一一份
+     Benchmark/report.txt，由 Benchmark.exe 以 "w" 模式覆盖写；本文只是把一次可复核运行
+     的 console 文本与机器环境抄录下来，供后续 P1+ 前后对比使用（grading.md 第 2 节 D 类
+     baseline 证据的做法）。本文件不含任何新的测量结论。
+  2. 本基线对应「插件子系统重构之前」的源码状态：
+     git HEAD = ada3b40 "调整Kernel结构，新增 Benchmark"，工作树在本次测试前为 clean。
+  3. 本次只做只读测量与证据收集，没有修改 ID/**、IDPlugin/**、Sandbox/** 或工作台配置。
+
+--------------------------------------------------------------------------------
+1. 机器与工具链环境（全部为实测读取，不是假设）
+--------------------------------------------------------------------------------
+CPU          : 13th Gen Intel(R) Core(TM) i7-13700（16 核 / 24 逻辑处理器，P+E 混合架构）
+OS           : Microsoft Windows 11 专业版 10.0.26200 build 26200
+Shell        : Windows PowerShell 5.1.26100.9711（zh-CN，代码页 65001）
+CMake        : 4.4.4
+生成器       : MinGW Makefiles
+C++ 编译器   : g++.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 16.2.0
+Make         : GNU Make 4.4.1
+构建类型     : Release（-O3 -ffast-math -fomit-frame-pointer，ID_ENABLE_AVX2=ON）
+构建开关     : ID_MONOLITHIC_BUILD=OFF（ID 为 SHARED），ID_BUILD_BENCHMARK=ON
+计时源       : QPC freq=10000000，resolution=100 ns，affinity=core 0（支持库已绑核）
+报告头 build : Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+
+工程根       : F:\IDGameEngine（由工作台 workbench_config_local.json 的 Paths 解析；
+               IDPath=...\ID，BenchmarkPath=...\Benchmark）
+构建目录     : F:\IDGameEngine\cmake-build-release（git 已忽略 cmake-build-*/）
+产物位置     : F:\IDGameEngine\bin\bin\Benchmark.exe、libID.dll、Sandbox.exe
+               （根 CMakeLists 强制 BIN_DIR=<engine>/bin，Debug/Release 共用，后者覆盖前者）
+report.txt   : F:\IDGameEngine\Benchmark\report.txt（编译期宏注入的绝对路径，与 CWD 无关）
+
+--------------------------------------------------------------------------------
+2. 实际执行的命令（工作目录 + 退出码均为真实记录）
+--------------------------------------------------------------------------------
+CWD = F:\IDGameEngine
+
+  # 2.1 既有 Debug 缓存（用户原有构建目录 build\，MinGW Makefiles + Debug）增量构建
+  cmake --build build --parallel
+      -> exit 0；输出 "Built target ID / IDPluginStub / Sandbox / Benchmark"
+      -> 说明：改造前源码在既有 Debug 配置下可完整构建，没有既有构建失败。
+
+  # 2.2 既有 Debug 缓存运行一次（改造前既有配置的可用性核对）
+  .\bin\bin\Benchmark.exe
+      -> exit 0；75 passed / 0 failed / 13 skipped；4 条指标全部有 actual/reference/ratio/grade
+      -> 该次运行覆盖了 report.txt（此前用户 2026-10-19 12:55 的 Debug 报告快照被覆盖；
+         被覆盖内容只在本会话上下文中读到过，没有版本控制副本，因此不能作为可复核证据）。
+      -> 本次运行补充观察（Debug 未开优化，仅作既有配置可用性证据，不作为性能对照）：
+         plugin.service_lookup_and_call 1.57 ns / 1.70 ns [os-baseline] ratio 0.92 good
+         note 内含 "unstable: 5 轮极差 29%"，memory.alloc_free_512B 亦标 unstable 23%。
+
+  # 2.3 配置独立的 Release 构建目录（不与 Debug 缓存混用）
+  cmake -S . -B cmake-build-release -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+      -> exit 0（Configure done 1.7s / Generate done 0.1s）
+
+  # 2.4 构建 Release
+  cmake --build cmake-build-release --parallel
+      -> exit 0；链接写 F:\IDGameEngine\bin\bin\Benchmark.exe、libID.dll、Sandbox.exe
+      -> 注意：Release 产物覆盖了 bin 下同名 Debug 产物（工程既定行为，非本次引入）。
+
+  # 2.5 连续运行 5 次（每次覆盖 report.txt；console 文本另存为 raw/release-r*.log）
+  & F:\IDGameEngine\bin\bin\Benchmark.exe   (x5)
+      -> 5 次 exit 均为 0
+
+  # 2.6 console 与 report.txt 逐字一致性核对（同一次运行）
+  Compare-Object (report.txt 行集) (raw/release-r5.log 行集)
+      -> 无差异（118 行 vs 118 行，IDENTICAL），符合 skill 的验收口径。
+
+--------------------------------------------------------------------------------
+3. 正确性基线（改造前）
+--------------------------------------------------------------------------------
+  security : 1 domain（ID.Kernel）/ 75 passed / 0 failed / 13 skipped
+  exit code: 0
+  13 条 SKIP 全部是「契约本身即 Fatal/断言 abort，需要子进程隔离」的路径（日志断言、
+  插件缺依赖/环/依赖数>32、null 描述符、init 失败回滚、槽位越界、并发写、大对象 magic
+  碰撞 K1 等），与 skills/id-kernel 的 K 系列缺口描述一致；本次没有改动这些行为。
+
+--------------------------------------------------------------------------------
+4. 性能基线（Release，同一构建连续 5 次；raw/release-r1..5.log）
+--------------------------------------------------------------------------------
+指标口径（既有实现，本次未改动）：
+  - 每条指标都在同一轮、同一进程内测对照实现，参考值 = 同轮对照实测 × 目标倍数。
+  - 单轮目标 100 ms，5 轮取中位数；单次迭代数按标定放大（上限 1<<26）。
+  - 极差 > 20% 时用例自己在 note 里追加 unstable。
+
+指标 1：plugin.service_lookup_and_call（本次重点比对的基线指标）
+  轮次      actual       reference(=control*1.2)   ratio   grade
+  r1        0.23 ns      0.41 ns [os-baseline]     0.55    excellent
+  r2        0.23 ns      0.40 ns [os-baseline]     0.57    excellent
+  r3        0.23 ns      0.40 ns [os-baseline]     0.57    excellent
+  r4        0.23 ns      0.39 ns [os-baseline]     0.60    excellent
+  r5        0.23 ns      0.40 ns [os-baseline]     0.57    excellent
+  5 次中位数 0.23 ns；极差 (0.23-0.23)/0.23 = 0%；等级 5/5 稳定 excellent。
+  同轮对照（volatile 全局函数表指针 + 间接调用）= 0.39~0.41 ns。
+  该读数只作为"同一构建、相邻时段"的保存基线使用：待测路径没有 volatile 防优化，
+  对照实现用了 volatile 全局表指针，两侧防优化强度不对称；同一指标在
+  MONOLITHIC=ON + LTO 下已被实测折叠成 n/a/ungraded（见本文件 7.2 与
+  D3 记录）。因此**不能**用这条 ns 读数证明"热路径没有额外间接层"，
+  也没有目标代码（反汇编）证据；需要下该结论时必须另做不可折叠的测量并附反汇编。
+  此读数只对本机、本构建、本次运行成立。
+
+指标 2：memory.alloc_free_16B
+  r1..r5 actual = 3.72 / 3.73 / 3.72 / 3.84 / 3.70 ns（中位数 3.72 ns）
+  reference 同轮 std::malloc(16)+free = 22.48~23.01 ns，ratio 0.16~0.17，5/5 world-class
+
+指标 3：memory.alloc_free_512B
+  r1..r5 actual = 3.75 / 3.78 / 3.74 / 3.83 / 3.78 ns（中位数 3.78 ns）
+  reference 同轮 std::malloc(512)+free = 22.51~24.54 ns，ratio 0.16~0.17，5/5 world-class
+
+指标 4：memory.large_object_page
+  r1..r5 actual = 2579.19 / 2566.72 / 2619.34 / 2587.91 / 2585.70 ns
+  reference 同轮 os_alloc_aligned_64k(64KB)+free = 2488.33~2568.83 ns，ratio 1.01~1.05，
+  5/5 good
+
+补充观察（同一份源码、同一组 Release 编译参数，但构建目录第一次创建时的一组 5 次运行，
+原始日志 raw/preliminary-build1-r*.log）：
+  plugin.service_lookup_and_call actual = 0.39 / 0.30 / 0.37 / 0.28 / 0.28 ns，
+  ratio 0.55~0.67，等级同样 5/5 excellent；该构建目录因为落在未被 gitignore 的
+  build-release\ 下，已被删除并按 cmake-build-release 重建（重建后即为上面第 4 节的
+  官方基线）。两组读数说明：亚纳秒指标在「跨构建」之间的波动可达 ~1.7 倍，但等级
+  （excellent）稳定；改造后对比必须用同一构建目录、同一构建参数、相邻时段运行。
+
+--------------------------------------------------------------------------------
+5. 本基线的局限（必须随结论一起引用）
+--------------------------------------------------------------------------------
+1. 只有 MinGW/GCC 16.2.0 + Release + MONOLITHIC=OFF 一组实测数据；MSVC、clang、
+   MONOLITHIC=ON、Debug 与其它机器均为未验证，不能把本机结论外推。
+2. plugin.service_lookup_and_call 的绝对值在 0.2~0.4 ns 量级，接近"每次迭代一次 load +
+   一次间接调用"的硬件下界；GCC 在 -O3 下可能把对照循环与待测循环各自强度削减，因此该
+   指标适合做同机前后对比（ratio 与等级），不适合当绝对性能目标。
+   （2026-10-20 补充：事后反汇编确认这两条 0.2~0.4 ns 读数的默认路径**没有**执行间接调用，
+   属去虚拟化口径；修正与不可比说明见第 6 节末行与 validation/perf-getservice-evidence.txt 第 10 节。）
+3. 既有实现自身在部分运行会标 unstable（如 Debug 下 512B 与槽位查房的 5 轮极差 23%~29%），
+   说明本机存在调度/调频噪声；本次 Release 5 次运行未触发 unstable，但不代表噪声消失。
+4. report.txt 是唯一报告文件，每次运行覆盖；上面的 raw/*.log 是 console 文本证据，不是
+   第二份报告，任何历史读数都必须连同 raw 日志与本文件的构建参数一起引用。
+5. bin/ 下 Debug 与 Release 共用目录，本次构建后 bin 中的产物是 Release；如果后续要跑
+   Debug 版本，需要重新构建，不能依赖残留产物。
+
+--------------------------------------------------------------------------------
+6. 后续（P1+）对比规则
+--------------------------------------------------------------------------------
+- 只与第 4 节的 Release 基线比较：同机、同编译器、同构建类型、同优化参数、同计时设置。
+- 先确认 report.txt 的 build 行与本文件一致，再看 plugin.service_lookup_and_call 的
+  actual / ratio / grade 与 note 是否带 unstable。
+- 指标名 plugin.service_lookup_and_call 不无故改名（计划书 16.4 要求）。
+- 若后续实现让该指标显著变化，必须同时给出 get_service 路径的目标代码证据（例如
+  objdump 反汇编），不能只用 ns 数值推断是否存在额外间接层。
+- 2026-10-20 口径变更：该指标的被测表达式与同轮对照都改为经空 asm 屏障后**真实执行一次间接
+  调用**（证据：validation/perf-getservice-evidence.txt 第 10 节）。第 4 节与 7.1 节记录的
+  0.23~0.25 ns 属去虚拟化口径，与修正后的 1.59 ns **不可直接比较**，不能再当回归基线；
+  引用本文件时必须同时说明这一点。
+
+--------------------------------------------------------------------------------
+7. 补充记录（同日二次核对，均为改造前代码）
+--------------------------------------------------------------------------------
+7.1 非 monolithic Release 复跑（cmake-build-release，LTO=OFF / MONOLITHIC=OFF）：
+    plugin.service_lookup_and_call  0.25 ns / 0.45 ns [os-baseline] ratio 0.56 excellent
+    security 75 passed / 0 failed / 13 skipped，exit code 0，report.txt 仍为单文件覆盖写。
+    与第 4 节的 0.23 ns 同档，差异在噪声带内。
+
+7.2 MONOLITHIC=ON（STATIC 内核 + LTO）下的观察——测量健壮性问题，改造前即存在：
+    同一份 kernel_performance.cpp 在该模式下得到
+      plugin.service_lookup_and_call  actual = n/a（实际算成 <= 0）→ ungraded → SUMMARY 记 1 failed
+    原因是 LTO 下 mix_round 与槽位数组都被内联/常量折叠，整段循环可被闭式求值。
+    该次运行的 metric 观察记录：Benchmark/validation/baseline/raw/monolithic-metric-observation.log
+    影响：P1 若要比较 STATIC 与 SHARED 两种产品，必须先让该指标不可折叠（例如让表指针来自
+    跨 TU 的 volatile 或从真实插件读取），否则 STATIC 侧永远得到 ungraded + FAIL。
+    本次未修改该指标实现（属于既有 Benchmark 资产），只记录事实。
+================================================================================

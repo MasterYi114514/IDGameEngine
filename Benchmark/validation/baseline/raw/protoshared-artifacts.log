@@ -1,0 +1,91 @@
+﻿===== SHARED build dir: F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype =====
+
+-- artifacts + sha256 --
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureCaseControls.exe  size=90209  time=2026-10-19T17:17:40.8692670+08:00  sha256=9652A3EE38DF54FDCB145C9DEBEC2A81338B5F0A6FC82E150AD1C56984F501BC
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixturePrototype.exe  size=101646  time=2026-10-19T17:17:33.7312943+08:00  sha256=53E3F15C839F70DAD34C004F11586130BFFF599BDAB289F4498B7F3DA8DDC0E4
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureZeroPrototype.exe  size=84742  time=2026-10-19T17:17:34.5349146+08:00  sha256=9E35BE5D5257AF27698EA445C27E1E0BB581A1DEAB07CE6AF2530C8ADB9674F0
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\libID.dll  size=90972  time=2026-10-19T17:16:22.4947851+08:00  sha256=2B8A895E1706A8AFD6DB644507E5AF74EAFDE7EC94F0C3AC6460A03F9E700635
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\libIDFixtureAlpha.dll  size=53498  time=2026-10-19T17:16:20.9008547+08:00  sha256=3B023E30D132930429C6E8357CD57102BF0330B2607450F4A97D62310537CA01
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\libIDFixtureBeta.dll  size=53476  time=2026-10-19T17:16:21.3953040+08:00  sha256=48B7BEFE813ACD12D8206A4562082EAB0AEC5339E77DCFA0CE9FD0C687778BA5
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\lib\libIDFixtureAlpha.dll.a  size=6518  time=2026-10-19T17:16:20.8963612+08:00  sha256=32C5A357B4F8A877DF1D8F0DA38D4F931D14F7E1B2C646FAD80FD7A44594348F
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\lib\libIDFixtureAssembly.a  size=3942  time=2026-10-19T17:17:33.4730522+08:00  sha256=DB76E1FF662B4036C86B72C3ADF38C2CE87EF9337B2E66490D4CD389A93F5A2C
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\lib\libIDFixtureBeta.dll.a  size=5780  time=2026-10-19T17:16:21.3903053+08:00  sha256=568D879949FAD0439D99F7F46B1D6E9EF2C8BAA0BE5F0236AD414B8D285B7E21
+
+-- objdump -p FixturePrototype.exe : DLL Name / Export --
+	DLL Name: KERNEL32.dll
+	DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+	DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+	DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+	DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+	DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+	DLL Name: api-ms-win-crt-math-l1-1-0.dll
+	DLL Name: api-ms-win-crt-private-l1-1-0.dll
+	DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+	DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+	DLL Name: api-ms-win-crt-string-l1-1-0.dll
+	DLL Name: libID.dll
+	DLL Name: libIDFixtureAlpha.dll
+	0000e5e0  <none>  0000  FixtureAlphaHeapProbe
+	0000e5e8  <none>  0001  FixtureAlphaKernelInstance
+	0000e5f0  <none>  0002  FixtureAlphaOnInit
+	0000e5f8  <none>  0003  FixtureAlphaOnRegister
+	0000e600  <none>  0004  FixtureAlphaOnShutdown
+	0000e608  <none>  0005  FixtureAlphaOnUnload
+	0000e610  <none>  0007  FixtureAlphaState
+	DLL Name: libIDFixtureBeta.dll
+	0000e620  <none>  0000  FixtureBetaHeapProbe
+	0000e628  <none>  0001  FixtureBetaKernelInstance
+	0000e630  <none>  0002  FixtureBetaOnInit
+	0000e638  <none>  0003  FixtureBetaOnRegister
+	0000e640  <none>  0004  FixtureBetaOnShutdown
+	0000e648  <none>  0005  FixtureBetaOnUnload
+	0000e650  <none>  0006  FixtureBetaState
+
+-- objdump -p libIDFixtureAlpha.dll : DLL Name / Export --
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\libIDFixtureAlpha.dll:     file format pei-x86-64
+	DLL Name: KERNEL32.dll
+	DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+	DLL Name: api-ms-win-crt-private-l1-1-0.dll
+	DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+	DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+	DLL Name: api-ms-win-crt-string-l1-1-0.dll
+	DLL Name: libID.dll
+Name 				0000000000008078 libIDFixtureAlpha.dll
+	Export Address Table 		00000008
+	Export Address Table 		0000000000008028
+Export Address Table -- Ordinal Base 1
+[Ordinal/Name Pointer] Table -- Ordinal Base 1
+	[   0] +base[   1]  0000 FixtureAlphaHeapProbe
+	[   1] +base[   2]  0001 FixtureAlphaKernelInstance
+	[   2] +base[   3]  0002 FixtureAlphaOnInit
+	[   3] +base[   4]  0003 FixtureAlphaOnRegister
+	[   4] +base[   5]  0004 FixtureAlphaOnShutdown
+	[   5] +base[   6]  0005 FixtureAlphaOnUnload
+	[   6] +base[   7]  0006 FixtureAlphaPublish
+	[   7] +base[   8]  0007 FixtureAlphaState
+
+-- objdump -p libIDFixtureBeta.dll : DLL Name / Export --
+F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\libIDFixtureBeta.dll:     file format pei-x86-64
+	DLL Name: libIDFixtureAlpha.dll
+	000091d0  <none>  0006  FixtureAlphaPublish
+	DLL Name: KERNEL32.dll
+	DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+	DLL Name: api-ms-win-crt-private-l1-1-0.dll
+	DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+	DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+	DLL Name: api-ms-win-crt-string-l1-1-0.dll
+	DLL Name: libID.dll
+Name 				000000000000806e libIDFixtureBeta.dll
+	Export Address Table 		00000007
+	Export Address Table 		0000000000008028
+Export Address Table -- Ordinal Base 1
+[Ordinal/Name Pointer] Table -- Ordinal Base 1
+	[   0] +base[   1]  0000 FixtureBetaHeapProbe
+	[   1] +base[   2]  0001 FixtureBetaKernelInstance
+	[   2] +base[   3]  0002 FixtureBetaOnInit
+	[   3] +base[   4]  0003 FixtureBetaOnRegister
+	[   4] +base[   5]  0004 FixtureBetaOnShutdown
+	[   5] +base[   6]  0005 FixtureBetaOnUnload
+	[   6] +base[   7]  0006 FixtureBetaState
+
+-- nm -C -u EXE (imported ID symbols) --

@@ -1,0 +1,30 @@
+MODE: production-p1production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p1production
+CWD: F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production
+TARGET: production_expect_aux_assert_failure
+EXPECTED_MARKER: SelfDependency
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production --target production_expect_aux_assert_failure
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 2
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[ 75%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_aux_assert_failure.dir/src/cases/case_aux_assert_failure.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_aux_assert_failure.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:945:101: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:SelfDependency
+  945 |     static_assert(::ID::Bench::Production::error_differs<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_aux_assert_failure.cpp:18:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   18 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, SelfDependency);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_aux_assert_failure.cpp:21:38: error: static assertion failed: aux_assert_failure: 辅助断言故意失败，用于验证驱动器的失败断言计数判据
+   21 |     static_assert(kPlan.active_count == 2,
+      |                   ~~~~~~~~~~~~~~~~~~~^~~~
+  • the comparison reduces to '(0 == 2)'
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_aux_assert_failure.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_aux_assert_failure.dir/src/cases/case_aux_assert_failure.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:2787: Benchmark/validation/production/CMakeFiles/production_expect_aux_assert_failure.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:2794: Benchmark/validation/production/CMakeFiles/production_expect_aux_assert_failure.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:1157: Benchmark/validation/production/CMakeFiles/production_expect_aux_assert_failure.dir/rule] Error 2
+

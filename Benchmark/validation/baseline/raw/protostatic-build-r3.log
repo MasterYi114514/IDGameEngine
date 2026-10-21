@@ -1,0 +1,24 @@
+﻿[ 29%] Built target ID
+[ 41%] Built target IDPluginStub
+[ 52%] Built target IDFixtureAlpha
+[ 64%] Built target IDFixtureBeta
+[ 70%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixturePlan.cpp.obj
+[ 76%] Linking CXX static library out\lib\libIDFixtureAssembly.a
+[ 88%] Built target IDFixtureAssembly
+[ 94%] Linking CXX executable out\bin\FixturePrototype.exe
+cmake : D:\Code\Environment\MinGW\mingw64\bin\ar.exe: CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj: p
+lugin needed to handle lto object
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792401711916-vmy65f.ps1:954 字符: 26
++ ... ngine; $b = cmake --build cmake-build-protostatic --target FixturePro ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D:\Code\Environ...ndle lto object:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[100%] Built target FixtureZeroPrototype
+[ 17%] Built target ID
+[ 25%] Built target IDPluginStub
+[ 92%] Built target IDFixtureLegalCases
+[100%] Built target FixtureCaseControls

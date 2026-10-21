@@ -1,0 +1,18 @@
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protostatic/Benchmark/validation/prototype --target fixture_expect_cycle_long
+EXIT: 2
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle_long.dir/src/cases/case_cycle_long.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle_long.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:140:100: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:Cycle
+  140 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<::ID::Bench::Fixture::ErrorCode::code>(plan),            \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle_long.cpp:131:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+  131 |     ID_FIXTURE_EXPECT_ERROR(kPlan, Cycle);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_cycle_long.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle_long.dir/src/cases/case_cycle_long.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1359: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle_long.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1366: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle_long.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:527: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle_long.dir/rule] Error 2
+

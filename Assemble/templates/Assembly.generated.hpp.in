@@ -1,0 +1,108 @@
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <string_view>
+#include <tuple>
+
+#include "Kernel/Plugin.hpp"
+
+/**
+ *  本产品（@ID_ASM_ASSEMBLY_NAME@）的编译期组装输入与结果
+ *  由 Assemble/cmake/IDGenerateAssembly.cmake 依据 plugin.json + profile 生成，勿手改
+ *  1. catalog 与选中集合来自同一份 JSON 元数据，本头不提供第二份人工依赖清单；
+ *  2. 构建证据（逐需求 provider / 真实链接边 / 槽位归属 / 运行期绑定元数据）由 CMake 解析结果派生，
+ *     C++ 侧 sort_and_validate 会逐项复核，任何一项不一致都编译失败（计划书 8.5）；
+ *  3. 全部内容都是常量求值结果：不产生运行期全局构造，也不包含未选中插件的任何声明。
+ */
+
+namespace ID::Assembly::Generated
+{
+    inline constexpr std::size_t kCatalogCount   = @ID_ASM_CATALOG_COUNT@;
+    inline constexpr std::size_t kSelectedCount  = @ID_ASM_SELECTED_COUNT@;
+    inline constexpr std::size_t kBindingCount   = @ID_ASM_BINDING_COUNT@;
+    inline constexpr std::size_t kEdgeCount      = @ID_ASM_EDGE_COUNT@;
+    inline constexpr std::size_t kSlotCount      = @ID_ASM_SLOT_COUNT@;
+    inline constexpr std::size_t kProvisionCount = @ID_ASM_PROVISION_COUNT@;
+
+    /**
+     *  @brief 完整 catalog：名字、候选组、需求契约与 provides 全部来自各自的 plugin.json
+     *  @return std::tuple<PluginCatalogEntry<...>...>；每个条目的容量按该插件的真实规模给出
+     */
+    consteval auto make_catalog() noexcept
+    {
+        return std::tuple{
+@ID_ASM_CATALOG_ENTRIES@
+        };
+    }
+
+    using CatalogType = decltype(make_catalog());
+
+    /**
+     *  @brief 组装输入形状：容量全部由生成器已知的数组长度给出（计划书 5.4）
+     *  @note RuntimeEvidenceCapacity 取缺省值（catalog 全量 provides 容量之和），
+     *        保证任何合法选中集合的运行期绑定记录都放得下
+     */
+    using Shape = ID::PluginCompileTime::AssemblyShape<CatalogType,
+                                                       kSelectedCount,
+                                                       kSelectedCount,
+                                                       kBindingCount,
+                                                       kEdgeCount,
+                                                       kSlotCount>;
+
+    // 选中身份：0 个选中也显式给出元素类型与数量，不依赖空 CTAD（计划书 12.3）
+    inline constexpr std::array<ID::PluginCompileTime::PluginIdentity, kSelectedCount> kSelected{
+@ID_ASM_SELECTED_ENTRIES@
+    };
+
+    /**
+     *  @brief CMake 派生的构建证据
+     *  @return 逐需求 provider、真实链接边、槽位归属、选中目标/身份宏/身份与运行期绑定元数据
+     */
+    consteval ID::PluginCompileTime::AssemblyEvidence<Shape> make_evidence() noexcept
+    {
+        ID::PluginCompileTime::AssemblyEvidence<Shape> evidence{};
+        evidence.selected_count = kSelectedCount;
+        evidence.binding_count  = kBindingCount;
+        evidence.edge_count     = kEdgeCount;
+        evidence.slot_count     = kSlotCount;
+        evidence.runtime_count  = kProvisionCount;
+@ID_ASM_EVIDENCE_BODY@
+        return evidence;
+    }
+
+    inline constexpr auto kEvidence = make_evidence();
+
+    /**
+     *  @brief 第三个编译期操作族的完整输入
+     *  @return 结构修订 + 完整 catalog + 显式选中集合 + 构建证据
+     */
+    consteval ID::PluginCompileTime::AssemblyInput<Shape> make_input() noexcept
+    {
+        ID::PluginCompileTime::AssemblyInput<Shape> input{};
+        input.catalog  = make_catalog();
+        input.selected = kSelected;
+        input.evidence = kEvidence;
+        return input;
+    }
+
+    inline constexpr auto kInput = make_input();
+
+    /**
+     *  @brief 编译期组装结果：唯一绑定、去重边、确定性拓扑序、槽位归属与指纹
+     *  @note 运行期不重新求解依赖，也不重排；绑定 TU 按这份 canonical 顺序建表
+     */
+    inline constexpr auto kPlan = ID::PluginManager::sort_and_validate(kInput);
+
+    /**
+     *  @brief 本产品的确定性指纹（计划书 13.3）
+     *  @note 输入是"选中插件精确名字 + 接口修订 + 逐需求绑定 + 槽位归属 + schema"的规范化序列，
+     *        不含运行期地址、源文件绝对路径、catalog 枚举顺序或 profile 书写顺序，
+     *        因此打乱 catalog、选中集合或候选顺序都不会改变它（由 Benchmark 置换用例与
+     *        Assemble 的置换复算共同锁定）；
+     *  @note 它只用于追踪组装结果，**不是**密码学签名，也不是 ABI 兼容或跨平台二进制可复现的证明；
+     *        CMake 侧不重算这个数值（重算等于维护第二份算法），构建证据里记录的是它的输入序列。
+     */
+    inline constexpr std::uint64_t kProductFingerprint = kPlan.fingerprint;
+} // namespace ID::Assembly::Generated

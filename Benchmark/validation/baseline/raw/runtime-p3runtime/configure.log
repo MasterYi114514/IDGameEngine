@@ -1,0 +1,11 @@
+-- The CXX compiler identification is GNU 16.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: D:/Code/Environment/MinGW/mingw64/bin/c++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- runtime 校验原始日志目录：F:/IDGameEngine/Benchmark/validation/runtime/../baseline/raw/runtime-p3runtime（构建目录 F:/IDGameEngine/cmake-build-p3runtime）
+-- runtime 校验报告目录：F:/IDGameEngine/cmake-build-p3runtime/Benchmark/validation/runtime/out（不覆盖 F:/IDGameEngine/Benchmark/report.txt）
+-- Configuring done (1.2s)
+-- Generating done (0.1s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-p3runtime

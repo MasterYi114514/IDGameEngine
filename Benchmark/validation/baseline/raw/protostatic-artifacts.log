@@ -1,0 +1,7 @@
+﻿===== STATIC Release build dir: F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype (rebuild after FixturePlan message edit) =====
+F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\bin\FixtureCaseControls.exe  size=90209  time=2026-10-19T17:18:06.9363270+08:00  sha256=516E82B00A5C76165232F04E2918BA6E04F09BE4E9132BE8D749CC1A3B328FAE
+F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\bin\FixturePrototype.exe  size=307802  time=2026-10-19T17:21:54.4050092+08:00  sha256=DCE7FBF0F899B562C2DEEAC905DE32057C11D9969AC4D2BF2A843C03C480EAEC
+F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\bin\FixtureZeroPrototype.exe  size=84742  time=2026-10-19T17:18:04.5916667+08:00  sha256=C211F02A03BB5DB9A525746290A68938D1C5634CBACCB28F80F7D08F13CC251B
+F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\lib\libIDFixtureAlpha.a  size=14142  time=2026-10-19T17:18:01.9108973+08:00  sha256=35EB7E118A1E89125DA53993C9F1E443E0F246233A6E3C7610A11C22FA4FD56E
+F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\lib\libIDFixtureAssembly.a  size=14594  time=2026-10-19T17:21:53.9782333+08:00  sha256=372DC2857462C654096B9CD6D02BB7EFFA235048E95CA2965A095CCBBC8B63FE
+F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\lib\libIDFixtureBeta.a  size=12702  time=2026-10-19T17:18:02.3826362+08:00  sha256=F6D2C65879C7CB164A0CFD90EF18E4CB911D5C7E0043B0F836653A8780A3B8EA

@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Fixture.Beta",
+    "target": "IDFixtureBeta",
+    "namespace": "ID::Bench::Fixture",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [
+        ["ID.Fixture.Alpha"]
+    ],
+    "provides": "ID.Fixture.Beta",
+    "api_revision": 1,
+    "lifecycle": "standard"
+}

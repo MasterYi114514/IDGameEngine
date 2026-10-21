@@ -1,0 +1,335 @@
+================================================================================
+P4 测试侧迁移证据：ID.Kernel 用例从旧 PluginManager 运行期契约迁到 PluginRuntime
+================================================================================
+性质：实测证据记录，不是设计文档，也不是 Benchmark 报告。
+      本文所有结论都来自本轮真实 configure / build / 运行；没有用静态推导替代实测。
+      逐用例明细就是 raw/kernel-p4-release/run2.stdout.txt，与
+      Benchmark/report.txt 逐字节一致（各 12045 字节，SHA256 相同）。
+
+被测实现（owner 所有，本轮只读，未修改任何一行）：
+  ID/include/Kernel/PluginRuntime.hpp
+  ID/src/Kernel/PluginRuntime.cpp
+  ID/include/Kernel/Plugin.hpp              （旧运行期接口仍在，属于待退役的另一阶段）
+  ID/include/Kernel/PluginCompileTime.hpp
+运行时缺陷 D-P3-1（零插件全空视图 shutdown abort）已在被测源码中修好：
+  ID/src/Kernel/PluginRuntime.cpp 的 shutdown() 只断言 m_active_plan != nullptr；
+  本轮用重建后的运行期校验可执行文件复核（见第 6.4 节，278 passed / 0 failed / 0 skipped）。
+
+本轮改动边界：只改 Benchmark/src/kernel/**（两个 TU），新增本证据文件。
+  ID/**、IDPlugin/**、Assemble/**、Sandbox/**、根与各层 CMakeLists.txt、Benchmark/CMakeLists.txt、
+  Benchmark/validation/** 的其余文件、workbench_config_local.json、skills/** 全部未修改；
+  未提交、未推送、未派 subagent。
+  生成物（非源码、被 .gitignore 忽略）：F:\IDGameEngine\cmake-build-release、
+  F:\IDGameEngine\cmake-build-p3runtime、F:\IDGameEngine\bin（libID.dll 由根 CMake 强制输出到共享 bin）。
+
+环境：GCC 16.2.0（MinGW-w64 x86_64-posix-seh）/ CMake 4.4.4 / MinGW Makefiles / Release /
+      MONOLITHIC=OFF / AVX2=ON / CPU 13th Gen Intel(R) Core(TM) i7-13700。
+
+--------------------------------------------------------------------------------
+1. 盘点：Benchmark/src/kernel/** 里依赖旧运行期 API 的用例
+--------------------------------------------------------------------------------
+文件 A：Benchmark/src/kernel/kernel_security.cpp（域 ID.Kernel — Security）
+  依赖形态：ID::PluginManager::instance()、register_plugin(const PluginDescriptor*)、
+            initialize_all()、shutdown_all()、registered_count()、topological_order()、
+            register_service()/get_service()，以及 PluginDescriptor / PluginDependency
+            （含 compatible_ids 白名单 = 旧 OR 语义）。共 28 条用例，其中 20 条有判定、8 条为 SKIP
+            （6 条插件侧 + 2 条槽位侧）：
+    1  plugin.register.accepted              描述符首次登记成功
+    2  plugin.register.duplicate             同一 plugin_id 第二次登记被拒
+    3  plugin.register.count                 registered_count() == 3
+    4  plugin.init.success                  initialize_all() 成功
+    5  plugin.topo.chain_order               topological_order() 为 A,B,C
+    6  plugin.lifecycle.sequence             四阶段整串 RARBRCIAIBICSCSBSAUCUBUA
+    7  plugin.shutdown.clears_registry       shutdown_all 后注册表与拓扑序清空
+    8  plugin.lifecycle.reinit               关闭后可重新登记并再次初始化
+    9  plugin.init.empty_graph               0 插件 initialize_all 成功
+    10 plugin.register.capacity_128          128 次登记全部成功
+    11 plugin.register.capacity_129          第 129 个登记被拒
+    12 plugin.init.capacity_128              128 个零依赖插件完成拓扑排序与初始化
+    13 plugin.dag.diamond_init               菱形图初始化成功
+    14 plugin.dag.diamond_order              菱形图拓扑偏序 A<B/C<D
+    15 plugin.dag.compatible_whitelist       “白名单任一候选版本达标即可满足”（旧 OR）
+    16 plugin.dag.whitelist_order            达标后端排在消费方之前
+    17 [SKIP] plugin.dag.missing_dependency  缺依赖 -> Level::Fatal -> abort
+    18 [SKIP] plugin.dag.cycle               环 -> Level::Fatal -> abort
+    19 [SKIP] plugin.dag.dependencies_over_32 依赖 > 32 -> Level::Fatal -> abort
+    20 [SKIP] plugin.register.null_descriptor 空描述符 -> ID_KERNEL_ASSERT -> abort
+    21 [SKIP] plugin.register.after_init     初始化后登记 -> ID_KERNEL_ASSERT -> abort
+    22 [SKIP] plugin.init.on_init_failure    on_init 失败 -> Fatal，回滚不可达（旧 K3）
+    23 slot.store_and_load                   register_service + get_service 取回同一指针
+    24 slot.overwrite_last_wins              “同一槽后写覆盖先写”
+    25 slot.independent                      两个槽互不影响
+    26 slot.unregister                       写 nullptr 表示卸下
+    27 [SKIP] slot.out_of_range              旧接口无边界检查，越界写是 UB（旧 K4）
+    28 [SKIP] slot.concurrent_write         旧契约声明单线程写，无并发契约
+
+文件 B：Benchmark/src/kernel/kernel_performance.cpp（域 ID.Kernel — Performance）
+  依赖形态：PluginManager::instance().register_service()/get_service() 作为
+            plugin.service_lookup_and_call 的被测路径与被测槽表。不是“用例”，但同样会让
+            “删除旧运行期 API”无法编译，因此本次一并迁移（指标键、参考值算法、basis、目标倍数均未改）。
+
+迁移后核实：Benchmark/src 里已经没有任何旧运行期 API 的代码引用
+  （grep PluginManager::instance / register_plugin(& / initialize_all / shutdown_all /
+   PluginDescriptor / PluginDependency / registered_count() / topological_order() /
+   register_service 在 Benchmark/src 下只剩一条解释性注释）。
+
+--------------------------------------------------------------------------------
+2. 逐用例映射：旧用例 -> 新用例，或删除理由
+--------------------------------------------------------------------------------
+原则：不保留旧 OR 语义；凡新契约下不成立的旧断言一律删除并在此列出理由，
+      没有一条是靠放宽断言“变绿”的。
+
+旧 1  plugin.register.accepted
+  新 runtime.lifecycle.start_ok
+  说明：新契约没有逐个描述符登记入口（计划书 10.1）；“计划被接受”由 start 的预检 + 进入 Ready 表达。
+
+旧 2  plugin.register.duplicate
+  新 runtime.plan.duplicate_identity（重复身份 -> PlanInvalidRecord，plugin=1）
+  说明：产品内身份唯一由运行期计划预检把关；编译期同名由 DuplicatePlugin 拒绝
+        （validation/production/src/cases/case_duplicate_plugin.cpp）。
+
+旧 3  plugin.register.count
+  删  理由：registered_count() 随旧登记入口一起退役，没有等价访问器；计划条数由 plugin_count
+        与执行序列（runtime.order.follows_plan）证明。
+
+旧 4  plugin.init.success
+  新 runtime.lifecycle.start_ok（Ready）
+
+旧 5  plugin.topo.chain_order
+  新 runtime.order.follows_plan
+  说明：records 故意倒序（C,B,A）+ topo_order 显式 A,B,C，断言 register/init 序列 = RARBRCIAIBIC，
+        证明运行期只认计划给序、不按 records 下标执行；拓扑求解本身属编译期
+        （validation/production/src/positive/positive_graph.cpp）。
+
+旧 6  plugin.lifecycle.sequence
+  新 runtime.lifecycle.sequence（期望串与旧用例完全相同：RARBRCIAIBICSCSBSAUCUBUA）
+
+旧 7  plugin.shutdown.clears_registry
+  新 runtime.shutdown.clears_slots + runtime.lifecycle.shutdown_ok
+  说明：旧断言看“注册表与拓扑序清空”，新契约看“回到 Idle 且 64 槽全空”。
+
+旧 8  plugin.lifecycle.reinit
+  新 runtime.lifecycle.retry（同一计划关闭后再次 start 成功并完整走完四阶段）
+
+旧 9  plugin.init.empty_graph
+  新 runtime.zero_plugins.start / runtime.zero_plugins.shutdown（显式空数组计划，零回调）
+  说明：全空指针视图（records 等为 nullptr）由 validation/runtime 的独立进程探针覆盖，
+        不放进官方套件，避免断言回退时整份报告丢失。
+
+旧 10 plugin.register.capacity_128
+旧 12 plugin.init.capacity_128
+  新 runtime.capacity.128 / runtime.capacity.128_close（128 条记录的计划走完整生命周期）
+
+旧 11 plugin.register.capacity_129
+  新 runtime.capacity.129（PlanTooManyPlugins；数组指针全空，若先索引再校验会崩溃而不是返回错误）
+
+旧 13 plugin.dag.diamond_init
+  新 runtime.diamond.start_ok
+
+旧 14 plugin.dag.diamond_order
+  新 runtime.diamond.order
+  说明：运行期不做图推理，用例锁定“计划顺序被逐字执行”（records 倒序 D,C,B,A + topo A,B,C,D）；
+        菱形偏序本身的正确性属编译期，见 validation/production 的 positive_graph。
+
+旧 15 plugin.dag.compatible_whitelist（旧 OR：任一候选达标即可）
+  新 assembly.binding.ambiguous + assembly.binding.old_new + runtime.plan.two_slot_providers
+  说明：新契约是“产品级唯一 provider”（计划书 6.2 / 6.4）：
+        · 两个候选都选中 -> AmbiguousProvider，不挑第一个/最新；
+        · 一旧一新同时启用 -> 仍是 AmbiguousProvider（名称唯一先于版本，修订只用于唯一候选的接口校验）；
+        · 运行期边界上，同一槽两个提供者的计划直接 PlanInvalidSlotOwner。
+        “任一候选即可满足”在新契约下不存在，运行期也不再做候选搜索。
+
+旧 16 plugin.dag.whitelist_order
+  删  理由：provider 在编译期唯一绑定，运行期不存在“达标后端排在下游之前”的选择过程；
+        合法绑定的正例见 validation/production/src/positive/positive_graph.cpp 与
+        positive_ownership.cpp。
+
+旧 17 [SKIP] plugin.dag.missing_dependency
+  新 assembly.binding.missing（MissingProvider，真实断言，candidate_match_count == 0）
+  说明：旧跳过理由是 Fatal/abort；新契约在编译期返回结构化错误，因此不再 skip。
+
+旧 18 [SKIP] plugin.dag.cycle
+  新 assembly.graph.cycle（Cycle + phase == Graph，真实断言）
+  说明：同上，环检测已前移到编译期结构化诊断，运行期不存在该 Fatal 路径。
+
+旧 19 [SKIP] plugin.dag.dependencies_over_32
+  删  理由：需求组上限属编译期结构校验（TooManyRequirements），运行期计划里根本没有依赖信息，
+        没有可断言的运行期行为。覆盖位置：validation/production/src/cases/
+        case_too_many_requirements.cpp（33 组必须拒绝，32 组为同环境合法对照）。
+
+旧 20 [SKIP] plugin.register.null_descriptor
+  删  理由：描述符登记入口退役，空描述符这个失败路径不存在；计划视图的空指针/空名由
+        runtime.plan 预检覆盖（PlanNullPointer / PlanInvalidRecord，见 validation/runtime plan 组）。
+
+旧 21 [SKIP] plugin.register.after_init
+  新 runtime.state.already_started（Ready 重复 start -> AlreadyStarted 且不执行任何回调）
+  说明：旧断言是 ID_KERNEL_ASSERT -> abort；新契约是可恢复错误码，必须真实断言。
+
+旧 22 [SKIP] plugin.init.on_init_failure
+  新 runtime.init_fail.middle + runtime.init_fail.rollback_order + runtime.init_fail.slots_cleared
+     + runtime.init_fail.retry + runtime.init_fail.retry_order
+  说明：失败插件自身 on_shutdown、已注册全集逆序 on_unload、槽位清空、可再次 start，
+        序列断言 RARBRCIAIBSBSAUCUBUA（中间插件 B 失败）。旧“回滚不可达”的 skip 已不成立。
+
+旧 23 slot.store_and_load
+  新 runtime.slot.publish_ok + runtime.slot.publish_and_read
+
+旧 24 slot.overwrite_last_wins（后写覆盖）
+  新 runtime.slot.duplicate_publish + runtime.slot.duplicate_rollback
+  说明：新契约显式拒绝同槽重复发布（ServiceDuplicatePublish），并让 start 回滚；
+        “后写覆盖”被有意删除，不是放宽。
+
+旧 25 slot.independent
+  新 runtime.slot.two_slots（同一插件两槽各自取回自己的表）+ runtime.slot.unowned_empty
+
+旧 26 slot.unregister（写 nullptr 即卸下）
+  新 runtime.slot.null_publish + runtime.slot.null_rollback（publish(nullptr) -> ServiceTableNull）
+     + runtime.slot.revoke_on_unload（注销只能走 revoke_service，关闭后槽全空）
+
+旧 27 [SKIP] slot.out_of_range（旧接口 UB，不测）
+  新 runtime.slot.out_of_range（槽 64 -> ServiceSlotOutOfRange，先拒绝后索引，真实断言）
+
+旧 28 [SKIP] slot.concurrent_write
+  保留 Skip（本轮唯一保留的插件侧 skip）
+  理由：新契约仍不提供并发写：publish/revoke 只允许在宿主控制线程的生命周期回调内
+        （PluginRuntime.hpp 第 5 条；计划书 10.3 / 11.3）。这不是“可返回错误却被跳过”，
+        而是契约明确不存在，写进 Skip 文本里。
+
+新增（旧套件没有对应项、但属于新契约必测）：
+  runtime.slot.owner_mismatch / runtime.slot.owner_control   写别人的槽被拒 + 同计划合法对照
+  runtime.slot.ready_write_rejected / runtime.slot.ready_preserved / runtime.slot.ready_shutdown
+  runtime.state.reentry_busy / runtime.state.reentry_shutdown / runtime.state.reentry_flow
+  runtime.plan.revision_zero                                 接口修订 0 不能冒充有效修订
+  runtime.domain.idle_before / runtime.domain.idle_after     用例集前后置条件
+
+覆盖面核对（不净减少）：
+  旧：20 条有判定的插件/槽用例 + 8 条 skip（6 条插件侧 + 2 条槽位侧）；
+  新：45 条运行期/编译期插件用例（+2 条域前后置）= 47 条 + 1 条 skip。
+  与插件无关的 55 条（type_id / hash / log / arena / memory）逐字未动，全部 PASS。
+
+--------------------------------------------------------------------------------
+3. 迁移后结果（本轮最终构建，连续两次运行）
+--------------------------------------------------------------------------------
+  result（ID.Kernel — Security）：102 passed / 0 failed / 6 skipped
+  SUMMARY security   ：1 domains / 102 passed / 0 failed / 6 skipped
+  SUMMARY performance：1 domains / 4 metrics（world-class=2 excellent=1 good=1 fair=0 poor=0
+                        terrible=0 ungraded=0）
+  exit code          ：0（两次运行都是 0）
+  两次运行 138 行报告只差 5 行：generated 时间戳 + 4 条指标实测值；等级分布完全相同，不跳档。
+
+6 条 skip 逐条原因（全部不是“可返回错误却跳过”）：
+  1) log.assert_dispatch      report_assert 的契约就是 Level::Fatal -> abort（不可恢复）；
+                              在进程内触发会杀掉整套测试，按 methodology.md 第 4 节要求隔离。
+  2) log.set_sink_nullptr     set_sink(nullptr) 走 report_assert -> abort（同上，头文件契约如此）。
+  3) memory.free.interior_pointer  契约是破坏空闲链（未定义行为），不是可返回错误。
+  4) memory.free.double_free       契约是破坏空闲链（未定义行为）。
+  5) memory.large.magic_collision  64KB 对齐大对象页首 magic 误判是已知未修缺口（id-kernel K1）。
+  6) runtime.slot.concurrent_write 新契约明确不提供并发写（见旧 28）。
+
+--------------------------------------------------------------------------------
+4. 新增用例的判定方式（不是“非空/固定文案”）
+--------------------------------------------------------------------------------
+· 调用序列：整串字符串相等，detail 打印“期望 X 实际 Y”（如 RARBRCIAIBICSCSBSAUCUBUA）。
+· 错误码：PluginRuntimeError / PluginCompileTime::PluginError 枚举相等，并核 phase / plugin / slot。
+· 槽位：指针相等 + 表内 magic 相等；关闭后逐槽遍历断言 64 项全空。
+· 编译期结论：kPlanAmbiguous / kPlanOldAndNew / kPlanMissing / kPlanCycle 都是 inline constexpr，
+  sort_and_validate 在编译期求值，Check 读取的是已求值结果（同时受编译器常量求值约束）。
+· 每个失败用例后面都紧跟同环境合法对照（runtime.slot.owner_control、runtime.init_fail.retry、
+  runtime.lifecycle.retry），避免“环境坏了所以全失败”的假通过。
+
+--------------------------------------------------------------------------------
+5. 改动文件
+--------------------------------------------------------------------------------
+修改：
+  Benchmark/src/kernel/kernel_security.cpp      SHA256 0764B13DF24100790505B3B24813B6EB28BAB757CB90AF802FB2E5AC892F481F  1361 行
+      · 删除 PluginDescriptor/PluginDependency 夹具（make_descriptor / 链式 / 菱形 / 白名单 / 129 生成表 /
+        find_plugin_position），改为 PluginRuntimeRecord + PlanView + SlotOwnerTable 常量；
+      · 新增运行期角色模式开关（SlotAction / 失败角色 / 重入探针）与 apply_slot_action；
+        on_register/on_init/on_shutdown/on_unload 按开关执行并记录序列；
+      · 新增编译期绑定夹具（make_catalog_entry / make_leaf_entry / make_backend_catalog /
+        make_cycle_catalog + 四个 constexpr 组装结果）；
+      · 插件与槽位用例整段替换为第 2 节的新用例；内存/日志/类型/Arena 段未动；
+      · 文件头注释同步为 P4 后的契约描述。
+  Benchmark/src/kernel/kernel_performance.cpp   SHA256 933AAD0DE8DC505A84CB52C867059176C24B6D8CF29495B71428B24EEC1FC5F3  401 行
+      · 服务槽指标改为“计划里的唯一 owner 在 on_register 发布、on_unload 注销”，
+        被测读取走 PluginRuntime::get_service；指标键 plugin.service_lookup_and_call 未改名，
+        参考值算法（同轮 volatile 全局表指针 × 1.2）、basis、note 文案均未改；
+      · 计划启动/关闭失败只在失败时输出判定行（不往指标表插 PASS 行），并计入退出码。
+新增：
+  Benchmark/validation/kernel-p4-evidence.txt（本文件）
+未修改：Benchmark/CMakeLists.txt、Benchmark/validation/**（除本文件）、Benchmark/src/main.cpp、
+        Benchmark/include/**、ID/**、IDPlugin/**、Assemble/**、Sandbox/**、根与各层 CMake、工作台与 skills。
+
+--------------------------------------------------------------------------------
+6. 真实执行记录（全部本轮实测）
+--------------------------------------------------------------------------------
+6.1 配置与构建（CWD F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-release -G "MinGW Makefiles"
+        -DCMAKE_BUILD_TYPE=Release                                   -> exit 0
+  cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark --parallel
+                                                                     -> exit 0，无警告
+  （重新 configure 是必要的：ID/CMakeLists.txt 的 GLOB 没有 CONFIGURE_DEPENDS，新内核源文件
+    必须重配才会进 ID 目标；本轮只重配，没有删除任何构建目录）
+  为核对告警，删掉两个 TU 的 .obj 后重编：kernel_performance.cpp / kernel_security.cpp 均无 warning。
+
+6.2 运行（官方套件，CWD = F:\IDWorkbench，进程由 System.Diagnostics.Process 直接启动）
+  run1  exit 0   stderr 0 字节   stdout 12045 字节
+  run2  exit 0   stderr 0 字节   stdout 12045 字节
+  console == report.txt：逐字节相等（12045 / 12045，SHA256 相同 98205577D920D7028D48C013B39B2250
+                         BED901C5CB518A1116D620EF925F157A）
+  report.txt 覆盖写：run1 / run2 SHA256 不同（只差时间戳与指标值），Benchmark 下 report*.txt 始终 1 个。
+  stderr 为空：运行期的槽位违约诊断都走内核日志，而套件全程把 BootstrapLog sink 指向捕获 sink，
+  没有被写到 stderr 造成 console 与报告分叉。
+
+6.3 raw 路径（每次运行的原始输出）
+  Benchmark/validation/baseline/raw/kernel-p4-release/
+    run1.stdout.txt / run1.stderr.txt / report-after-run1.txt
+    run2.stdout.txt / run2.stderr.txt / report-after-run2.txt
+    runtime-matrix-rerun.stdout.txt / runtime-matrix-rerun.stderr.txt
+
+6.4 运行期校验套件复核（不属于本轮改动，用来证明被测运行时没被我改坏）
+  cmake --build F:\IDGameEngine\cmake-build-p3runtime --target PluginRuntimeCases --parallel -> exit 0
+  PluginRuntimeCases.exe（CWD = 该构建目录的 out\bin）-> exit 0
+    result: 278 passed / 0 failed / 0 skipped；stderr 只有 2 行预期冷路径诊断
+    （ServiceOwnerMismatch 越权注销、ServicePublishRejected Ready 期间发布），与 P3 证据一致。
+
+--------------------------------------------------------------------------------
+7. 未覆盖的旧语义清单（有意删除，不伪装成已覆盖）
+--------------------------------------------------------------------------------
+1) 运行期逐个描述符登记（register_plugin(const PluginDescriptor*)）：接口退役，无替代。
+2) 运行期注册顺序 / registered_count() / topological_order()：没有等价访问器；
+   顺序语义只在编译期（AssemblyResult.topo_order）。
+3) 旧 OR“任一白名单候选即可满足 / 版本不足候选跳过”：新契约明确拒绝（计划书 6.4 / 14.2），
+   由 assembly.binding.ambiguous / assembly.binding.old_new（本套件）与
+   validation/production 的 case_ambiguous_provider / case_ambiguous_old_new / case_missing_provider
+   共同锁定。
+4) 运行期服务槽“后写覆盖”：改为显式拒绝（ServiceDuplicatePublish）。
+5) 每插件依赖 > 32 的运行期 Fatal：改为编译期 TooManyRequirements（case_too_many_requirements.cpp）。
+6) 运行期缺依赖 / 环的 Fatal：改为编译期 MissingProvider / Cycle。
+
+--------------------------------------------------------------------------------
+8. 未验证项与不宣称
+--------------------------------------------------------------------------------
+· MSVC / clang 未安装、未验证：本文所有 PASS 只对 GCC 16.2.0 + MinGW Makefiles + Release 成立。
+· 未跑 Debug 构建、未跑 ID_MONOLITHIC_BUILD=ON（STATIC 归并）；共享 bin 的 OFF/ON 覆盖问题（K6）未修。
+· 未做任何性能测量与评级调整：指标键、参考值算法、basis、note 文案均未改，评级带宽未动。
+  本轮没有验证“PluginRuntime::get_service 与原路径的寻址成本相同”（需要 16.4 的测量 + 反汇编检查），
+  因此不宣称热路径零成本；报告中 plugin.service_lookup_and_call 的数值仅作记录，不作结论。
+· 未验证真实 DLL 插件加载、热重载、跨模块 STL/ABI 混用；所有插件角色都是同进程测试夹具。
+· 未验证 128 插件计划的真实回调负载（capacity 用例的 128 条记录都是空回调）。
+
+--------------------------------------------------------------------------------
+9. 需要 owner 处理的发现（不是本轮可改范围）
+--------------------------------------------------------------------------------
+发现 F-P4-1：P0 原型仍直接引用旧运行期单例，会阻塞内核删除该 API。
+  Benchmark/validation/prototype/src/apps/PrototypeMain.cpp:37
+  Benchmark/validation/prototype/src/apps/ZeroPluginMain.cpp:27
+  Benchmark/validation/prototype/plugins/fixture_alpha/src/FixtureAlphaModule.cpp:39
+  Benchmark/validation/prototype/plugins/fixture_beta/src/FixtureBetaModule.cpp:39
+  形态：static_cast<const void*>(&ID::PluginManager::instance())，只用于“跨模块唯一内核实例”探针，
+        不是登记/拓扑调用。该目标由 ID_BUILD_VALIDATION_PROTOTYPE（默认 OFF）控制。
+  影响：内核一旦删除 PluginManager 运行期单例，把该开关打开时原型目标会编译失败；
+        P1/P2/P3 校验目标与官方 Benchmark 不受影响。
+  建议（由 owner 决定）：把这四处探针指向 PluginRuntime::instance()（同一个“唯一内核实例”语义），
+        或将该原型标记为历史资产并从默认校验流程中摘除。本轮未改，因为不在授权写范围内。
+================================================================================

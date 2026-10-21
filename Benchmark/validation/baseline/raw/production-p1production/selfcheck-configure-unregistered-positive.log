@@ -1,0 +1,23 @@
+COMMAND: cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p1production
+CWD: F:\IDWorkbench
+STEP1: 放入未注册的 positive_temp_guard_probe.cpp
+EXIT1: 1
+STEP2: 删除该文件后重新 configure
+EXIT2: 0
+
+===== EXIT1 OUTPUT =====
+-- production 反向用例原始日志目录：F:/IDGameEngine/Benchmark/validation/production/../baseline/raw/production-p1production（构建目录 F:/IDGameEngine/cmake-build-p1production）
+CMake Error at Benchmark/validation/production/CMakeLists.txt:157 (message):
+  positive 源文件未注册：positive_temp_guard_probe.cpp 存在于
+  src/positive 但没有进入
+  IDP_POSITIVE_NAMES，任何证据都不得声称它已被编译。
+System.Management.Automation.RemoteException
+System.Management.Automation.RemoteException
+-- Configuring incomplete, errors occurred!
+
+===== EXIT2 OUTPUT =====
+-- production 反向用例原始日志目录：F:/IDGameEngine/Benchmark/validation/production/../baseline/raw/production-p1production（构建目录 F:/IDGameEngine/cmake-build-p1production）
+-- production 压力目标 production_scale_target_128x32x16 使用 -fconstexpr-ops-limit=184549376（GCC 限定，实测最小可通过档）
+-- Configuring done (0.1s)
+-- Generating done (0.6s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-p1production

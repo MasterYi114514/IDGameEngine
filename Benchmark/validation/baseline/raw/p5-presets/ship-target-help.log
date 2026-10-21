@@ -1,0 +1,16 @@
+﻿The following are some of the valid targets for this Makefile:
+... all (the default if no target is provided)
+... clean
+... depend
+... edit_cache
+... install
+... install/local
+... install/strip
+... list_install_components
+... rebuild_cache
+... ID
+... IDAssembly
+... IDAssemblyValidate
+... IDFixtureCore
+... IDFixtureMath
+... IDPluginStub

@@ -1,0 +1,98 @@
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  1>Checking Build System
+  Building Custom Rule F:/IDGameEngine/ID/CMakeLists.txt
+  BootstrapLog.cpp
+  Memory.cpp
+  SlabSpan.cpp
+  PluginRuntime.cpp
+  正在生成代码...
+    正在创建库 F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/lib/Debug/ID.lib 和对象 F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/lib/Debug/ID.exp
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  Building Custom Rule F:/IDGameEngine/IDPlugin/CMakeLists.txt
+  IDPluginStub.cpp
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/plugins/fixture_alpha/CMakeLists.txt
+  FixtureAlphaModule.cpp
+    正在创建库 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/lib/Debug/IDFixtureAlpha.lib 和对象 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/lib/Debug/IDFixtureAlpha.exp
+  IDFixtureAlpha.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureAlpha.dll
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/plugins/fixture_beta/CMakeLists.txt
+  FixtureBetaModule.cpp
+    正在创建库 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/lib/Debug/IDFixtureBeta.lib 和对象 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/lib/Debug/IDFixtureBeta.exp
+  IDFixtureBeta.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureBeta.dll
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt
+  FixturePlan.cpp
+  FixtureDeterminism.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(175,16): error C7595: “ID::Bench::Fixture::sort_and_validate”: 对即时函数的调用不是常量表达式 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureAssembly.vcxproj]
+      D:\Software\VS2026\Insiders\VC\Tools\MSVC\14.52.37025\include\tuple(135,53):
+      失败原因是读取了常量表达式中不可使用的变量
+      D:\Software\VS2026\Insiders\VC\Tools\MSVC\14.52.37025\include\tuple(135,53):
+      请参见“dependent_decl”的用法
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(175,16):
+      计算的调用堆栈(最旧的调用优先)是
+          F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(175,44):
+          在计算函数 "std::tuple<ID::Bench::Fixture::PluginDeclaration<0,0>,ID::Bench::Fixture::PluginDeclaration<2,2>>::tuple<ID::Bench::Fixture::PluginDeclaration<0,0>,0>(const _This &,const ID::Bench::Fixture::PluginDeclaration<2,2> &) noexcept”时
+          with
+          [
+              _This=ID::Bench::Fixture::PluginDeclaration<0,0>
+          ]
+          D:\Software\VS2026\Insiders\VC\Tools\MSVC\14.52.37025\include\tuple(353,16):
+          在计算函数 "std::tuple<ID::Bench::Fixture::PluginDeclaration<0,0>,ID::Bench::Fixture::PluginDeclaration<2,2>>::tuple<std::_Exact_args_t,const _This&,const ID::Bench::Fixture::PluginDeclaration<2,2>&,0>(_Tag,_This2,const ID::Bench::Fixture::PluginDeclaration<2,2> &)”时
+          with
+          [
+              _This=ID::Bench::Fixture::PluginDeclaration<0,0>,
+              _Tag=std::_Exact_args_t,
+              _This2=const ID::Bench::Fixture::PluginDeclaration<0,0> &
+          ]
+          D:\Software\VS2026\Insiders\VC\Tools\MSVC\14.52.37025\include\tuple(314,18):
+          在计算函数 "std::tuple<ID::Bench::Fixture::PluginDeclaration<2,2>>::tuple<std::_Exact_args_t,const ID::Bench::Fixture::PluginDeclaration<2,2>&,,0>(_Tag,_This2)”时
+          with
+          [
+              _Tag=std::_Exact_args_t,
+              _This2=const ID::Bench::Fixture::PluginDeclaration<2,2> &
+          ]
+          D:\Software\VS2026\Insiders\VC\Tools\MSVC\14.52.37025\include\tuple(314,81):
+          在计算函数 "std::_Tuple_val<_This>::_Tuple_val<const ID::Bench::Fixture::PluginDeclaration<2,2>&>(_Other)”时
+          with
+          [
+              _This=ID::Bench::Fixture::PluginDeclaration<2,2>,
+              _Other=const ID::Bench::Fixture::PluginDeclaration<2,2> &
+          ]
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(166,36): error C2131: 表达式的计算结果不是常数 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureAssembly.vcxproj]
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(175,16):
+      遇到非常量(子)表达式
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(166,36):
+      计算的调用堆栈(最旧的调用优先)是
+          F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(177,6):
+          在计算函数 "ID::Bench::Fixture::AssemblyResult<2,64,32> `anonymous-namespace'::<lambda_1>::operator ()(void) const”时
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(179,41): error C2131: 表达式的计算结果不是常数 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureAssembly.vcxproj]
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(179,34):
+      失败原因是读取了常量表达式中不可使用的变量
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(179,34):
+      请参见“`anonymous-namespace'::kSharedUpstream”的用法
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(180,46): error C2131: 表达式的计算结果不是常数 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureAssembly.vcxproj]
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(180,34):
+      失败原因是读取了常量表达式中不可使用的变量
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(180,34):
+      请参见“`anonymous-namespace'::kSharedUpstream”的用法
+  
+F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(182,82): error C2131: 表达式的计算结果不是常数 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureAssembly.vcxproj]
+      F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1194,46):
+      失败原因是读取了常量表达式中不可使用的变量
+      F:\IDGameEngine\Benchmark\validation\prototype\include\FixturePluginApi.hpp(1194,46):
+      请参见“`anonymous-namespace'::kSharedUpstream”的用法
+      F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(182,82):
+      计算的调用堆栈(最旧的调用优先)是
+          F:\IDGameEngine\Benchmark\validation\prototype\src\assembly\FixtureDeterminism.cpp(181,81):
+          在计算函数 "uint16_t ID::Bench::Fixture::find_active_index<ID::Bench::Fixture::AssemblyResult<2,64,32>>(const Result &,std::string_view) noexcept”时
+          with
+          [
+              Result=ID::Bench::Fixture::AssemblyResult<2,64,32>
+          ]
+  
+  FixtureProductEntry.cpp
+  正在生成代码...

@@ -1,0 +1,16 @@
+MODE: r2-release
+BUILD_DIR: F:\IDGameEngine\cmake-build-release
+CWD: F:\IDWorkbench
+TARGET: Benchmark
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark
+EXIT: 0
+SECONDS: 3.23
+
+[  8%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginManager.cpp.obj
+[ 16%] Linking CXX shared library F:\IDGameEngine\bin\bin\libID.dll
+[ 41%] Built target ID
+[ 58%] Built target IDPluginStub
+[ 66%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/kernel/kernel_performance.cpp.obj
+[ 75%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/kernel/kernel_security.cpp.obj
+[ 83%] Linking CXX executable F:\IDGameEngine\bin\bin\Benchmark.exe
+[100%] Built target Benchmark

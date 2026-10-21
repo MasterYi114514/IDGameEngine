@@ -1,0 +1,32 @@
+[legal-control] IDFixtureLegalCases -> exit 0
+[expect-fail] self_dependency -> category SelfDependency OK（失败断言数=1, log=negative-self_dependency.log）
+[expect-fail] ambiguous_provider -> category AmbiguousProvider OK（失败断言数=1, log=negative-ambiguous_provider.log）
+[expect-fail] missing_provider -> category MissingProvider OK（失败断言数=1, log=negative-missing_provider.log）
+[expect-fail] cycle -> category Cycle OK（失败断言数=1, log=negative-cycle.log）
+[expect-fail] hash_collision -> category NameHashCollision OK（失败断言数=1, log=negative-hash_collision.log）
+[expect-fail] duplicate_candidate -> category DuplicateCandidate OK（失败断言数=1, log=negative-duplicate_candidate.log）
+[expect-fail] empty_inner_group -> category EmptyRequirementGroup OK（失败断言数=1, log=negative-empty_inner_group.log）
+[expect-fail] unknown_candidate -> category UnknownCandidate OK（失败断言数=1, log=negative-unknown_candidate.log）
+[expect-fail] active_overflow -> category TooManyActive OK（失败断言数=1, log=negative-active_overflow.log）
+[expect-fail] evidence_mismatch -> category EvidenceProviderMismatch OK（失败断言数=1, log=negative-evidence_mismatch.log）
+[expect-fail] invalid_name -> category InvalidName OK（失败断言数=1, log=negative-invalid_name.log）
+[expect-fail] duplicate_plugin -> category DuplicatePlugin OK（失败断言数=1, log=negative-duplicate_plugin.log）
+[expect-fail] too_many_requirements -> category TooManyRequirements OK（失败断言数=1, log=negative-too_many_requirements.log）
+[expect-fail] too_many_candidates -> category TooManyCandidates OK（失败断言数=1, log=negative-too_many_candidates.log）
+[expect-fail] too_many_catalog -> category TooManyCatalog OK（失败断言数=1, log=negative-too_many_catalog.log）
+[expect-fail] unknown_active -> category UnknownActive OK（失败断言数=1, log=negative-unknown_active.log）
+[expect-fail] duplicate_active -> category DuplicateActive OK（失败断言数=1, log=negative-duplicate_active.log）
+[expect-fail] evidence_selection_mismatch -> category EvidenceSelectionMismatch OK（失败断言数=1, log=negative-evidence_selection_mismatch.log）
+[expect-fail] evidence_edge_mismatch -> category EvidenceEdgeMismatch OK（失败断言数=1, log=negative-evidence_edge_mismatch.log）
+[expect-fail] evidence_duplicate_selection -> category EvidenceSelectionMismatch OK（失败断言数=1, log=negative-evidence_duplicate_selection.log）
+[expect-fail] evidence_duplicate_binding -> category EvidenceProviderMismatch OK（失败断言数=1, log=negative-evidence_duplicate_binding.log）
+[expect-fail] evidence_duplicate_edge -> category EvidenceEdgeMismatch OK（失败断言数=1, log=negative-evidence_duplicate_edge.log）
+[expect-fail] evidence_capacity -> category EvidenceSelectionMismatch OK（失败断言数=1, log=negative-evidence_capacity.log）
+[expect-fail] self_dependency_prefix_collision -> category NameHashCollision OK（失败断言数=1, log=negative-self_dependency_prefix_collision.log）
+[expect-fail] cycle_long -> category Cycle OK（失败断言数=1, log=negative-cycle_long.log）
+[expect-fail] name_boundaries -> category InvalidName OK（失败断言数=1, log=negative-name_boundaries.log）
+[expect-fail] name_internal_nul -> category InvalidName OK（失败断言数=1, log=negative-name_internal_nul.log）
+[expect-fail] name_first_char -> category InvalidName OK（失败断言数=1, log=negative-name_first_char.log）
+[self-check] wrong_expectation -> 已按预期拒绝（错误类别不符（出现 MISMATCH 标记）；失败断言数=1）
+[self-check] aux_assert_failure -> 已按预期拒绝（失败断言数=2（判据要求恰好 1 条：只允许类别断言失败，辅助断言不得单独失败））
+反向用例汇总：28 条按预期类别失败，0 条不符合预期

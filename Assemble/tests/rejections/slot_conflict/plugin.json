@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Reject.SlotConflict",
+    "target": "IDRejectSlotConflict",
+    "namespace": "ID::Reject::SlotConflict",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Reject.SlotConflict", "api_revision": 1, "slot": 60}
+    ],
+    "lifecycle": "standard"
+}

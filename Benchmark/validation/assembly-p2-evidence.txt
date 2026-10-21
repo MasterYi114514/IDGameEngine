@@ -1,0 +1,304 @@
+================================================================================
+P3 复跑 + P2 自动组装 真实矩阵验证 —— 本轮实测证据记录
+================================================================================
+性质：实测证据记录（执行者自测），不是设计文档，也不是 Benchmark 官方报告。
+      所有数字与结论都来自下面列出的真实 configure / build / 运行 / 编译命令；
+      没有用静态推导替代实测，也没有把未跑的项目写成通过。
+      独立 review 由主 Agent 另起上下文执行，本文件的自检不算 review。
+
+被测实现（owner 的改动，本轮只读，未修改一行）：
+  ID/include/Kernel/PluginRuntime.hpp           390 行
+  ID/src/Kernel/PluginRuntime.cpp               525 行（含本轮验证的三处修复）
+  ID/include/Kernel/PluginCompileTime.hpp       （C++ 侧组装校验与错误类别来源）
+  Assemble/**                                   （catalog/profile/生成器/模板/三个最小 fixture）
+本轮改动边界：只写 Benchmark/**；ID/**、IDPlugin/**、Assemble/**、Sandbox/**、根 CMakeLists.txt、
+  工作台与 skills/** 全部未修改；未提交、未推送、未派 subagent。
+  本轮新建的全部生成物都在已被 .gitignore 忽略的构建目录内：
+  F:\IDGameEngine\cmake-build-p3r2、F:\IDGameEngine\cmake-build-p2asm、F:\IDGameEngine\bin。
+
+环境：shell Windows PowerShell 5.1（zh-CN，代码页 65001）
+      CMake 4.4.4 / MinGW Makefiles / GCC 16.2.0（MinGW-w64 x86_64-posix-seh）
+      CMAKE_BUILD_TYPE=Release / ID_ENABLE_AVX2=ON / ID_MONOLITHIC_BUILD 按变体
+      CPU 13th Gen Intel(R) Core(TM) i7-13700
+
+--------------------------------------------------------------------------------
+1. P3 复跑：PluginRuntime 运行期矩阵（默认 OFF 的校验域）
+--------------------------------------------------------------------------------
+判定驱动器：Benchmark/validation/runtime/cmake/RunRuntimeCases.cmake（本次扩充）
+构建与运行命令（CWD=F:\IDWorkbench）：
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p3r2 -G "MinGW Makefiles"
+        -DCMAKE_BUILD_TYPE=Release -DID_BUILD_VALIDATION_RUNTIME=ON            -> exit 0
+  cmake --build F:\IDGameEngine\cmake-build-p3r2 --target PluginRuntimeCases --parallel
+                                                                              -> exit 0（无 warning）
+  cmake --build F:\IDGameEngine\cmake-build-p3r2 --target PluginRuntimeCasesRun
+                                                                              -> exit 0
+原始证据：Benchmark/validation/baseline/raw/runtime-p3r2/
+  runtime-index.txt、run-stdout.log、run-stderr.log、run-meta.txt
+  probe-zero-null-stdout.log / -stderr.log、probe-zero-null-records-stdout.log / -stderr.log
+  batch-owner.txt（绑定唯一构建目录）
+
+1.1 D-P3-1（零插件全空视图 shutdown 断言 abort）修复确认
+  修复前（上一轮证据 Benchmark/validation/runtime-p3-evidence.txt 第 3 节）：
+    探针 A exit=Illegal instruction，stderr 唯一一行
+    [FATAL][ID.Assert] ASSERT FAILED: (m_active_plan != nullptr && m_active_plan->records != nullptr)
+    被测位置 ID/src/Kernel/PluginRuntime.cpp:376
+  修复后（本轮实测）：
+    ID/src/Kernel/PluginRuntime.cpp:384  断言只保留 m_active_plan != nullptr
+    探针 A（records/topo_order/slot_owner/provisions 全 nullptr）
+      PROBE zero_null_shutdown | exit=0 | stderr 0 行
+      stdout 8 条判定全 PASS：precondition_idle / start_ok / ready / no_callbacks /
+        shutdown_ok expect=None actual=None at=Idle / idle expect=Idle actual=Idle /
+        shutdown_no_callbacks / slots_empty non_null_slots=0
+    探针 B（只把 records 换成非空静态数组，同环境合法对照）| exit=0
+  用例进入主矩阵（不是只留子进程）：runtime_lifecycle_cases.cpp 新增组 2 的全空视图分支，
+    zero.null_view.start_ok / ready / no_callbacks / shutdown_ok / idle /
+      shutdown_no_callbacks / slots_empty 共 7 条，全部真实 PASS。
+    驱动器还逐个点名要求 "zero.null_view_shutdown_ok"、"zero.null_view_idle" 等必须出现，
+    防止总量达标但关键用例被替换。原子进程探针保留，作为"关闭路径重新引入断言 abort"的回归哨兵。
+
+1.2 无槽位能力（kNoSlot）与有槽/无槽混合 provision（本轮新增组 9）
+  新增文件 Benchmark/validation/runtime/src/runtime_provision_cases.cpp（144 行），
+  夹具新增角色 RT.N（只有四个回调、不发布/不注销任何槽）与三张计划：kPlanNoSlot、
+  kPlanMixed（N 的 kNoSlot 能力 + U 的槽 2）、以及两条反向改写。
+  provision 组 32 条 PASS，全部是真实条件比较：
+    9.1 只有无槽位能力：start_ok(None)/ready(Ready)/start_order=="N.r,N.i"/
+        slots_stay_empty(non_null_slots=0)/shutdown_ok(None)/idle(Idle)/
+        full_order=="N.r,N.i,N.s,N.u"/slots_empty_after_shutdown
+        —— 证明"注册后必须已发布"的校验不会把 kNoSlot 当成缺失槽位
+    9.2 混合 provision：start_ok/ready/start_order=="N.r,U.r,N.i,U.i"/
+        slot2_published(地址 == &kMathTable)/slot2_indirect_call(add(20,22)==42)/
+        slot_owner_count==1/slot_owner_is_slot_provider==1/
+        shutdown_ok/idle/full_order=="N.r,U.r,N.i,U.i,U.s,N.s,U.u,N.u"/slots_empty
+        —— 有槽那条照旧发布并被取回，无槽那条不在槽归属表里占位
+    9.3 反向：slot = -2（kNoSlot 之外的负值）-> PlanInvalidProvision，诊断 slot==-2，
+        state 回 Idle，零回调，紧随其后的 A-B-C-D 合法生命周期仍进 Ready 并回 Idle
+    9.4 反向：只有一条 kNoSlot 能力却在 slot_owner[7] 写 owner -> PlanInvalidSlotOwner，
+        诊断 slot==7，同样带合法对照
+    批后对照：两种无槽位计划仍能 start->Ready、shutdown->Idle
+
+1.3 本轮矩阵计数（runtime-index.txt，Release，实测）
+  MATRIX_EXIT=0  PASSED=278  FAILED=0  SKIPPED=0
+  GROUPS lifecycle=7 zero=14 initfail=33 register=41 state=18 slot=31 upstream=12 plan=86 provision=32
+    （上一轮 239 条全部保留并通过；新增 7 条 zero.null_view + 32 条 provision = 278）
+  METRICS=0  UNGRADED=0  MATRIX_STDERR_ASSERT=-1（主矩阵 stderr 无 ASSERT FAILED）
+  CONSOLE_EQUALS_REPORT=TRUE（console 与 out/report.txt 逐字相同）
+  REPORT_HASH_BEFORE 5432dcf1… != REPORT_HASH_AFTER a4a58220…（报告被本次运行覆盖写）
+  OFFICIAL_REPORT_BEFORE == AFTER = aeec8d5b…（官方 Benchmark/report.txt 未被校验程序改动）
+  SELFCHECK_FAIL_REGEX: fail_hits=1 pass_false_positive=0（[FAIL] 正则能命中、不误命中 PASS）
+  断言口径未放宽：没有删除任何用例，没有把期望改成"非空/固定文案"，没有把失败改成 Skip。
+
+--------------------------------------------------------------------------------
+2. P2 组装验证：STATIC / SHARED × default / zero 的真实产品构建
+--------------------------------------------------------------------------------
+新增校验域（默认 OFF）：Benchmark/validation/assembly/
+  CMakeLists.txt（注册 IDAssemblyValidationRun 驱动器，本目录不新增编译单元）
+  cmake/RunAssemblyValidation.cmake（批次驱动器，918 行，全部判定在这里）
+  src/EvidenceCategoryProbe.cpp（改坏证据的类别断言 TU，64 行）
+开关：-DID_BUILD_VALIDATION_ASSEMBLY=ON（Benchmark/CMakeLists.txt 新增，默认 OFF，
+      不影响普通 Benchmark 目标与官方 report.txt）。
+
+命令（CWD=F:\IDWorkbench）：
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p2asm -G "MinGW Makefiles"
+        -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=ON
+        -DID_BUILD_VALIDATION_ASSEMBLY=ON                                     -> exit 0
+  cmake --build F:\IDGameEngine\cmake-build-p2asm --target IDAssemblyValidationRun
+                                                                              -> exit 0
+原始证据：Benchmark/validation/baseline/raw/assembly-p2asm/assembly-index.txt
+工作目录：F:\IDGameEngine\cmake-build-p2asm\Benchmark\validation\assembly\work\
+  <variant>/{configure.log,build.log,smoke.log,variant-summary.txt,identity-macros.txt,
+             link.txt,linkLibs.rsp,link-combined.txt,symbols-*.txt,IDAssemblyBinding.generated.cpp}
+  corrupt/{legal,<8 类>}/…、corrupt-evidence-summary.txt、profile-switch-summary.txt
+  四个变体的构建目录：work/<variant>/build（不在仓库源码树里，且被 .gitignore 忽略）
+
+2.1 四个变体的真实退出码（驱动器逐个采集，写入各行 variant-summary.txt）
+  variant      mode    profile  configure / build / smoke / Smoke PASS 行数
+  shared       SHARED  default  0 / 0 / 0 / 3
+  static       STATIC  default  0 / 0 / 0 / 3
+  zero-shared  SHARED  zero     0 / 0 / 0 / 3
+  zero-static  STATIC  zero     0 / 0 / 0 / 3
+  （build 期间无 warning 行；Smoke 的三行是 [PASS] start state=Ready /
+    [PASS] host new/delete routed through IDPluginStub / [PASS] shutdown state=Idle (code=None)）
+
+2.2 STATIC 与 SHARED（default profile）一致性 —— 逐项比较，全部一致
+  selected target 集合：
+    STATIC : IDFixtureApi;IDFixtureCore;IDFixtureMath
+    SHARED : IDFixtureApi;IDFixtureCore;IDFixtureMath
+  身份宏（逐编译单元，identity-macros.txt）：
+    IDAssembly      : API CORE MATH（组装目标允许观察全部选中身份，计划书 8.3）
+    IDAssemblySmoke : API CORE MATH（消费端经 IDGameEngine 的 PUBLIC usage requirements）
+    IDAssemblyValidate : （空，校验 TU 不接收任何插件身份）
+    IDFixtureCore   : CORE
+    IDFixtureMath   : API CORE MATH
+    两种模式的这份表逐字相同；IDFixtureCore 没有拿到 API/MATH，证明"不向每个插件注入全部身份"。
+  构建证据（IDAssemblyEvidence.txt，只把 mode 行归一化后比较）：EVIDENCE_EQUAL=TRUE
+    provider ID.Fixture.Math[0] -> ID.Fixture.Core（能力 ID.Fixture.Core，修订 2）
+    provider ID.Fixture.Math[1] -> ID.Fixture.Api（能力 ID.Fixture.Api，修订 1）
+    edge     Core -> Math、Api -> Math；slot 60 owner = Core；无槽位能力标"无运行期槽位"
+  运行期绑定 TU：两种模式 SHA256 都是 b1f43cce871a0e54b12c50a25bac4531abeedeb9d0f129fb1c2e204c927a3e48
+  产物模块集合（排除内核 ID 制品）：STATIC = SHARED = IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+    形态差异是设计差异，不是不一致：
+      STATIC：libIDFixtureCore.a / libIDFixtureMath.a / libIDAssembly.a / IDFixture* 无 DLL
+      SHARED：libIDFixtureCore.dll + .dll.a（导入库）/ libIDAssembly.a / out/bin 内一份 libID.dll 副本
+    内核制品 ID 由根 CMakeLists 强制输出到 <engine>/bin（K6 既有行为），不属于组装层 out/，
+    因此单独排除比较；本轮未修改该行为。
+
+2.3 未选中 fixture 不出现（zero profile = 三个 fixture 全部未选中）
+  zero-shared / zero-static 实测：
+    身份宏表：四个编译单元全部为空（无 ID_USE_PLUGIN_IDFIXTURE*）
+    产物：只有 IDAssembly(.a) 与 IDAssemblySmoke(.exe)，没有任何 IDFixture* 模块
+    导出头：生成目录里没有 IDFixture*Export.generated.hpp（默认 profile 时是 3 个）
+    绑定 TU：不含任何 "IDFixture" 字样，且视图给出零插件空形态
+      （.records/.topo_order/.provisions/.slot_owner 四行都是 kSelectedCount > 0 ? … : nullptr）
+    构建证据：selected : 0
+  反向抽查：default profile 下也没有出现未选中插件的身份宏（ID_USE_PLUGIN_IDFIXTURENOTSELECTED 未泄漏）。
+  缺口（如实列出）：现有两个 profile 只有"全选中"与"全未选中"两种形态；本 catalog 没有
+    "部分选中"的 profile，而 Assemble/profiles/** 不在本轮可写范围，因此"部分未选中"这一形态
+    未实跑（C++ 侧的 0/1/128 active 与歧义/缺失用例由 P1 生产域覆盖）。本轮不用 CMake 预检冒充它。
+
+2.4 零插件产品（计划书 12.3）
+  zero-shared / zero-static 都先只构建两个目标（--clean-first --target IDAssemblyValidate IDAssembly）
+    ZERO_TARGETS_EXIT=0 —— 校验目标与绑定目标不依赖任何业务插件即可独立编译
+  Smoke：start 从 Idle 进入 Ready、shutdown 回到 Idle、宿主 new/delete 经桩路由，exit 0
+  零插件路径的断言口径没有放宽：不是"只要不崩就算过"，而是三行 [PASS] + 进程退出码。
+
+2.5 接口 / 零插件 / 无槽位混合的真实运行
+  default profile 本身就是混合形态：ID.Fixture.Api 是 interface（lifecycle=none、无槽位），
+  ID.Fixture.Core 是 module 且提供槽 60，ID.Fixture.Math 是 module 但 provides 无槽位。
+  真实运行链路：Engine::start -> runtime 按 plan 拓扑序回调 -> Math 的 on_init 通过
+  get_service<FixtureCoreApiTable>(slot 60) 取表并真实调用 mix(FixtureApi::fixture_api_scale(7))，
+  宿主侧 new/delete 经 IDPluginStub 走内核分配器 -> Engine::shutdown 逆序回收。
+  运行结果 exit 0、3 行 PASS（失败会保留：驱动器把非 0 与 PASS 行数不足都记为批次问题）。
+  运行期"无槽位 + 有槽位混合 provision"的细粒度断言见第 1.2 节 provision 组。
+
+2.6 改坏构建证据：C++ 静态校验必须按具体错误类别拒绝
+  方法：把某次真实构建生成的 IDAssembly.generated.hpp 复制到独立目录，**只改一行**证据，
+  然后编译两个独立 TU（都不链接、不改 Assemble 源码）：
+    (a) EvidenceCategoryProbe.cpp：static_assert(kPlan.diagnostic.code == <期望类别>) 且
+        static_assert(phase == <期望阶段>) 且 code/phase 必须同时为成功或同时为失败
+        -> 必须编译成功（类别与实现返回值相等）
+    (b) 真实校验 TU IDAssemblyValidate.generated.cpp（产品构建的静态门控原文件）
+        -> 必须编译失败（改坏的证据进不了产品）
+    (c) 反向探针：把期望写成 None/None 再编译 (a)
+        -> 必须编译失败（证明 (a) 的断言不是空转）
+    (d) 同环境合法对照：同一份未改坏的生成输入，(a) 与 (b) 都必须编译成功
+  实测（corrupt-evidence-summary.txt，探针 exit / 真实 TU exit / 错误期望 exit）：
+    provider  expect=EvidenceProviderMismatch  /Evidence        0 / 1 / 1
+    edge      expect=EvidenceEdgeMismatch      /Evidence        0 / 1 / 1
+    identity  expect=EvidenceIdentityMismatch  /Evidence        0 / 1 / 1
+    slot      expect=EvidenceSlotMismatch      /Evidence        0 / 1 / 1
+    selection expect=EvidenceSelectionMismatch /Evidence        0 / 1 / 1
+    target    expect=EvidenceTargetMismatch    /Evidence        0 / 1 / 1
+    macro     expect=EvidenceMacroMismatch     /Evidence        0 / 1 / 1
+    runtime   expect=RuntimeBindingMismatch    /Evidence        0 / 1 / 1
+  合法对照（legal）= probe=0 validate=0
+  具体改法（每类只改一处，驱动器先断言"原片段存在"再替换，替换无效直接 FATAL）：
+    provider  bindings[0].provider  ID.Fixture.Core -> ID.Fixture.Api
+    edge      edges[0]              from/to 对调（Core->Math 变成 Math->Core）
+    identity  selected[0].plugin_id 0x4175…6759 -> 0x4175…675a（同长度）
+    slot      slots[0].slot         60 -> 61
+    selection selected[0].name      ID.Fixture.Api -> ID.Fixture.NotSelected
+    target    selected[0].target    IDFixtureApi -> IDFixtureWrongTarget
+    macro     selected[0].macro     ID_USE_PLUGIN_IDFIXTUREAPI -> ID_USE_PLUGIN_WRONGMACRO
+    runtime   runtime[0].api_revision 1 -> 9
+  覆盖缺口（如实列出，不用 CMake 预检替代）：
+    · 本轮覆盖"构建证据"阶段全部 7 个类别 + 运行期绑定元数据 1 个类别；声明/身份/依赖声明/
+      唯一绑定/能力与槽位一致性/环这些更早阶段的类别不在本轮的反向集合里（它们由 P1
+      Benchmark/validation/production 的 case_* 反向编译用例覆盖，本轮未重跑 P1 域）。
+    · CMake 侧（IDResolveSelection.cmake）的 MissingProvider / schema 预检只在上轮证据里
+      实测过；本轮没有重跑 CMake 侧反向用例，且明确不以它替代 C++ 侧校验。
+    · AssemblyPhase::RuntimeMetadata 目前没有任何诊断会产生：RuntimeBindingMismatch 实际由
+      证据阶段上报（phase=Evidence）。这是枚举口径与实现的差异，已按实际阶段断言并记录。
+
+2.7 不删缓存也能重新配置并更新生成物（profile 切换）
+  同一构建目录（work/shared/build），只改 -DID_ASSEMBLY_PROFILE，不删任何缓存/目录：
+    noop    ：--target IDAssemblyValidate 重建 -> build_exit=0；生成头 hash 与 mtime 都不变
+              （hash 16224904…，时间戳 2026-10-19 22:34:41 前后相同：configure_file 内容相同不刷新
+               时间戳，说明无改动重建不会扰动生成物）
+    to_zero ：cmake -DID_ASSEMBLY_PROFILE=zero -> configure_exit=0；build_exit=0；smoke_exit=0；
+              生成 zero-fixture 目录，证据 selected : 0
+    back    ：cmake -DID_ASSEMBLY_PROFILE=default -> configure_exit=0；build_exit=0；smoke_exit=0；
+              生成头 hash 回到 16224904…（与首次逐字相同，证明生成确定性）
+  缺口：本轮没有修改 Assemble/profiles/*.json 或 plugin.json 的内容（不在可写范围），
+    因此"编辑 JSON 后由 mtime 触发自动 reconfigure"这一条未实跑；上面的 profile 切换覆盖的是
+    "不手动清缓存也能重新配置并更新生成物"这一条，生成物更新用内容哈希与证据行取证。
+
+2.8 分配桩与替换符号（只桩 whole-archive，不全插件）
+  链接行合并取证（link.txt + linkLibs.rsp，link-combined.txt）：
+    shared / static / zero-shared / zero-static 全部 regions=2 stub=1 plugin=0
+      region1 = EXE 自己的 objects.a（CMake 给可执行对象归档加的 whole-archive，不是插件）
+      region2 = IDPluginStub（唯一被全量保留的静态库）
+    没有任何 whole-archive 区间包含 IDFixture* 插件库
+  SHARED 每模块接入自己的桩（模块 link.txt 实测）：
+    IDFixtureCore: stub=1 plugin=0    IDFixtureMath: stub=1 plugin=0
+    两个插件 DLL 内各自有 16 个 new/delete 替换重载定义（nm -C --defined-only）
+  STATIC 最终可执行文件：替换符号 total=16 unique=16（每个重载恰好 1 个定义，无重复），
+    含 operator new(unsigned long long)、operator delete(void*)，无重复定义
+  zero-static 的最终程序同样是 16/16，说明零插件产品也把桩接进了宿主
+  （SHARED 的最终程序同样是 16/16；out/bin 里另有 1 份 libID.dll 副本供其运行）
+
+2.9 稳定性（同一构建连续两次，第二次为本文件定稿前复跑）
+  P3 域：两次都是 PASSED=278 / FAILED=0 / SKIPPED=0，八组计数逐项相同，
+    两条零插件探针都是 exit=0，CONSOLE_EQUALS_REPORT=TRUE，官方报告前后哈希不变。
+  组装域：两次都是四个变体 configure/build/smoke=0 且各 3 行 PASS，
+    STATIC 与 SHARED 证据一致、8 类改坏证据全部按类别拒绝、profile 切换与符号检查通过，exit 0。
+  用例结果不跳变。
+
+--------------------------------------------------------------------------------
+3. legacy 回归（不改指标、不新增评级、不做性能测量）
+--------------------------------------------------------------------------------
+构建（CWD=F:\IDWorkbench）：
+  cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark --clean-first --parallel
+    -> exit 0，无 warning（raw/assembly-p2asm/legacy-build.log）
+运行：F:\IDGameEngine\bin\bin\Benchmark.exe 连续两次
+  RUN1 exit 0（raw/assembly-p2asm/legacy-run1.log）
+  RUN2 exit 0（raw/assembly-p2asm/legacy-run2.log）
+  两次都是：result: 75 passed / 0 failed / 13 skipped；
+    security 1 domains / 75 passed / 0 failed / 13 skipped；
+    performance 1 domains / 4 metrics；exit code 0。
+  report.txt（F:\IDGameEngine\Benchmark\report.txt）：
+    运行前只有 1 个 report*.txt；两次运行后仍然只有 1 个 report.txt
+    SHA256 由 AEEC8D5B… 变为 1BCC2941…（本次运行覆盖写，不是追加）
+    console 与 report.txt 正文逐行一致（各 118 行，EQUAL=True）
+  报告头：GCC 16.2.0；Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+  四个指标键未改名、未改参考值、未加新指标：
+    memory.alloc_free_16B / memory.alloc_free_512B / memory.large_object_page /
+    plugin.service_lookup_and_call
+
+--------------------------------------------------------------------------------
+4. 本轮新增 / 修改文件（全部在 Benchmark/**）
+--------------------------------------------------------------------------------
+修改：
+  Benchmark/CMakeLists.txt                                   F1DC1DDBDF36B9B3   65 行
+      新增 option(ID_BUILD_VALIDATION_ASSEMBLY … OFF) 与对应 add_subdirectory（默认 OFF）
+  Benchmark/validation/runtime/CMakeLists.txt                B8397C2EB92456FB  107 行
+      源文件清单加入 runtime_provision_cases.cpp
+  Benchmark/validation/runtime/cmake/RunRuntimeCases.cmake   6829CEB8356B1214  380 行
+      组 9 provision 计数、关键用例点名要求、探针 A 改为"D-P3-1 回归哨兵"口径
+  Benchmark/validation/runtime/src/RuntimeCases.hpp          EA2769A15C7F98F1   36 行
+  Benchmark/validation/runtime/src/RuntimeFixture.hpp        D54181A5C41E54F7  439 行
+  Benchmark/validation/runtime/src/RuntimeFixture.cpp        79AE7ED16709DE08  593 行
+  Benchmark/validation/runtime/src/runtime_lifecycle_cases.cpp 635EE758580B68A8 219 行
+  Benchmark/validation/runtime/src/runtime_main.cpp          BBB9E4315EBB7BA4   70 行
+新增：
+  Benchmark/validation/runtime/src/runtime_provision_cases.cpp EA77668040224359 144 行
+  Benchmark/validation/assembly/CMakeLists.txt               CF9DB6E61D681DAE   56 行
+  Benchmark/validation/assembly/cmake/RunAssemblyValidation.cmake 0DEB5D882163B5E1 918 行
+  Benchmark/validation/assembly/src/EvidenceCategoryProbe.cpp 31DDD91D917DED06  64 行
+  Benchmark/validation/assembly-p2-evidence.txt              （本文件）
+未修改：ID/**、IDPlugin/**、Assemble/**、Sandbox/**、根 CMakeLists.txt、工作台与 skills/**。
+
+--------------------------------------------------------------------------------
+5. 未验证项与不宣称
+--------------------------------------------------------------------------------
+· 只在 MinGW GCC 16.2.0 + MinGW Makefiles + Release 上实测；MSVC / clang / 多配置生成器未构建，
+  驱动器的 MSVC 分支（cl 的 /Zs 与 nm 缺失时的桩检查）未验证。
+· 没有做任何性能测量：没有新增/修改指标与参考值，没有六档评级，
+  也没有验证"get_service 热路径没有新增分支/间接层"（那需要 16.4 的反汇编检查与测量）。
+· 没有验证真实 DLL 插件加载、热重载、跨模块 STL/ABI 混用；fixture 是仓库内的最小集成模块。
+· 没有重跑 P1 生产域与 P0 原型域，也没有重跑 CMake 侧（IDResolveSelection）反向用例。
+· 没有实跑"编辑 plugin.json/profile 内容后由 mtime 自动 reconfigure"（见 2.7 缺口）。
+· 没有覆盖"部分选中"的 profile（见 2.3 缺口）。
+· ID_MONOLITHIC_BUILD=OFF/ON 共用 <engine>/bin 的既有问题（K6）本轮未修：驱动器用
+  --clean-first 规避，STATIC/SHARED 交替时的陈旧归档风险仍存在。
+· 不宣称 P2/P3 已整体验收：本文件只覆盖上面列出的验证面，独立 review 与其余阶段另行安排。
+================================================================================

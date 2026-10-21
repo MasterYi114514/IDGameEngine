@@ -1,0 +1,19 @@
+[100%] assembly validation: configure/build STATIC+SHARED x default+zero, compare evidence, corrupt-evidence reverse compiles, profile switch, stub/symbol checks
+-- assembly-validation[selfcheck] ok: rejected=0 expect=0 as-expected 
+missing-line: rejected=1 expect=1 as-expected Smoke 输出 3 行，点名表要求 4 行 | 期望文案命中 0 次（应为 1）：^\[PASS\] host small new/delete completed \(alloc and free succeeded\)$ | 
+duplicate-line: rejected=1 expect=1 as-expected Smoke 输出 5 行，点名表要求 4 行 | 期望文案命中 2 次（应为 1）：^\[PASS\] shutdown state=Idle \(code=None\)$ | 
+extra-line: rejected=1 expect=1 as-expected Smoke 输出 5 行，点名表要求 4 行 | 出现未点名的输出行：[INFO] driver self-check unexpected line | 
+changed-state: rejected=1 expect=1 as-expected 期望文案命中 0 次（应为 1）：^\[PASS\] start state=Ready$ | 出现未点名的输出行：[PASS] start state=Initializing | 
+fail-not-pass: rejected=1 expect=1 as-expected 期望文案命中 0 次（应为 1）：^\[PASS\] shutdown state=Idle \(code=None\)$ | 出现未点名的输出行：[FAIL] shutdown state=Idle (code=None) | 
+large-not-routed: rejected=1 expect=1 as-expected 大对象行 grew=4096 低于 1 MiB 下限 1048576 | 
+
+-- assembly-validation[shared] mode=SHARED configure=0 build=0 smoke=0 pass=4
+-- assembly-validation[static] mode=STATIC configure=0 build=0 smoke=0 pass=4
+-- assembly-validation[zero-shared] mode=SHARED configure=0 build=0 smoke=0 pass=4
+-- assembly-validation[zero-static] mode=STATIC configure=0 build=0 smoke=0 pass=4
+-- assembly 校验：legal=probe=0 validate=0
+-- assembly 校验：STATIC=STATIC/IDFixtureApi;IDFixtureCore;IDFixtureMath  SHARED=SHARED/IDFixtureApi;IDFixtureCore;IDFixtureMath
+-- assembly 校验：STATIC stems=IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+-- assembly 校验：SHARED stems=ID IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+-- assembly 校验批次通过：判定器自检按预期拒绝错误输出；四个变体 configure/build/Smoke 全 0，Smoke 输出与 4 条断言逐条一致；STATIC 与 SHARED 证据一致；zero profile 无未选中痕迹；8 类改坏证据全部按类别拒绝；profile 切换与替换符号检查通过
+[100%] Built target IDAssemblyValidationRun

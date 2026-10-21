@@ -1,0 +1,255 @@
+================================================================================
+P3 运行期 PluginRuntime 正确性矩阵 —— 实测证据记录
+================================================================================
+性质：实测证据记录，不是设计文档，也不是 Benchmark 报告。
+      逐用例明细就是 raw/runtime-p3runtime/run-stdout.log，与
+      cmake-build-p3runtime/Benchmark/validation/runtime/out/report.txt 逐字一致（双向各 20509 字节）。
+      官方 Benchmark/report.txt 在 P3 全部运行前后 SHA256 不变（隔离判定见 runtime-index.txt）。
+      本文件所有结论都来自本轮真实 configure / build / 运行；没有用静态推导替代实测。
+
+被测实现（owner 未提交改动，本轮只读，未修改）：
+  ID/include/Kernel/PluginRuntime.hpp        SHA256 65DE9ED9B048A36AB797F645D613BC0C66F8797C41E2B19FB61C7E0173D53F62  390 行
+  ID/src/Kernel/PluginRuntime.cpp            SHA256 99FDCB0B62A1E990F22A41E55A6ADD7A279AE86AE407E661A68BC3E580EAC8D4  517 行
+  依赖（未改）：ID/include/Kernel/Plugin.hpp 75DFBCB3FC0345F3D846A88FEFF3C994FE85B5F08D83D99587E95C71F617CC06
+                ID/include/Kernel/PluginCompileTime.hpp 44416C713DC383E069EC0F9853521F28BE0BE5206653CFBA83E19781406B9527
+  git HEAD = ada3b40daae2d2e9b5765290ac4c9e8563e211ed
+
+本轮改动边界：只新增/修改 Benchmark/**（清单见第 4 节）。
+  ID/**、IDPlugin/**、Assemble/**、Sandbox/**、根 CMakeLists.txt、workbench_config_local.json、
+  skills/** 全部未修改；未提交、未推送、未派 subagent。
+  生成物目录（非源码、被 .gitignore 忽略）：F:\IDGameEngine\cmake-build-p3runtime、
+  F:\IDGameEngine\bin（libID.dll 由根 CMake 强制输出到共享 bin，K6 既有问题，本轮未修也未引入）。
+
+环境：GCC 16.2.0（MinGW-w64 x86_64-posix-seh）/ CMake 4.4.4 / MinGW Makefiles / Release /
+      MONOLITHIC=OFF / AVX2=ON / CPU 13th Gen Intel(R) Core(TM) i7-13700。
+      构建目标 PluginRuntimeCases 由 ID_BUILD_VALIDATION_RUNTIME=ON 打开；默认 OFF 不产生任何校验目标。
+
+--------------------------------------------------------------------------------
+1. 判定口径（驱动器 RunRuntimeCases.cmake，缺一不可）
+--------------------------------------------------------------------------------
+1) 零插件全空视图探针 exit 0（start -> Ready，shutdown -> Idle）；
+2) 零插件 records 非空对照探针 exit 0（同环境合法对照，唯一差别是 records 是否为 nullptr）；
+3) 主矩阵 PluginRuntimeCases exit 0；
+4) 主矩阵 console 无 [FAIL]、无 [SKIP]、无 invalid-basis 指标行；
+5) 指标数 == 0 且 ungraded 计数 == 0（本轮不做性能测量、不新增评级）；
+6) 八组每组 PASS >= 3（防整组被删）；主矩阵 console 与 out/report.txt 逐字一致且报告被覆盖写
+   （用 SHA256 判定，不依赖秒级时间戳：探针与主矩阵可能落在同一秒）；
+7) 官方 Benchmark/report.txt 前后 SHA256 不变（产物隔离）；
+8) 驱动器自检：FAIL 正则命中人造 FAIL 行、不误命中 PASS 行；主矩阵 stderr 不得出现 ASSERT FAILED。
+
+--------------------------------------------------------------------------------
+2. 用例矩阵（8 组 / 239 条 PASS / 0 FAIL / 0 SKIP）
+--------------------------------------------------------------------------------
+每组都有真实条件比较：错误码枚举相等、调用序列整串字符串相等、槽位地址相等、函数返回值相等。
+没有一个用例靠"非空"或固定文案判定；失败用例旁边都紧跟同环境合法对照（同一计划、同一夹具）。
+
+lifecycle（7）——组 1 正常四阶段
+  kPlanAbcd 的拓扑序故意取 D,B,A,C（非恒等排列），精确序列断言：
+    register/init  : D.r,B.r,A.r,C.r,D.i,B.i,A.i,C.i      （上游先启动）
+    shutdown/unload: C.s,A.s,B.s,D.s,C.u,A.u,B.u,D.u      （下游先关闭）
+  另：Ready/Idle 状态、关闭后 64 槽全空。
+
+zero（7）——组 2 零插件（显式空数组视图）
+  start -> Ready，shutdown -> Idle，全程零回调，槽表为空。
+  全空视图（records/topo_order/slot_owner 全 nullptr）按头文件契约同样合法，但会触发缺陷 D-P3-1，
+  因此改为两条独立进程探针执行（见第 3 节），断言口径未放宽。
+
+initfail（33）——组 3 init 失败：首个 / 中间 / 末尾
+  合法对照 3 条 + 每个位置 10 条：
+    错误码 == InitFailed；plugin 下标 0/1/2；调用后 state == Idle；
+    序列精确断言（例：中间失败 = A.r,B.r,C.r,A.i,B.i,B.s,A.s,C.u,B.u,A.u）——
+      失败插件自身 on_shutdown 被调用、已尝试 init 前缀逆序 shutdown、已注册全集逆序 unload、不进入 unload 前的多余阶段；
+    槽表全空；失败后 shutdown 幂等且不产生回调；修正后再次 start 成功且序列回到正常值。
+
+register（41）——组 4 register 阶段发布违约
+  合法对照 8 条（Ready、序列、槽 2/槽 3 指向同一张表、关闭序列、槽清空）
+  + 四种违约各 8 条（越界那条另有 1 条 publish_service(64) 直接返回值断言）：
+    missing_slot      -> RegisterSlotMissing（slot=2, plugin=0）
+    wrong_owner       -> ServiceOwnerMismatch（slot=3：U 侵占 V 的槽）
+    duplicate_publish -> ServiceDuplicatePublish（slot=2）
+    slot_out_of_range -> ServiceSlotOutOfRange（slot=64）
+  每条违约都断言：错误码、plugin、slot、state==Idle、序列 == "U.r,U.u"（V 未注册、未进入 init、
+  已执行集合逆序 unload）、槽表全空；紧随其后同一计划合法对照必须进 Ready。
+  越界用例还断言 publish_service(64) 的直接返回值就是 ServiceSlotOutOfRange。
+
+state（18）——组 5 重复 start / Idle shutdown / 回调重入
+  start 后重复 start -> AlreadyStarted，state 仍 Ready，序列不增长；
+  正常 shutdown 后再次 shutdown -> None/Idle，序列不增长；
+  回调内重入：register 阶段的 start() 与 init 阶段的 shutdown() 都返回 Busy，
+  且整条序列与无重入时完全相同（流程未被改变）。
+
+slot（31）——组 6 槽位边界与所有权
+  槽 63 合法：发布成功、get_service 取回同一张表、经该表间接调用 add(40,2)==42、关闭后槽空、序列精确；
+  槽 64 拒绝且不索引：错误码 ServiceSlotOutOfRange、诊断 slot==64、state 回 Idle、
+    探测时槽 63 仍为空、回滚序列 "E.r,E.u"、无残留槽；探测关闭后同一计划合法对照进 Ready；
+  on_unload 注销别人的槽：V 先于 U 卸载时 revoke(U 的槽) -> ServiceOwnerMismatch，
+    且 V 紧接着观测到 U 的表仍然发布着（未被偷偷清掉），关闭后槽表全空；
+  Ready 期间 publish -> ServicePublishRejected、revoke -> ServiceRevokeRejected，
+    两次拒绝后槽 2 仍指向原表；关闭后 64 槽全空。
+
+upstream（12）——组 7 真实调用已选上游的公开函数
+  上游 U 在 register 阶段把测试内公开函数表发布到槽 2；下游 V 在 init 阶段用
+  get_service<TestMathApi>(Math) 取表并真正调用：add(19,23)==42、square(7)==49；
+  宿主侧再取同槽：地址 == &kMathTable、add(-5,8)==3、square(12)==144。
+  这里不是"只判非空"，而是核对每一次间接调用的返回值与表地址身份。
+
+plan（86）——组 8 计划视图边界（19 条边界，每条 4~5 个断言 + 同环境合法对照）
+  too_many_plugins(129, 数组指针全空) -> PlanTooManyPlugins
+  abi_mismatch(rev+1) -> PlanAbiMismatch；struct_size_mismatch(sizeof-1) -> PlanStructSizeMismatch
+  topo_duplicate -> PlanInvalidTopology(plugin=0)；topo_out_of_range -> PlanInvalidTopology(plugin=4)
+  record_duplicate_id -> PlanInvalidRecord(plugin=1)；record_zero_id / record_empty_name /
+    record_name_too_long(>96B) -> PlanInvalidRecord
+  records_null / provisions_null -> PlanNullPointer
+  slot_owner_vs_provision(slot=2) -> PlanInvalidSlotOwner；slot_owner_without_provision(slot=5)；
+    slot_owner_out_of_range(plugin=9) -> PlanInvalidSlotOwner
+  provision_slot_64 -> PlanInvalidProvision(slot=64)；provision_owner_out_of_range(plugin=4)；
+    provision_revision_zero；provision_duplicate_slot -> PlanInvalidProvision / PlanInvalidSlotOwner
+  zero_plugins_with_provision -> PlanInvalidProvision
+  每条都断言：错误码相等、state 仍 Idle、序列为空（零回调，即不进入 Ready）、
+  以及紧随其后的同环境 A-B-C-D 合法生命周期仍进 Ready 并回 Idle；批前/批后各一条整体合法对照。
+  too_many_plugins 把 records/topo_order/slot_owner 全部置空：若实现先索引再校验，会读到空指针。
+
+domain（4）：用例集进入前后各断言 Idle + 64 槽全空（前置/后置条件）。
+
+主矩阵 stderr 只有 2 行，都是被测路径的预期冷路径诊断（不是失败）：
+  [ERROR][ID.Kernel] PluginRuntime ServiceOwnerMismatch (state=Unloading, plugin='RT.V', slot=2)   <- 组 6 越权注销
+  [ERROR][ID.Kernel] PluginRuntime ServicePublishRejected (state=Ready, plugin='', slot=2)        <- 组 6 Ready 发布拒绝
+
+--------------------------------------------------------------------------------
+3. 缺陷 D-P3-1（本轮实测发现，保留用例，等 owner 修）
+--------------------------------------------------------------------------------
+现象：零插件产品若按头文件许可把 records/topo_order/slot_owner 全留空，start 正常进入 Ready，
+      随后 shutdown() 触发内部断言 abort（进程以 Illegal instruction 结束），拿不到 Idle。
+
+最小复现（探针 A，独立进程，raw/probe-zero-null-*）：
+  PluginRuntimePlanView plan{};                  // plugin_count=0，四个数组指针全为 nullptr
+  PluginRuntime::instance().start(plan);         // 实际返回 code=None, state=Ready
+  PluginRuntime::instance().shutdown();          // 期望 None/Idle；实际 abort
+  探针 stdout（abort 前已刷盘的前 4 条判定全部 PASS）：
+    [PASS] zero.null_view.precondition_idle expect=Idle actual=Idle
+    [PASS] zero.null_view.start_ok          expect=None actual=None at=Ready
+    [PASS] zero.null_view.ready             expect=Ready actual=Ready
+    [PASS] zero.null_view.no_callbacks
+  探针 stderr（唯一一行）：
+    [FATAL][ID.Assert] ASSERT FAILED: (m_active_plan != nullptr && m_active_plan->records != nullptr)
+      | PluginRuntime::shutdown() reached Ready without an installed plan!
+      [F:\IDGameEngine\ID\src\Kernel\PluginRuntime.cpp:376]
+
+A/B 对照（把"是哪一条子句挡住"定位到唯一变量）：
+  探针 A  plan{}                                   records=nullptr            -> abort（Illegal instruction）
+  探针 B  plugin_count=0, records=&kRecordsAbc[0], topo_order=nullptr,
+          slot_owner=nullptr, provisions=nullptr                              -> exit 0，8 passed
+  （raw/probe-zero-null-records-*）两者计数都是 0、都没有回调，唯一差别就是 records 是否为 nullptr。
+
+被测源码位置：
+  ID/src/Kernel/PluginRuntime.cpp:375-377  shutdown() 的 ID_KERNEL_ASSERT 同时要求 m_active_plan != nullptr
+                                          **且 m_active_plan->records != nullptr**
+  ID/include/Kernel/PluginRuntime.hpp:202-203  @note "零插件产品合法：plugin_count == 0 时
+                                          records/topo_order/slot_owner/provisions 都可以为空，
+                                          start 直接从 Idle 进入 Ready，shutdown 回到 Idle（计划书 12.3）"
+  同一实现内部也不自洽：rollback() 在 PluginRuntime.cpp:317 只断言 m_active_plan != nullptr，
+  不要求 records 非空；shutdown() 第 5 阶段清槽时已用 plan.slot_owner != nullptr 做空保护（:420）。
+
+影响：计划书 12.3 的"零插件产品"（纯内核 ship）在 Release 下也无法关闭——ID_KERNEL_ASSERT 永远启用，
+      不是 Debug-only；任何把空数组视图交给 runtime 的组装入口都会在 shutdown 时干掉进程。
+
+建议（由 owner 决定实现方式，本轮未改）：shutdown() 的断言只保留 m_active_plan != nullptr；
+      records 的空性由 plugin_count == 0 的循环边界自然覆盖（本探针验证其余字段为空是安全的）。
+
+主矩阵 239 条断言在 Release 下全部 PASS，探针 A 在 abort 之前已落盘的 4 条判定也全部 PASS，
+说明缺陷就是这一条断言子句，不是零插件路径整体不可用；探针 B 把 records 换成非空后 8 条全 PASS，
+进一步把变量收敛到 records 指针本身。
+
+--------------------------------------------------------------------------------
+4. 本轮新增 / 修改文件（全部在 Benchmark/**）
+--------------------------------------------------------------------------------
+新增：
+  Benchmark/validation/runtime/CMakeLists.txt                      SHA256(前16) D6785897E1A2E0E2  106 行
+  Benchmark/validation/runtime/cmake/RunRuntimeCases.cmake         SHA256(前16) DB0ABE78287E83CF  365 行
+  Benchmark/validation/runtime/src/RuntimeCases.hpp                SHA256(前16) C7D1564B1B089648   35 行
+  Benchmark/validation/runtime/src/RuntimeFixture.hpp              SHA256(前16) 9560AEDDBCF24730  370 行
+  Benchmark/validation/runtime/src/RuntimeFixture.cpp              SHA256(前16) 6837B525FC8C0153  570 行
+  Benchmark/validation/runtime/src/runtime_main.cpp                SHA256(前16) 32D90EC9AC91DB3F   69 行
+  Benchmark/validation/runtime/src/runtime_lifecycle_cases.cpp     SHA256(前16) C9FAB17C412888B1  207 行
+  Benchmark/validation/runtime/src/runtime_service_cases.cpp       SHA256(前16) 7EC2A7BFBB27F23F  186 行
+  Benchmark/validation/runtime/src/runtime_plan_cases.cpp          SHA256(前16) 7A690F31F8B39B26  173 行
+  Benchmark/validation/runtime-p3-evidence.txt                     （本文件）
+修改：
+  Benchmark/CMakeLists.txt                                         SHA256(前16) 19C6B3E84DDBAEBA   55 行
+      只新增 option(ID_BUILD_VALIDATION_RUNTIME ... OFF) 与 if(...) add_subdirectory(validation/runtime)。
+      默认 OFF，普通 Benchmark 目标与用例集完全不变。
+
+设计要点：
+  · 新增位置在 validation/runtime/src，不在 Benchmark/src，普通 src/*.cpp glob 捡不到；
+    configure 期还会逐一 list(FIND BENCH_SRC ...) 校验，一旦混入直接 FATAL_ERROR。
+  · 输出走 ID::Bench 公共设施（BeginSession/Run/Check/EndSession），ID_BENCHMARK_REPORT_DIR 指向
+    本构建目录 out/，因此官方 Benchmark/report.txt 不会被校验程序覆盖。
+  · 产物隔离到 cmake-build-p3runtime/Benchmark/validation/runtime/out/{bin,lib}；
+    原始日志按构建目录名隔离到 Benchmark/validation/baseline/raw/runtime-p3runtime/，
+    batch-owner.txt 绑定单一构建目录，禁止两个构建目录混写。
+  · 插件角色是纯测试内定义（A/B/C/D 记录器、U/V 服务提供者与消费者、E 槽 63），
+    没有往 IDPlugin 里加任何假插件；计划视图与记录表都是 inline constexpr（静态存储期）。
+  · 全局状态全部 constinit（无运行期全局构造）；断言辅助只格式化"期望/实际"值，判定是真实条件比较。
+
+--------------------------------------------------------------------------------
+5. 真实执行记录（全部本轮实测；CWD 除注明外均为 F:\IDWorkbench）
+--------------------------------------------------------------------------------
+5.1 配置（CWD F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p3runtime -G "MinGW Makefiles"
+        -DCMAKE_BUILD_TYPE=Release -DID_BUILD_VALIDATION_RUNTIME=ON
+  exit 0；raw/runtime-p3runtime/configure.log（打印日志目录与报告目录）
+5.2 构建
+  cmake --build F:\IDGameEngine\cmake-build-p3runtime --target PluginRuntimeCases --parallel
+  exit 0，无警告；raw/build-pluginruntimecases-r9.log（r2..r9 为迭代记录，最早一次有 -Wcomment 警告，已修）
+  产物：out/bin/PluginRuntimeCases.exe + out/bin/libID.dll（POST_BUILD 复制）
+5.3 运行（驱动器；CWD = cmake-build-p3runtime/Benchmark/validation/runtime）
+  cmake --build F:\IDGameEngine\cmake-build-p3runtime --target PluginRuntimeCasesRun
+  exit 2（仅因 D-P3-1；主矩阵本身 exit 0）
+  raw/driver-run-r9.log、raw/run-stdout.log、raw/run-stderr.log、raw/run-meta.txt、
+  raw/runtime-index.txt、raw/probe-zero-null-*.log、raw/probe-zero-null-records-*.log
+  该次索引关键值：
+    PROBE zero_null_shutdown       exit=Illegal instruction   （缺陷复现）
+    PROBE zero_null_records_shutdown exit=0                   （合法对照）
+    MATRIX_EXIT=0  PASSED=239  FAILED=0  SKIPPED=0
+    GROUPS lifecycle=7 zero=7 initfail=33 register=41 state=18 slot=31 upstream=12 plan=86
+    CONSOLE_EQUALS_REPORT=TRUE；REPORT_HASH_BEFORE != REPORT_HASH_AFTER（确认覆盖写）
+    METRICS=0 UNGRADED=0 MATRIX_STDERR_ASSERT=-1；OFFICIAL_REPORT_BEFORE == AFTER（隔离成立）
+
+5.4 稳定性（同一构建连续两次）
+  driver-run-r5-stability.log 与 driver-run-r9.log（源码最终态）：两者 PASSED=239 / FAILED=0 /
+  SKIPPED=0，八组计数完全相同；两条探针结论相同（A 复现、B 通过）。用例结果不跳变。
+
+--------------------------------------------------------------------------------
+6. legacy Release 回归（不改指标、不新增评级、不做性能测量）
+--------------------------------------------------------------------------------
+构建：cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark  -> exit 0
+      （重新 configure 后 ID 目标补编 PluginRuntime.cpp，因 ID/CMakeLists 的 GLOB 无 CONFIGURE_DEPENDS）
+运行：F:\IDGameEngine\bin\bin\Benchmark.exe 连续两次（raw/legacy-release-run1.log、run2.log）
+  RUN1 exit 0（STARTED 22:08:39.467 / END 22:08:43.148）
+  RUN2 exit 0（STARTED 22:08:43.171 / END 22:08:46.817）
+  两次都是：result: 75 passed / 0 failed / 13 skipped；SUMMARY security 1 domains / 75 passed /
+  0 failed / 13 skipped；performance 1 domains / 4 metrics；exit code 0。
+  report.txt（F:\IDGameEngine\Benchmark\report.txt）：
+    运行前 1 个 report*.txt、10118 B、hash 9B5EDE60...；RUN1 后 10118 B、hash 66DAB84F...；
+    RUN2 后 10118 B、hash AEEC8D5B...；运行后仍是 1 个 report*.txt。
+    => 单文件、每次覆盖写、没有多份报告、console 与正文逐字一致（TEXT_EQUAL=True，各 7740 B）。
+  报告头：GCC 16.2.0；Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF；QPC affinity=core 0；
+          cpu 13th Gen Intel(R) Core(TM) i7-13700。
+  四个指标键未改名：memory.alloc_free_16B / memory.alloc_free_512B / memory.large_object_page /
+          plugin.service_lookup_and_call（本轮未改参考值、未改评级带宽、未加新指标）。
+  raw/legacy-release-meta.txt 记录了每次的时间、hash、大小与汇总行。
+  普通 Benchmark 目标源清单仍是 4 个 TU（main / support / kernel_security / kernel_performance），
+  build.make 里没有任何 validation 路径命中；默认 OFF 的构建目录里不存在 PluginRuntimeCases 目标。
+
+--------------------------------------------------------------------------------
+7. 未验证项与不宣称
+--------------------------------------------------------------------------------
+· MSVC / clang 未安装、未验证：本文件的 PASS 结论只对 GCC 16.2.0 + MinGW Makefiles 成立；
+  探针 A 的 abort 形态（__builtin_trap -> Illegal instruction）在 MSVC 上是 __debugbreak，表现不同。
+· ID_MONOLITHIC_BUILD=ON（STATIC 归并）与 Debug 构建未跑本域；共享 bin 的 OFF/ON 覆盖问题（K6）未修。
+· 没有做任何性能测量：没有新增/修改指标与参考值，没有 six-grade 评级，本文件也不提供性能结论。
+  本轮没有验证"get_service 热路径没有新增分支/间接层"——那需要 16.4 的测量与反汇编检查。
+· 没有验证真实 DLL 插件加载、热重载、跨模块 STL/ABI 混用；本域插件角色都是同进程内测试夹具。
+· 没有验证 128 插件的满规模运行期生命周期（组 8 只覆盖计数超限拒绝；满规模属于编译期 P1 的规模矩阵）。
+· 不宣称 P3 已验收：D-P3-1 未修，批次驱动器因此以非零退出；修好后需重跑本域并重新出证据。
+================================================================================

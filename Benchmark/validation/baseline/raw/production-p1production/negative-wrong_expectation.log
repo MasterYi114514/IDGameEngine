@@ -1,0 +1,26 @@
+MODE: production-p1production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p1production
+CWD: F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production
+TARGET: production_expect_wrong_expectation
+EXPECTED_MARKER: DuplicatePlugin
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production --target production_expect_wrong_expectation
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: FALSE
+HAS_MISMATCH: TRUE
+
+[100%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_wrong_expectation.dir/src/cases/case_wrong_expectation.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_wrong_expectation.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:943:101: error: static assertion failed: ID_ASSEMBLY_ERROR_MISMATCH:DuplicatePlugin
+  943 |     static_assert(::ID::Bench::Production::error_matches<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_wrong_expectation.cpp:18:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   18 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, DuplicatePlugin);      // 实际是 SelfDependency
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_wrong_expectation.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_wrong_expectation.dir/src/cases/case_wrong_expectation.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:2755: Benchmark/validation/production/CMakeFiles/production_expect_wrong_expectation.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:2762: Benchmark/validation/production/CMakeFiles/production_expect_wrong_expectation.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:1143: Benchmark/validation/production/CMakeFiles/production_expect_wrong_expectation.dir/rule] Error 2
+

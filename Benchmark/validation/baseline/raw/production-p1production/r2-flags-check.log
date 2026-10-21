@@ -1,0 +1,12 @@
+CHECK: 遍历 F:\IDGameEngine\cmake-build-p1production 下全部 flags.make，只有压力目标允许带 -fconstexpr-ops-limit
+TOTAL_FLAGS_MAKE=90
+WITH_LIMIT_COUNT=1
+\Benchmark\validation\production\CMakeFiles\production_scale_target_128x32x16.dir\flags.make :: CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -fconstexpr-ops-limit=184549376
+
+BENCHMARK_TARGET_FLAGS:
+CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -fno-rtti -fno-exceptions -O3 -ffast-math -fomit-frame-pointer -mavx2 -mfma
+ID_TARGET_FLAGS:
+CXX_FLAGS = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -fno-rtti -fno-exceptions -O3 -ffast-math -fomit-frame-pointer -mavx2 -mfma
+
+GLOBAL_CACHE_CXX_FLAGS (仅 CMAKE_CXX_FLAGS: 行，均不含 fconstexpr-ops-limit):
+  CMAKE_CXX_FLAGS:STRING=

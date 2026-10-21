@@ -1,0 +1,7 @@
+MODE: r2-bisect
+CWD: F:\IDWorkbench
+LIMIT: 37748736
+COMMAND: D:/Code/Environment/MinGW/mingw64/bin/c++.exe -IF:/IDGameEngine/Benchmark/validation/production/include -IF:/IDGameEngine/ID/include -O3 -DNDEBUG -std=c++20 -fconstexpr-ops-limit=37748736 -c F:/IDGameEngine/Benchmark/validation/production/src/scale/scale_plan_only_128x32x1.cpp -o C:\Users\ADMINI~1\AppData\Local\Temp\po1_37748736.obj
+EXIT: 0
+SECONDS: 5.22
+

@@ -1,0 +1,28 @@
+# P3 运行期 PluginRuntime 用例批次索引（RunRuntimeCases.cmake 自动写入）
+# 判定：两条探针 exit == 0 && 主矩阵 exit == 0 && [FAIL] == 0 && [SKIP] == 0
+#       && 每组 PASS >= 3 && 主矩阵 console == out/report.txt 且 report 被覆盖写
+#       && 官方 Benchmark/report.txt 前后 hash 不变 && 驱动器自检通过
+MODE            : runtime-p5-runtime
+BUILD_DIR       : F:/IDGameEngine/cmake-build-p5-runtime
+BUILD_TYPE      : Release
+STARTED         : 2026-10-19 23:30:16
+FINISHED        : 2026-10-19 23:30:16
+PROBE           : zero_null_shutdown|exit=0|logs=probe-zero-null-stdout.log,probe-zero-null-stderr.log
+PROBE           : zero_null_records_shutdown|exit=0|logs=probe-zero-null-records-stdout.log,probe-zero-null-records-stderr.log
+MATRIX_EXIT     : 0
+PASSED          : 278
+FAILED          : 0
+SKIPPED         : 0
+GROUPS          : lifecycle=7 zero=14 initfail=33 register=41 state=18 slot=31 upstream=12 plan=86 provision=32 
+GROUP_TOTAL     : 274
+CONSOLE_EQUALS_REPORT : TRUE
+REPORT_TIME     : 2026-10-19 23:30:16
+REPORT_HASH_BEFORE : bc13d6f955837d2e05824c9ea9dc4b46d83663c28a19903ab220b8c2a39d0396
+REPORT_HASH_AFTER  : 696258e6079ee35f0f2e3c6f8808549f17e6da264462859302625b80689feee2
+METRICS         : 0
+UNGRADED        : 0
+OFFICIAL_REPORT_BEFORE : present 32bbcb1dff16100ac914b107a549ff485ec313327ad77bef7051f60f2c7cdf5e
+OFFICIAL_REPORT_AFTER  : present 32bbcb1dff16100ac914b107a549ff485ec313327ad77bef7051f60f2c7cdf5e
+SELFCHECK_FAIL_REGEX   : fail_hits=1 pass_false_positive=0
+MATRIX_STDERR_ASSERT   : -1
+LOGS            : run-stdout.log run-stderr.log run-meta.txt

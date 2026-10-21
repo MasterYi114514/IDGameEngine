@@ -1,0 +1,14 @@
+=== IDGameEngine Benchmark Report ===
+generated     : 2026-10-19 22:11:16
+compiler      : GCC 16.2.0
+build         : Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+timer         : QPC (freq=10000000, resolution=100 ns) | affinity=core 0
+cpu           : 13th Gen Intel(R) Core(TM) i7-13700
+report        : F:/IDGameEngine/cmake-build-p3runtime/Benchmark/validation/runtime/out/report.txt
+--------------------------------------------------------------------
+
+## ID.PluginRuntime — Security
+  [PASS] zero.null_view.precondition_idle expect=Idle actual=Idle
+  [PASS] zero.null_view.start_ok          expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] zero.null_view.ready             expect=Ready actual=Ready
+  [PASS] zero.null_view.no_callbacks     

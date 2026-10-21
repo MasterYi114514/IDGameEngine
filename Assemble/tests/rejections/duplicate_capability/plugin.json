@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Reject.Duplicate",
+    "target": "IDRejectDuplicate",
+    "namespace": "ID::Reject::Duplicate",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Fixture.Core", "api_revision": 1}
+    ],
+    "lifecycle": "standard"
+}

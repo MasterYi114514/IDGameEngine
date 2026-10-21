@@ -1,0 +1,12 @@
+SHELL_CWD  : F:/IDGameEngine
+COMMAND    : cmd /c "cd /d F:\IDGameEngine && cmake --build cmake-build-protostatic --target FixtureNegativeCases > Benchmark\validation\baseline\raw\protostatic\negative-batch-stdout.log 2>&1"
+EXIT       : 0
+RUN_AT     : 2026-10-19 18:24:18–18:24:34（最后一次运行；与 negative-index.txt 的 STARTED/FINISHED 一致）
+STDOUT_LOG : Benchmark/validation/baseline/raw/protostatic/negative-batch-stdout.log
+INDEX      : Benchmark/validation/baseline/raw/protostatic/negative-index.txt（28 passed / 0 failed）
+DRIVER     : Benchmark/validation/prototype/cmake/RunNegativeCases.cmake（经 FixtureNegativeCases 调用）
+DRIVER_CWD : F:/IDGameEngine/cmake-build-protostatic/Benchmark/validation/prototype
+NOTE       : add_custom_target 的命令由 CMake 在 prototype 的构建目录下执行，
+             因此驱动器在日志头里记录的 CWD 是构建目录，不是 shell 的 F:/IDGameEngine；
+             两者分别记录，不混用。批次内每条用例的命令/EXIT/CWD 见 negative-<case>.log 头部。
+             本文件是在最后一次运行之后补写的说明文件，记录该次运行的命令与时间。

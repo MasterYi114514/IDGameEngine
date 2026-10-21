@@ -1,0 +1,8 @@
+TARGET: production_scale_active_128
+COMMAND: D:\Code\Environment\CMake\bin\cmake.exe --build F:\IDGameEngine\cmake-build-p1production --target production_scale_active_128
+EXIT: 0
+SECONDS: 4.57
+
+[ 75%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_scale_active_128.dir/src/scale/scale_active_128.cpp.obj
+[100%] Built target production_scale_active_128

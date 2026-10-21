@@ -1,0 +1,3 @@
+﻿[ 50%] Building CXX object CMakeFiles/install_consumer.dir/main.cpp.obj
+[100%] Linking CXX executable install_consumer.exe
+[100%] Built target install_consumer

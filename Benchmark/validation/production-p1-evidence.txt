@@ -1,0 +1,258 @@
+================================================================================
+P1 生产 API 正确性与编译期成本验证 —— 实测证据记录（复核轮）
+================================================================================
+性质：实测证据记录，不是设计文档，也不是 Benchmark 报告。
+      运行时报告仍然是唯一一份 Benchmark/report.txt；本文件记录 P1 用例、命令、
+      工作目录、退出码、原始日志位置、被测头 SHA256 与生产缺陷，供主 Agent 与
+      独立 review 核对。
+      本文件所有结论都来自本轮真实构建/运行；没有用静态推导代替实测。
+
+被测代码（owner 未提交改动）：
+  ID/include/Kernel/Plugin.hpp              SHA256 75DFBCB3FC0345F3D846A88FEFF3C994FE85B5F08D83D99587E95C71F617CC06
+  ID/include/Kernel/PluginCompileTime.hpp   SHA256 44416C713DC383E069EC0F9853521F28BE0BE5206653CFBA83E19781406B9527（3246 行）
+  ID/include/Kernel/CoreTypes.hpp           SHA256 CCFE120F427C944BD09F96A46B63CA9930669486CE003F977A2FCCF1802E5A6F
+  git HEAD = ada3b40daae2d2e9b5765290ac4c9e8563e211ed
+  git status：M Benchmark/CMakeLists.txt、M ID/include/Kernel/Plugin.hpp、
+              ?? Benchmark/validation/、?? ID/include/Kernel/PluginCompileTime.hpp
+  完整哈希表：raw/production-p1production/r2-source-hashes.txt（含 GCC/CMake 版本与该时刻 git status）
+测试代码：Benchmark/validation/production/**（本轮修改了 5 个文件：1 个 CMake 参数 + 4 处注释，见第 7 节）
+本轮改动边界：只写 Benchmark/**；ID/**（含被测头）、IDPlugin/**、Sandbox/**、Assemble/**、
+  根 CMake、工作台配置与 skill 均未修改；未提交、未推送。
+
+环境：GCC 16.2.0（MinGW-w64 x86_64-posix-seh）/ CMake 4.4.4 / MinGW Makefiles / Release
+P1 构建目录：F:\IDGameEngine\cmake-build-p1production
+             Release / MONOLITHIC=OFF / ID_BUILD_VALIDATION_PRODUCTION=ON / PROTOTYPE=OFF
+产物隔离：ProductionCaseControls.exe 与 libID.dll 只写
+          cmake-build-p1production/Benchmark/validation/production/out/bin；
+          原始日志按构建目录名派生到 Benchmark/validation/baseline/raw/production-p1production/。
+          K6 既有问题仍在：构建 production 目标时 ID 目标仍链接共享 bin/bin/libID.dll（本轮未修）。
+CWD：cmake --build 调用与探针编译都在 F:\IDWorkbench；驱动器的 run/self-check 子步骤
+     CWD 记在每条日志里（BATCH_CWD = 构建目录下的 production 目录）。CWD 不影响结论：
+     所有输出都被重定向到按构建目录派生的 raw 里。
+
+--------------------------------------------------------------------------------
+1. 判定口径与本轮批次结果
+--------------------------------------------------------------------------------
+前提（任一不满足即整批 FATAL，后面的失败用例不会被算通过）：
+  A. 70 个 case TU 的 PRODUCTION_CASE_LEGAL 分支编成 OBJECT 库 IDProductionLegalCases，
+     本次重新编译，且每个 basename 都必须出现在编译输出里；
+  B. 6 个正向 TU 编成 OBJECT 库 IDProductionPositiveCases，同样要求 basename 出现在编译输出；
+  C. 正向注册检查：src/positive/positive_*.cpp 的每个文件都必须在 IDP_POSITIVE_NAMES 里
+     （CMake configure 期与驱动器各检查一次）。本轮两条都实测过：
+       · configure 期：放入未注册的 positive_temp_guard_probe.cpp -> exit 1 并报
+         "positive 源文件未注册"，删除后重新 configure -> exit 0；
+         真实日志：raw/production-p1production/selfcheck-configure-unregistered-positive.log
+         （本轮重新生成，不是历史引用）；
+       · 驱动器侧：missing-positive 自检（见第 1 节末尾 4 条自检）。
+  D. ProductionCaseControls 链接响应文件 objects1.rsp 必须含 70 个合法对照对象 + 6 个正向对象；
+  E. ProductionCaseControls 运行必须 exit 0，并逐个核对 6 个正向探针读数
+     （合法分支都是编译期 static_assert、没有可调用符号，因此不声称运行期调用过它们；
+      链接输入单独由响应文件证明）。
+
+批次命令（CWD = F:\IDWorkbench）：
+  cmake --build F:\IDGameEngine\cmake-build-p1production --target ProductionNegativeCases
+第 1 次：退出码 0，墙钟 109.63 s，raw/production-p1production/batch-negative-run.log
+         STARTED 2026-10-19 21:43:50 / FINISHED 21:45:08
+第 2 次（稳定性复跑）：退出码 0，墙钟 79.56 s，raw/production-p1production/batch-negative-run2.log
+         STARTED 2026-10-19 21:48:04 / FINISHED 21:49:22
+         两次都是 PASSED 70 / FAILED 0 / EXPECTED_TOTAL 70（索引被第 2 次覆盖写，见 negative-index.txt）
+索引：raw/production-p1production/negative-index.txt
+  PASSED 70 / FAILED 0 / EXPECTED_TOTAL 70
+  行类型计数：CASE=70、LEGAL=1、POSITIVE=1、CONTROL_RUN=1、POSITIVE_REG=1、SELFCHECK=2（均为 OK）
+逐条判定（每个期望失败目标都必须同时满足）：
+  exit != 0；编译输出 "static assertion failed" 恰好 1 条；含 ID_ASSEMBLY_ERROR_EXPECTED:<类别>；
+  不含 ID_ASSEMBLY_ERROR_MISMATCH。逐用例日志：raw/production-p1production/negative-<case>.log
+4 条驱动器自检（negative-summary.log，全部按预期拒绝）：
+  1) wrong_expectation       -> 因 MISMATCH 被拒（错误类别不符）；
+  2) aux_assert_failure      -> 因"失败断言数=2"被拒；
+  3) missing-positive        -> 注册检查收到"少一个已存在正向 TU"的清单后被拒；
+  4) mutated-positive-assert -> 被篡改的正向断言编译失败且恰好 1 条断言。
+重编译方式：不 clean、不 clean-first；只删除两个测试 OBJECT 库的 .obj，使用户 prod 产物与共享 bin 不被清理。
+
+--------------------------------------------------------------------------------
+2. 用例矩阵（70 条期望失败 + 合法/正向对照）
+--------------------------------------------------------------------------------
+PASS = 实际类别与期望一致，且断言数 1、EXPECTED 出现、MISMATCH 不出现。
+本轮 70/70 全部 PASS。其中 duplicate_candidate 复测仍为 DuplicateCandidate：
+  negative-duplicate_candidate.log：EXIT=2 / STATIC_ASSERT_FAILED_COUNT=1 /
+  HAS_EXPECTED=TRUE / HAS_MISMATCH=FALSE。
+70 条清单（逐条结果见 negative-index.txt）：
+active_overflow|TooManyActive, ambiguous_old_new|AmbiguousProvider,
+ambiguous_provider|AmbiguousProvider, candidate_capability_mismatch|CandidateCapabilityMismatch,
+catalog_overflow|TooManyCatalog, contract_candidate_mismatch|ContractCandidateMismatch,
+contract_count_mismatch|ContractRequirementMismatch, cycle|Cycle, cycle_tail|Cycle,
+duplicate_active|DuplicateActive, duplicate_candidate|DuplicateCandidate,
+duplicate_capability_declaration|DuplicateCapability, duplicate_capability_slots|DuplicateCapability,
+duplicate_capability_unused|DuplicateCapability, duplicate_plugin|DuplicatePlugin,
+empty_inner_group|EmptyRequirementGroup, evidence_binding_index_bounds|EvidenceProviderMismatch,
+evidence_capacity_binding|EvidenceProviderMismatch, evidence_capacity_edge|EvidenceEdgeMismatch,
+evidence_capacity_runtime|RuntimeBindingMismatch, evidence_capacity_selection|EvidenceSelectionMismatch,
+evidence_capacity_slot|EvidenceSlotMismatch, evidence_duplicate_binding|EvidenceProviderMismatch,
+evidence_duplicate_edge|EvidenceEdgeMismatch, evidence_duplicate_runtime|RuntimeBindingMismatch,
+evidence_duplicate_selection|EvidenceSelectionMismatch, evidence_duplicate_slot|EvidenceSlotMismatch,
+evidence_edge_mismatch|EvidenceEdgeMismatch, evidence_identity_mismatch|EvidenceIdentityMismatch,
+evidence_macro_mismatch|EvidenceMacroMismatch, evidence_provider_mismatch|EvidenceProviderMismatch,
+evidence_selection_mismatch|EvidenceSelectionMismatch, evidence_slot_index_bounds|EvidenceSlotMismatch,
+evidence_slot_mismatch|EvidenceSlotMismatch, evidence_target_mismatch|EvidenceTargetMismatch,
+hash_collision|NameHashCollision, interface_lifecycle_mismatch|InterfaceLifecycleMismatch,
+interface_slot_mismatch|InterfaceLifecycleMismatch, invalid_active|InvalidActive,
+invalid_capability|InvalidCapability, invalid_namespace|InvalidNamespace, invalid_revision|InvalidRevision,
+invalid_revision_range|InvalidRevisionRange, invalid_slot|InvalidSlot, invalid_target|InvalidTargetName,
+missing_provider|MissingProvider, namespace_conflict|NamespaceConflict, name_boundaries|InvalidName,
+name_first_char|InvalidName, name_internal_nul|InvalidName, name_unterminated|InvalidName,
+plugin_version_not_api|RevisionMismatch, pod_candidate_count_capacity|InvalidDeclaration,
+pod_contract_count_capacity|InvalidDeclaration, pod_group_count_capacity|InvalidDeclaration,
+pod_invalid_kind|InvalidDeclaration, pod_invalid_lifecycle|InvalidDeclaration,
+pod_pool_bounds|InvalidDeclaration, revision_mismatch|RevisionMismatch,
+runtime_binding_id_mismatch|RuntimeBindingMismatch, runtime_binding_revision_mismatch|RuntimeBindingMismatch,
+schema_mismatch|SchemaMismatch, self_dependency|SelfDependency, slot_conflict|SlotConflict,
+target_macro_conflict|TargetMacroConflict, too_many_candidates|TooManyCandidates,
+too_many_provides|TooManyProvides, too_many_requirements|TooManyRequirements,
+unknown_active|UnknownActive, unknown_candidate|UnknownCandidate
+
+合法对照 / 正向对照（编译、链接、运行分开记录）：
+  编译：IDProductionLegalCases（70 TU 合法分支）+ IDProductionPositiveCases（6 正向 TU）均 exit 0，
+        70 + 6 个 basename 全部出现在本次编译输出（legal-objects.log / positive-objects.log）；
+  链接：objects1.rsp 含 IDProductionLegalCases.dir 对象 70 个、IDProductionPositiveCases.dir 对象 6 个
+        （control-link-inputs.log；不是靠 "Built target" 推断）；
+  运行：ProductionCaseControls.exe exit 0，7 passed / 0 failed：
+        positive_basics(3/0/3) positive_graph(2/1/2) positive_ownership(1/0/5) positive_permutation(2/1/3)
+        positive_storage(2/1/2) positive_uneven(4/2/4) production_schema(schema_revision=1)
+        （control-run.log；括号内为 active/edge/provision）。
+
+--------------------------------------------------------------------------------
+3. 规模矩阵与常量求值成本（本轮实测）
+--------------------------------------------------------------------------------
+命令：cmake --build F:\IDGameEngine\cmake-build-p1production --target <target>
+墙钟：单进程 Stopwatch，含 make 调度与诊断输出。同一目标重复测量会明显波动，
+      所以**只用"超限/通过"作为结论**，秒数只用于判断"是否可接受（<300 s）"，
+      不当作成本结论、不声称任何提速倍数。
+完整表与逐步二分记录：raw/production-p1production/r2-scale-matrix.txt
+
+默认预算 33554432（官方 target，无任何额外常量求值参数）：
+  active_128                        exit 0   2.00 s
+  32x32x1                           exit 0   2.23 s
+  128x32x1（带完整证据）             exit 0   5.90 s   <== 默认预算能过 1 候选的满 active/catalog
+  plan_only_128x32x1                exit 2   6.77 s   超限 @ PluginCompileTime.hpp:2326
+  128x32x2                          exit 2   7.71 s   超限 @ char_traits.h:367（候选名比较）
+  128x32x4                          exit 2   8.45 s   超限 @ PluginCompileTime.hpp:1445/1596
+  128x32x8                          exit 2  12.30 s   超限 @ PluginCompileTime.hpp:781（candidate_view）
+  limit_128x32x16                   exit 2   6.32 s   超限 @ ProductionStress.hpp:63（夹具构造）
+  plan_only_128x32x16               exit 2   6.29 s   同上：ProductionStress.hpp:63（夹具构造）
+有界参数档（只加在压力 target / 同 TU 命令行补齐单一参数）：
+  128x32x2 @134217728               exit 0   5.89 s
+  128x32x4 @134217728               exit 0   8.78 s
+  128x32x8 @134217728               exit 0  20.22 s
+  128x32x16（带完整证据）二分：134217728 失败(36.80 s)、167772160 失败、176160768 失败、
+      180355072 失败、182452224 失败、183500800 失败、184549376 通过(40.60 s)；
+      官方 target 落地 184549376 后复验 exit 0、40.98 s。
+      184549376 是本机实测的最小可通过档（183500800 仍失败），不是"抬高到不失败为止"的上限猜测。
+  plan_only_128x32x1 最小档：35651584 失败、36700160 失败、37748736 通过（默认预算约差 7%–12%）。
+  128x32x2 最小档（未继续收紧）：50331648 失败、100663296 通过。
+参数落点（r2-flags-check.log）：构建目录下 90 个 flags.make 中，只有
+  production_scale_target_128x32x16 带 -fconstexpr-ops-limit=184549376；
+  Benchmark 与 ID 目标、其余规模/反向/对照目标都不带，CMAKE_CXX_FLAGS 为空。
+
+夹具与生产校验的分离（可复核，不是放宽要求）：
+  · 16 候选档在默认预算下的失败位置是 ProductionStress.hpp:63（夹具 make_catalog 写 candidates），
+    被测头根本没开始求值；因此默认档不能用来论证生产算法成本；
+  · 8 候选档在默认预算下夹具的三份输入（kCatalog/kSelected/kInput）都已构造成立，
+    失败在 sort_and_validate 内部（PluginCompileTime.hpp:781）；2/4 候选同样失败在生产侧；
+  · plan_only 与带证据档的差异有一半来自夹具结构：plan_only 写成
+    sort_and_validate(make_input(...)) 的一次性实参，输入构造与计划求值落在同一常量表达式；
+    带证据档先命名 constexpr 输入，构造与计划是两个独立求值。二者的证据记录条数与校验项没有差别。
+  · 因此本文件的"默认预算覆盖范围"只按实测通过/失败陈述，不把差异归因成"某项校验一定更贵"。
+
+--------------------------------------------------------------------------------
+4. 生产缺陷状态
+--------------------------------------------------------------------------------
+D-P1-1（DuplicateCandidate 不可达）：已由 owner 修复，本轮实测仍解除。
+D-P1-2（1 候选档默认预算）：**结论改写**。带完整证据的 128/256/32/1 在默认 33554432 下通过；
+  只有 plan_only 变体（无证据 + 输入内联）默认超限，最小可通过档 37748736。
+  即"1 候选档默认不可达"不再成立，剩下的是"计划推导单独测量时的预算余量不足"。
+D-P1-3（16 候选档预算）：**结论改写**。134217728 不足（生产校验超限，PluginCompileTime.hpp:2055）；
+  实测最小可通过档 184549376；默认 33554432 下连夹具的 catalog 都构造成立不了。
+  即 16 候选只在有限参数下可达，默认预算不可达；该参数只加在压力 target 上。
+其余 6 条手工 POD 诊断（group_count/candidate_count/池越界/contract_count/kind/lifecycle）
+  本轮按 InvalidDeclaration 实测通过。
+
+--------------------------------------------------------------------------------
+5. 旧运行期兼容（真实构建与运行；report.txt 唯一、单文件覆盖）
+--------------------------------------------------------------------------------
+Release（cmake-build-release，MONOLITHIC=OFF）：
+  构建：cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark -> exit 0（3.23 s）
+  运行：F:\IDGameEngine\bin\bin\Benchmark.exe，连续两次：
+        RUN1 exit 0（3.64 s），RUN2 exit 0（3.59 s）
+  report.txt：运行前 LastWriteTime 2026-10-19 20:03:12、Size 10118；
+              RUN1 后 21:45:41、RUN2 后 21:45:45（每次覆盖写，Size 仍 10118）；
+              Benchmark 目录下 report*.txt 前后都只有 1 个文件。
+  报告头：compiler GCC 16.2.0；build Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF；
+          timer QPC | affinity=core 0；cpu 13th Gen Intel(R) Core(TM) i7-13700。
+  console 与 report.txt 正文逐字一致（118 行，TEXT_EQUAL=True）。
+  SUMMARY：security 1 domain / 75 passed / 0 failed / 13 skipped；
+           performance 1 domain / 4 metrics；
+           world-class=2 excellent=1 good=1 fair=0 poor=0 terrible=0 ungraded=0；exit code 0。
+  原始日志：raw/release-benchmark-rerun/{r2-build.log,r2-stdout-run1.log,r2-stdout-run2.log,r2-run-meta.txt}
+  评级/参考值未改动；本轮不新增评级，也不给出性能结论。
+
+--------------------------------------------------------------------------------
+6. gate 结论（分项陈述，不合并成一个"通过"）
+--------------------------------------------------------------------------------
+① 功能 gate：**满足**。70/70 反向用例按期望类别失败（断言数=1、EXPECTED 命中、无 MISMATCH）；
+   70 个合法分支 + 6 个正向 TU 真实编译、70+6 个对象真实进入链接、控制程序运行 7/0；
+   4 条自检全部生效；duplicate_candidate 仍是 DuplicateCandidate。
+② 默认预算覆盖范围（33554432）：active_128、32x32x1、128x32x1（带完整证据）通过；
+   plan_only_128x32x1、128x32x2/4/8、16 候选档不通过。因此默认预算**不足以**覆盖
+   计划书 6.5 的满档组合（32 需求 × 16 候选 × 128 active × 256 catalog）。
+③ 16 候选：**默认不可达**（默认档连夹具 catalog 都构造成立不了）；仅在本机 GCC 16.2.0
+   的有限参数 184549376 下可达，且该参数只落在 production_scale_target_128x32x16 一个目标上。
+④ MSVC / clang：本机未安装，静态断言文本、断言计数方式与 -fconstexpr-ops-limit 全部未验证；
+   不能把本批结论平移到其它编译器。
+
+不宣称：
+- 不宣称"P1 全通过"：成本 gate 在默认预算下不满足（见 ②③）；
+- 不宣称任何性能评级或提速倍数：本轮没有运行时性能测量，秒数只是编译墙钟；
+- 不宣称 P1 已有 JSON/CMake 组装链：证据由测试输入确定性派生，CMake → C++ 证据闭环未建立；
+- 不宣称 Debug 构建、MSVC、clang、真实 DLL 插件加载或热重载已被验证。
+
+--------------------------------------------------------------------------------
+7. 本轮改动文件与命令清单
+--------------------------------------------------------------------------------
+改动（全部在 Benchmark/**）：
+  Benchmark/validation/production/CMakeLists.txt
+      压力 target 的 -fconstexpr-ops-limit 由 134217728 改为实测最小可通过档 184549376，
+      并在注释里写明二分依据；普通 target 与全局 CMAKE_CXX_FLAGS 均不加。
+  Benchmark/validation/production/src/scale/scale_128x32x8.cpp
+      注释由"默认可通过"改为实测事实：夹具三份输入通过、失败在生产校验（header:781）。
+  Benchmark/validation/production/src/scale/scale_plan_only_128x32x1.cpp
+      删掉"瓶颈在 verify_evidence 逐记录查找"的假设，改为实测位置（bind_entry 按下标取修订）、
+      实测最小档 37748736，并写明与带证据档的夹具结构差异。
+  Benchmark/validation/production/src/scale/scale_plan_only_128x32x16.cpp
+      同上，并写明 16 候选在默认预算下失败在夹具 make_catalog。
+  Benchmark/validation/production/src/scale/scale_target_128x32x16.cpp
+      注释更新为 184549376 与实测依据。
+  Benchmark/validation/production-p1-evidence.txt（本文件）
+  Benchmark/validation/baseline/raw/production-p1production/ 下的本轮日志
+      r2-source-hashes.txt（被测头 SHA256 + git HEAD + git status）
+      r2-scale-matrix.txt（规模矩阵与二分全表）
+      r2-flags-check.log（参数只在压力 target）
+      r2-default-*.log / r2-target*-*.log / r2-bisect-*.log / r2-134m-*.log
+      selfcheck-configure-unregistered-positive.log（本轮重跑）
+      batch-negative-run.log、batch-negative-run2.log、negative-index.txt、negative-*.log、
+      legal/positive/control-run 日志
+命令（全部在本轮真实执行，退出码见各日志）：
+  cmake --build F:\IDGameEngine\cmake-build-p1production --target <scale 目标>   （逐目标）
+  cmake --build F:\IDGameEngine\cmake-build-p1production --target ProductionNegativeCases
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p1production             （configure 自检两次）
+  D:/Code/Environment/MinGW/mingw64/bin/c++.exe <include>-O3 -DNDEBUG -std=c++20
+      -fconstexpr-ops-limit=<N> -c <scale TU> -o <临时 obj>                      （二分探针）
+  cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark
+  F:\IDGameEngine\bin\bin\Benchmark.exe                                          （连续两次）
+
+局限：
+- 超限报的行号会随 limit 值变化（触发点取决于求值推进到哪一步），因此行号只作定位参考，
+  真正的判据是"该 TU 在该 limit 下能不能编过"；
+- 编译墙钟含 make 调度与诊断输出，重复测量波动大，只用于判断是否可接受；
+- 本机只有 GCC 16.2.0；MSVC / clang 未验证；
+- 构建 production 目标仍会让 ID 目标链接共享 bin/bin/libID.dll（K6 既有问题，未修）。
+================================================================================

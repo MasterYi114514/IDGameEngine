@@ -1,0 +1,9 @@
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt
+  ZeroPluginMain.cpp
+  FixtureZeroPrototype.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixtureZeroPrototype.exe
+  复制 ID 内核 DLL 到原型输出目录（来源 F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/Debug/ID.dll）

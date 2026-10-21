@@ -1,0 +1,10 @@
+=== FixturePrototype.exe  CWD=F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug  EXIT=0
+kernel-instance: host=00007FFAD9A16040 alpha=00007FFAD9A16040 beta=00007FFAD9A16040 shared=yes (ID::PluginRuntime singleton)
+fixture-prototype: PASS
+
+=== FixtureZeroPrototype.exe  CWD=F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug  EXIT=0
+fixture-zero-plugin: PASS
+
+=== FixtureCaseControls.exe  CWD=F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug  EXIT=0
+fixture-case-controls: PASS
+

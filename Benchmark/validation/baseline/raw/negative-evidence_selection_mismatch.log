@@ -1,0 +1,14 @@
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protoshared/Benchmark/validation/prototype --target fixture_expect_evidence_selection_mismatch
+EXIT: 2
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_selection_mismatch.dir/src/cases/case_evidence_selection_mismatch.cpp.obj
+
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_selection_mismatch.cpp:37:45: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:EvidenceSelectionMismatch
+   37 |     static_assert(check_tampered_evidence() != ErrorCode::EvidenceSelectionMismatch,
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_evidence_selection_mismatch.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_selection_mismatch.dir/src/cases/case_evidence_selection_mismatch.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1135: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_selection_mismatch.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1142: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_selection_mismatch.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:429: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_selection_mismatch.dir/rule] Error 2
+

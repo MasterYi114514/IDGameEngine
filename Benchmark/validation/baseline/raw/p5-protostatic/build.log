@@ -1,0 +1,28 @@
+﻿[  5%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/BootstrapLog.cpp.obj
+[ 11%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/Memory.cpp.obj
+[ 17%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/SlabSpan.cpp.obj
+[ 23%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 29%] Linking CXX static library ..\out\static\lib\libID.a
+[ 29%] Built target ID
+[ 35%] Building CXX object IDPlugin/CMakeFiles/IDPluginStub.dir/Stub/IDPluginStub.cpp.obj
+[ 41%] Linking CXX static library ..\out\static\lib\libIDPluginStub.a
+[ 41%] Built target IDPluginStub
+[ 47%] Building CXX object Benchmark/validation/prototype/plugins/fixture_alpha/CMakeFiles/IDFixtureAlpha.dir/src/FixtureAlphaModule.cpp.obj
+[ 52%] Linking CXX static library ..\..\out\lib\libIDFixtureAlpha.a
+[ 52%] Built target IDFixtureAlpha
+[ 58%] Building CXX object Benchmark/validation/prototype/plugins/fixture_beta/CMakeFiles/IDFixtureBeta.dir/src/FixtureBetaModule.cpp.obj
+[ 64%] Linking CXX static library ..\..\out\lib\libIDFixtureBeta.a
+[ 64%] Built target IDFixtureBeta
+[ 70%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixturePlan.cpp.obj
+[ 76%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixtureDeterminism.cpp.obj
+[ 82%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixtureProductEntry.cpp.obj
+[ 88%] Linking CXX static library out\lib\libIDFixtureAssembly.a
+[ 88%] Built target IDFixtureAssembly
+[ 94%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj
+[100%] Linking CXX executable out\bin\FixturePrototype.exe
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[ 88%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj
+[100%] Linking CXX executable out\bin\FixtureZeroPrototype.exe
+[100%] Built target FixtureZeroPrototype

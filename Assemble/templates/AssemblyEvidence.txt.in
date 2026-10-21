@@ -1,0 +1,23 @@
+IDGameEngine product manifest (derived by CMake, re-checked in C++ by sort_and_validate)
+
+assembly_name : @ID_ASM_ASSEMBLY_NAME@
+profile       : @ID_ASM_PROFILE@
+generated_dir : generated/@ID_ASM_ASSEMBLY_NAME@
+mode          : @ID_ASM_MODE@
+compiler      : @ID_ASM_COMPILER@
+selected      : @ID_ASM_SELECTED_COUNT@
+bindings      : @ID_ASM_BINDING_COUNT@
+edges         : @ID_ASM_EDGE_COUNT@
+slots         : @ID_ASM_SLOT_COUNT@
+provisions    : @ID_ASM_PROVISION_COUNT@
+fingerprint   : 编译期常量 kProductFingerprint（见 generated/@ID_ASM_ASSEMBLY_NAME@/IDAssembly.generated.hpp）
+
+@ID_ASM_EVIDENCE_LINES@
+
+# 确定性序列：产品指纹的输入（计划书 13.3）
+#   排序口径：名字与能力名按 ASCII 字节序，槽位按编号；本段不含 catalog 枚举顺序、
+#   profile 书写顺序、候选顺序、运行期地址或源文件绝对路径。
+#   因此打乱上述任何一种输入，本段与指纹数值都不变。
+#   指纹数值本身由 C++ consteval 计算（ID::Assembly::Generated::kProductFingerprint），
+#   CMake 不重算它：在这里再实现一遍算法等于维护第二份真相源，反而会掩盖两侧漂移。
+@ID_ASM_CANONICAL_TEXT@

@@ -1,0 +1,26 @@
+MODE: protofix2-gcc
+BUILD_DIR: F:/IDGameEngine/cmake-build-protofix2-gcc
+CWD: F:/IDGameEngine/cmake-build-protofix2-gcc/Benchmark/validation/prototype
+TARGET: fixture_expect_empty_inner_group
+EXPECTED_MARKER: EmptyRequirementGroup
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protofix2-gcc/Benchmark/validation/prototype --target fixture_expect_empty_inner_group
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/src/cases/case_empty_inner_group.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_empty_inner_group.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:140:100: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:EmptyRequirementGroup
+  140 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<::ID::Bench::Fixture::ErrorCode::code>(plan),            \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_empty_inner_group.cpp:36:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   36 |     ID_FIXTURE_EXPECT_ERROR(kPlan, EmptyRequirementGroup);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_empty_inner_group.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/src/cases/case_empty_inner_group.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:728: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:735: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:275: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/rule] Error 2
+

@@ -1,0 +1,42 @@
+== libIDFixtureAlpha.a  SHA256 35EB7E118A1E89125DA53993C9F1E443E0F246233A6E3C7610A11C22FA4FD56E
+FixtureAlphaModule.cpp.obj
+== libIDFixtureBeta.a  SHA256 F6D2C65879C7CB164A0CFD90EF18E4CB911D5C7E0043B0F836653A8780A3B8EA
+FixtureBetaModule.cpp.obj
+== libIDFixtureAssembly.a  SHA256 199E09D974957F8EB8100EB8BE2282BBC848D7ECC243FF58E05295467828F592
+FixturePlan.cpp.obj
+FixtureDeterminism.cpp.obj
+FixtureProductEntry.cpp.obj
+== nm -C --defined-only FixturePrototype.exe (filtered)
+0000000140002cf3 T operator delete[](void*)
+0000000140002d7b T operator delete[](void*, std::align_val_t)
+0000000140002d35 T operator delete[](void*, unsigned long long)
+0000000140002dc5 T operator delete[](void*, unsigned long long, std::align_val_t)
+0000000140002cd4 T operator delete(void*)
+0000000140002d58 T operator delete(void*, std::align_val_t)
+0000000140002d12 T operator delete(void*, unsigned long long)
+0000000140002d9e T operator delete(void*, unsigned long long, std::align_val_t)
+0000000140002bc3 T operator new[](unsigned long long)
+0000000140002c0d T operator new[](unsigned long long, std::nothrow_t const&)
+0000000140002c5a T operator new[](unsigned long long, std::align_val_t)
+0000000140002caa T operator new[](unsigned long long, std::align_val_t, std::nothrow_t const&)
+0000000140002ba0 T operator new(unsigned long long)
+0000000140002be6 T operator new(unsigned long long, std::nothrow_t const&)
+0000000140002c34 T operator new(unsigned long long, std::align_val_t)
+0000000140002c80 T operator new(unsigned long long, std::align_val_t, std::nothrow_t const&)
+0000000000000000 A FixtureProductStart
+0000000000000000 A FixtureProductStop
+== nm -C -u FixturePrototype.exe (undefined operator new/delete count)
+undefined operator new/delete symbols: 0
+== objdump dependency check (no libID.dll / fixture DLL)
+	DLL Name: KERNEL32.dll
+	DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+	DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+	DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+	DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+	DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+	DLL Name: api-ms-win-crt-math-l1-1-0.dll
+	DLL Name: api-ms-win-crt-private-l1-1-0.dll
+	DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+	DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+	DLL Name: api-ms-win-crt-string-l1-1-0.dll
+	DLL Name: libstdc++-6.dll

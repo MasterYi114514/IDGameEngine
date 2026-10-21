@@ -1,0 +1,34 @@
+#pragma once
+
+#include <cstdint>
+
+#include "Kernel/PluginRuntime.hpp"
+
+/**
+ *  运行期绑定 TU 的对外声明（生成物，勿手改）
+ *  1. 只暴露一个访问器：本产品的静态计划视图；具体回调地址不泄漏给消费方；
+ *  2. 访问器由 IDAssembly 静态库提供，宿主必须在显式调用 ID::Engine::start() 时才会用到它，
+ *     不存在静态构造自动启动（计划书 9.3）。
+ */
+
+namespace ID::Assembly::Generated
+{
+    // 本产品的选中插件数（编译期常量，仅用于诊断与自检，不参与运行期判定）
+    inline constexpr std::uint16_t kRuntimePluginCount = @ID_ASM_SELECTED_COUNT@;
+
+    /**
+     *  @brief 取得本产品的静态计划视图
+     *  @return 指向静态存储期计划视图的指针；进程生命周期内有效
+     */
+    extern "C" const ID::PluginRuntimePlanView* ID_AssemblyPlanView() noexcept;
+
+    /**
+     *  @brief 取得本产品的确定性指纹（计划书 13.3）
+     *  @return 编译期 `kProductFingerprint` 的数值；同一份组装结果恒定，
+     *          换插件集合、接口修订、绑定或槽位归属就会改变
+     *  @note 供宿主/SDK 记录"本次运行的到底是哪个产品"；它不是密码学签名，
+     *        也不替代 ABI 握手（那由 PluginRuntimePlanView::abi_revision 负责）。
+     *        取值不需要运行期状态，也不做任何查找。
+     */
+    extern "C" std::uint64_t ID_AssemblyFingerprint() noexcept;
+} // namespace ID::Assembly::Generated

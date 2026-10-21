@@ -1,0 +1,1 @@
+[FATAL][ID.Assert] ASSERT FAILED: (m_active_plan != nullptr && m_active_plan->records != nullptr) | PluginRuntime::shutdown() reached Ready without an installed plan! [F:\IDGameEngine\ID\src\Kernel\PluginRuntime.cpp:376]

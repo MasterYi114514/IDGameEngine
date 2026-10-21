@@ -1,0 +1,43 @@
+# P2 组装层校验批次索引（RunAssemblyValidation.cmake 自动写入）
+# 判定：判定器自检按预期拒绝错误 stdout；四个变体 configure/build/Smoke 全 0 且 Smoke 输出与
+#       4 条断言逐条一致（点名断言）；STATIC 与 SHARED 证据一致；
+#       zero profile 无未选中插件痕迹；8 类改坏证据全部按类别拒绝且有合法对照；
+#       profile 切换不删缓存即更新生成物；whole-archive 只桩 IDPluginStub；替换符号唯一
+MODE            : assembly-p5-assembly
+WORK_DIR        : F:/IDGameEngine/cmake-build-p5-assembly/Benchmark/validation/assembly/work
+GENERATOR       : MinGW Makefiles
+BUILD_TYPE      : Release
+CXX             : D:/Code/Environment/MinGW/mingw64/bin/c++.exe
+CXX_ID          : GNU
+STARTED         : 2026-10-19 23:36:43
+FINISHED        : 2026-10-19 23:37:22
+SHARED_MODE     : SHARED
+STATIC_MODE     : STATIC
+SHARED_SELECTED : IDFixtureApi;IDFixtureCore;IDFixtureMath
+STATIC_SELECTED : IDFixtureApi;IDFixtureCore;IDFixtureMath
+SHARED_STEMS    : ID IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+STATIC_STEMS    : IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+SHARED_BINDING  : 9222cd45afe94fac0e0a3e028fd1eb5ac0e9291ea742967260a6ac0fefb1eb89
+STATIC_BINDING  : 9222cd45afe94fac0e0a3e028fd1eb5ac0e9291ea742967260a6ac0fefb1eb89
+EVIDENCE_EQUAL  : TRUE
+LEGAL_CONTROL   : probe=0 validate=0
+SMOKE_SELFCHECK : ok: rejected=0 expect=0 as-expected 
+missing-line: rejected=1 expect=1 as-expected Smoke 输出 3 行，点名表要求 4 行 | 期望文案命中 0 次（应为 1）：^\[PASS\] host small new/delete completed \(alloc and free succeeded\)$ | 
+duplicate-line: rejected=1 expect=1 as-expected Smoke 输出 5 行，点名表要求 4 行 | 期望文案命中 2 次（应为 1）：^\[PASS\] shutdown state=Idle \(code=None\)$ | 
+extra-line: rejected=1 expect=1 as-expected Smoke 输出 5 行，点名表要求 4 行 | 出现未点名的输出行：[INFO] driver self-check unexpected line | 
+changed-state: rejected=1 expect=1 as-expected 期望文案命中 0 次（应为 1）：^\[PASS\] start state=Ready$ | 出现未点名的输出行：[PASS] start state=Initializing | 
+fail-not-pass: rejected=1 expect=1 as-expected 期望文案命中 0 次（应为 1）：^\[PASS\] shutdown state=Idle \(code=None\)$ | 出现未点名的输出行：[FAIL] shutdown state=Idle (code=None) | 
+large-not-routed: rejected=1 expect=1 as-expected 大对象行 grew=4096 低于 1 MiB 下限 1048576 | 
+CORRUPT provider expect=EvidenceProviderMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT edge expect=EvidenceEdgeMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT identity expect=EvidenceIdentityMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT slot expect=EvidenceSlotMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT selection expect=EvidenceSelectionMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT target expect=EvidenceTargetMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT macro expect=EvidenceMacroMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT runtime expect=RuntimeBindingMismatch/Evidence probe=0 validate=1 wrong_expect=1
+PROFILE_SWITCH  : noop: build_exit=0 hash_before=a604645e0a8aa873644e9adcfd725c292523ee7a339695af6bf997a94ec15aad hash_after=a604645e0a8aa873644e9adcfd725c292523ee7a339695af6bf997a94ec15aad time_before=2026-10-19 23:20:48 time_after=2026-10-19 23:20:48
+to_zero: configure_exit=0 build_exit=0 smoke_exit=0 generated_dirs=F:/IDGameEngine/cmake-build-p5-assembly/Benchmark/validation/assembly/work/shared/build/Assemble/generated/default-fixture;F:/IDGameEngine/cmake-build-p5-assembly/Benchmark/validation/assembly/work/shared/build/Assemble/generated/zero-fixture evidence=selected      : 0
+back_to_default: configure_exit=0 build_exit=0 smoke_exit=0 hash_after=a604645e0a8aa873644e9adcfd725c292523ee7a339695af6bf997a94ec15aad time_after=2026-10-19 23:20:48
+NOTES           : RuntimeBindingMismatch 的失败阶段是 Evidence（AssemblyPhase::RuntimeMetadata 目前无诊断使用）；反向用例按实际阶段断言
+PROBLEMS        : 

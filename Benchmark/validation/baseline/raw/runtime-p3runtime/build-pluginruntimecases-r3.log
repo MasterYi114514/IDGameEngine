@@ -1,0 +1,35 @@
+[ 40%] Built target ID
+[ 53%] Built target IDPluginStub
+[ 60%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_lifecycle_cases.cpp.obj
+[ 73%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_service_cases.cpp.obj
+[ 80%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+cmake.exe : F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_main.cpp: In function 'int main(int, char**)':
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792418820842-zbm7ba.ps1:955 字符: 8
++ $out = & cmake --build F:\IDGameEngine\cmake-build-p3runtime --target ...
++        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (F:\IDGameEngine...(int, char**)'::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_main.cpp:52:44: error: 'ZeroNullShutdownProbe' is not a member
+ of 'ID::Bench'; did you mean 'ID::Bench::Runtime::ZeroNullShutdownProbe'?
+   52 |         return run_single_case(&ID::Bench::ZeroNullShutdownProbe);
+      |                                            ^~~~~~~~~~~~~~~~~~~~~
+In file included from F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_main.cpp:4:
+F:\IDGameEngine\Benchmark\validation\runtime\src\RuntimeCases.hpp:27:10: note: 'ID::Bench::Runtime::ZeroNullShutdownPro
+be' declared here
+   27 |     void ZeroNullShutdownProbe() noexcept;
+      |          ^~~~~~~~~~~~~~~~~~~~~
+F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_main.cpp: At global scope:
+F:\IDGameEngine\Benchmark\validation\runtime\src\runtime_main.cpp:21:9: warning: 'int {anonymous}::run_single_case(ID::
+Bench::TestFn)' defined but not used [-Wunused-function]
+   21 |     int run_single_case(ID::Bench::TestFn case_fn) noexcept
+      |         ^~~~~~~~~~~~~~~
+mingw32-make[3]: *** [Benchmark\validation\runtime\CMakeFiles\PluginRuntimeCases.dir\build.make:79: Benchmark/validatio
+n/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj] Error 1
+mingw32-make[3]: *** Waiting for unfinished jobs....
+mingw32-make[2]: *** [CMakeFiles\Makefile2:328: Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/all] Err
+or 2
+mingw32-make[1]: *** [CMakeFiles\Makefile2:335: Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/rule] Er
+ror 2
+mingw32-make: *** [Makefile:176: PluginRuntimeCases] Error 2

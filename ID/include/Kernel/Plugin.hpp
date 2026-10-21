@@ -1,17 +1,26 @@
 #pragma once
 
-#include <span>
-#include <string_view>
+#include <array>
+#include <cstddef>
+#include <tuple>
 
 #include "Common/Core.hpp"
-#include "Common/templates/Singleton.hpp"
 #include "Kernel/CoreTypes.hpp"
+#include "Kernel/PluginCompileTime.hpp"
 
 /**
- *  微内核插件管理系统与固定槽位服务注册表（ID::PluginManager）
- *  1. 提供 O(1) 单条数组索引指令寻址的 ServiceSlot 服务表，彻底消除跨插件虚表 (vtable) 与字符串哈希查找开销；
- *  2. 支持“一槽多后端”兼容白名单（compatible_ids），下游插件可声明支持多个上游插件实现，不兼容时在组装阶段直接拦截；
- *  3. 基于 Kahn 拓扑排序算法解析插件间的有向无环图 (DAG) 依赖，自动检测循环依赖并按严格对称顺序调度生命周期。
+ *  微内核插件门面（ID::PluginManager）与固定服务槽位（ID::ServiceSlot）
+ *  1. `ServiceSlot` 是 64 槽服务表的唯一真源：运行期按这个枚举做一次固定下标寻址，
+ *     枚举值属于跨插件 ABI，只能在末尾追加；`MaxSlots` 是边界哨兵，不是合法下标；
+ *  2. `PluginManager` 不再是运行期单例，也不能实例化：它只有三个静态 `consteval` 操作族
+ *     （`register_plugin` / `declare_dependencies` / `sort_and_validate`，实现见
+ *     Kernel/PluginCompileTime.hpp）。它们是纯数据变换：不写任何全局状态，不存在跨编译单元的
+ *     隐式注册表，调用位置、编译单元顺序与链接顺序都不构成状态；
+ *  3. 旧的运行期入口（`instance()` / `register_plugin(const PluginDescriptor*)` /
+ *     `initialize_all` / `shutdown_all` / 运行期 `get_service`/`register_service`）与运行期
+ *     Kahn 拓扑排序已退役，不保留兼容包装或空实现；运行期职责唯一归属 `ID::PluginRuntime`
+ *     （Kernel/PluginRuntime.hpp）：它接收一份已编译计划，只执行固定的四阶段生命周期；
+ *  4. 本头因此只保留槽位词汇与编译期门面，没有描述符、没有回调指针、没有可变的槽位表。
  */
 
 namespace ID
@@ -31,151 +40,91 @@ namespace ID
         MaxSlots    = 64
     };
 
-    // 插件依赖项声明结构（支持单一精确依赖与多上游兼容白名单两种写法）
-    struct PluginDependency
+    // 编译期组装的服务槽位上限必须与运行期槽位数量一致，否则槽位归属与函数表下标会分叉
+    static_assert(PluginCompileTime::kMaxSlots == static_cast<size_t>(ServiceSlot::MaxSlots),
+                  "PluginCompileTime::kMaxSlots 必须与 ServiceSlot::MaxSlots 一致");
+
+    /**
+     *  编译期插件门面：三个静态 `consteval` 操作族，没有运行期实例、没有状态。
+     *  @note 不可实例化：构造/析构与拷贝均被删除，调用方只能写 `PluginManager::register_plugin(...)`
+     *        这类静态调用；把门面当对象用属于编译错误，而不是运行期错误。
+     */
+    class PluginManager
     {
-        uint64_t                    plugin_id       = 0;        // 精确依赖的单个目标插件 ID（当 compatible_ids 为空时生效）
-        uint32_t                    min_version     = 1;        // 要求目标插件满足的最低版本号
-        std::span<const uint64_t>   compatible_ids  = {};       // 兼容的上游插件 ID 白名单列表（只要当前已注册其中一个且版本达标即可组装）
-        ServiceSlot                 slot            = ServiceSlot::MaxSlots; // 该依赖对应的抽象功能槽位（可选，用于诊断报错提示）
-
-        constexpr PluginDependency() noexcept = default;
-
-        // 构造方式 1：依赖单一指定插件 ID
-        constexpr PluginDependency(uint64_t id, uint32_t ver = 1, ServiceSlot s = ServiceSlot::MaxSlots) noexcept
-            : plugin_id(id), min_version(ver), compatible_ids{}, slot(s) { }
-
-        // 构造方式 2：依赖多个可替换上游插件的兼容白名单（如同时兼容 IDMath_SIMD 与 IDMath_Fixed）
-        constexpr PluginDependency(std::span<const uint64_t> compat_list, uint32_t ver = 1, ServiceSlot s = ServiceSlot::MaxSlots) noexcept
-            : plugin_id(0), min_version(ver), compatible_ids(compat_list), slot(s) { }
-
-        /**
-         *  @brief 判断候选插件是否落在本依赖的兼容范围内
-         *  @param candidate_id 已注册插件的编译期 ID
-         *  @return compatible_ids 非空时只认白名单；否则只认 plugin_id。本函数不看版本
-         */
-        ID_FORCEINLINE constexpr bool matches(uint64_t candidate_id) const noexcept
-        {
-            if (!compatible_ids.empty())
-            {
-                for (uint64_t id : compatible_ids)
-                {
-                    if (id == candidate_id)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-            return plugin_id == candidate_id;
-        }
-    };
-
-    // 插件静态描述清单（每个插件仅需导出一个 constexpr 描述符实例）
-    struct PluginDescriptor
-    {
-        uint64_t                            plugin_id       = 0;        // 插件唯一编译期 ID（通常由 hash_fnv_1a64("ID.XXX") 生成）
-        uint32_t                            version         = 1;        // 插件当前版本号
-        std::string_view                    name            = {};       // 插件可读名称
-        std::span<const PluginDependency>   dependencies    = {};       // 依赖的前置插件列表
-
-        void(*on_register)() noexcept   = nullptr;  // 阶段 1 (拓扑正序)：注册 TypeID、内存池规格与 ServiceSlot 函数指针表
-        bool(*on_init)() noexcept       = nullptr;  // 阶段 2 (拓扑正序)：所有前置依赖插件均已就绪，初始化本插件子系统
-        void(*on_shutdown)() noexcept   = nullptr;  // 阶段 3 (拓扑逆序)：停止后台任务，安全释放子系统运行期资源
-        void(*on_unload)() noexcept     = nullptr;  // 阶段 4 (拓扑逆序)：从 ServiceSlot 注销 API 函数指针表
-    };
-
-    // 微内核插件与服务管理器单例
-    class alignas(kCacheLineSize) ID_KERNEL_API PluginManager : public SingletonEager<PluginManager>
-    {
-        friend class SingletonEager<PluginManager>;
-
     public:
-        static inline constexpr size_t kMaxPlugins = 128;                               // 引擎支持的最大插件数量上限
+        static inline constexpr size_t kMaxPlugins = 128;                               // 产品选中插件数量上限
         static inline constexpr size_t kMaxSlots   = static_cast<size_t>(ServiceSlot::MaxSlots);
+        // 编译期选中上限与门面常量必须同值：否则同一份计划在两侧的容量语义会分叉
+        static_assert(PluginCompileTime::kMaxActive == kMaxPlugins,
+                      "PluginCompileTime::kMaxActive 必须与 PluginManager::kMaxPlugins 一致");
 
-    protected:
-        constexpr PluginManager() noexcept = default;
-        ~PluginManager() noexcept = default;
+        PluginManager()                                   = delete;
+        ~PluginManager()                                  = delete;
+        PluginManager(const PluginManager&)                = delete;
+        PluginManager& operator=(const PluginManager&)     = delete;
 
-    public:
         /**
-         *  @brief 把一张函数表写进固定槽位，传 nullptr 表示卸下
-         *  @param slot 必须小于 ServiceSlot::MaxSlots。MaxSlots 本身不是合法下标
-         *  @param api_table 插件 API 表地址，生命周期必须盖过槽位被占用的时间
-         *  @note 同一槽位后写覆盖先写，没有类型检查。热路径上就是一次指针存储
+         *  @brief 编译期注册一个插件身份（三个 consteval 操作族之一，计划书 5.2）
+         *  @tparam N 字符串字面量/编译期字符数组的长度（含末尾 NUL）
+         *  @param name 插件精确名：非空、<= 96 字节、首字符 ASCII 字母、其余为字母数字与 . _ -
+         *  @return 拥有存储的 PluginIdentity（复制名字内容 + FNV-1a 64 身份）；格式非法时 is_valid 为假
+         *  @note 只接受 `const char (&)[N]`：不接受运行期字符串，也不提供自定义哈希 ID 入口，
+         *        因此不可能用“运行期改名”绕过组装期身份校验。
+         *  @note 数组末尾必须是 '\0'；非终止数组返回 is_valid=false 的结构化无效身份，
+         *        并保留最后一个输入字符供诊断，不会按 N-1 静默截断。
+         *  @note 该名字是否在某个产品里启用，由 sort_and_validate 的显式选中集合决定；本操作不写任何全局状态。
          */
-        ID_FORCEINLINE void register_service(ServiceSlot slot, const void* api_table) noexcept
+        template <size_t N>
+        static consteval PluginCompileTime::PluginIdentity register_plugin(const char (&name)[N]) noexcept
         {
-            m_service_slots[static_cast<size_t>(slot)] = api_table;
+            return PluginCompileTime::detail::make_identity_literal(name);
         }
 
         /**
-         *  @brief 按槽位取出函数表
-         *  @param slot 必须小于 ServiceSlot::MaxSlots
-         *  @return 该槽位上的表。槽位空时返回 nullptr
-         *  @note ApiTableType 必须和 register_service 时的类型一致，这里没有运行时校验
+         *  @brief 声明依赖：外层 AND、内层 OR 的不等长二维编译期名字清单（计划书 5.3）
+         *  @tparam Identity 所属插件身份类型
+         *  @tparam Groups 每组候选的数组类型（必须显式指定元素类型，避免自动推导成 const char*）
+         *  @param identity 所属插件身份，必须是 register_plugin 的返回值
+         *  @param groups 每组的候选名清单；空 tuple 表示没有上游
+         *  @return 拥有存储的 PluginDeclaration<组数, 候选总数>；空内层、组内重复、自依赖、非法名字记进 error
+         *  @note 名字字节复制进声明自己的字节池，不保存指向调用者缓冲区的指针。
          */
-        template <typename ApiTableType>
-        ID_FORCEINLINE const ApiTableType* get_service(ServiceSlot slot) const noexcept
+        template <typename Identity, typename... Groups>
+        static consteval auto declare_dependencies(Identity identity, const std::tuple<Groups...>& groups) noexcept
+            -> PluginCompileTime::PluginDeclaration<sizeof...(Groups),
+                                                    (PluginCompileTime::detail::group_size<Groups>::value + ... + 0)>
         {
-            return static_cast<const ApiTableType*>(m_service_slots[static_cast<size_t>(slot)]);
+            return PluginCompileTime::detail::declare_tuple(identity, groups);
         }
 
         /**
-         *  @brief 登记一个插件描述符
-         *  @param descriptor 不能为空，且 descriptor 本身、dependencies、compatible_ids 都要活过 shutdown_all
-         *  @return 登记成功返回 true。重复 ID、超过 128 个、或 initialize_all 之后调用，返回 false
+         *  @brief 声明依赖的矩形便捷重载：G 个需求组、每组恰好 K 个候选
+         *  @param groups array<array<元素, K>, G>；G 或 K 为 0 时同样成立（显式给出元素类型的空数组）
+         *  @return 拥有存储的 PluginDeclaration<G, G*K>
+         *  @note 语义与 tuple 形态完全一致，属于同一个操作族，不是并列入口。
          */
-        bool register_plugin(const PluginDescriptor* descriptor) noexcept;
-
-        /**
-         *  @brief 校验依赖、做 Kahn 拓扑排序，再按正序调用 on_register 和 on_init
-         *  @return 全部初始化成功返回 true。缺依赖、版本全部不够或存在环时返回 false
-         *  @note 每条依赖只算 1 点入度。compatible_ids 里任何一个版本达标的上游都能满足它，先初始化完的那个生效。版本不够的候选直接跳过，不能因为名单里还有一个旧后端就失败，也不能把命中个数都加进入度
-         */
-        bool initialize_all() noexcept;
-
-        /**
-         *  @brief 按拓扑逆序调用 on_shutdown 和 on_unload，然后清空注册表
-         *  @note 只覆盖已经 on_init 成功的插件。函数结束时可以重新 register_plugin
-         */
-        void shutdown_all() noexcept;
-
-        ID_FORCEINLINE size_t registered_count() const noexcept
+        template <typename Identity, typename Element, size_t Candidates, size_t Groups>
+        static consteval auto declare_dependencies(
+            Identity identity, const std::array<std::array<Element, Candidates>, Groups>& groups) noexcept
+            -> PluginCompileTime::PluginDeclaration<Groups, Groups * Candidates>
         {
-            return m_registered_count;
+            return PluginCompileTime::detail::declare_rect(identity, groups);
         }
 
-        ID_FORCEINLINE std::span<const PluginDescriptor* const> topological_order() const noexcept
+        /**
+         *  @brief 绑定、建图、排序与静态校验（三个 consteval 操作族之一，计划书 5.4 / 6）
+         *  @tparam Shape 输入容量形状（catalog 类型、active 容量与各类证据容量）
+         *  @param input 完整 catalog + 本产品显式选中的身份 + 构建系统派生的证据
+         *  @return AssemblyResult<Shape>；成功时含规范化 active 表、catalog 映射、固定拓扑序、逐需求 provider、
+         *          去重边、槽位归属、能力/接口修订元数据与确定性指纹
+         *  @note 纯函数：不写任何全局状态；catalog 顺序、选中输入顺序、候选顺序都不影响绑定与顺序。
+         *        错误结果不得进入运行期绑定表，错误类别与阶段见 AssemblyDiagnostic。
+         */
+        template <typename Shape>
+        static consteval PluginCompileTime::AssemblyResult<Shape> sort_and_validate(
+            const PluginCompileTime::AssemblyInput<Shape>& input) noexcept
         {
-            return { m_topo_order, m_initialized_count };
+            return PluginCompileTime::detail::sort_dispatch<Shape>(input);
         }
-
-    private:
-        /**
-         *  @brief 按插件 ID 查找注册下标
-         *  @param plugin_id 编译期插件 ID
-         *  @return 找到时返回下标，找不到返回 -1
-         */
-        int32_t find_plugin_index(uint64_t plugin_id) const noexcept;
-
-        /**
-         *  @brief 找第一个既匹配依赖、版本也达标的已注册插件
-         *  @param dep 一条依赖。compatible_ids 非空时按白名单匹配
-         *  @return 注册顺序中的第一个合格下标。只有旧版本或完全没有候选时返回 -1
-         *  @note 返回 -1 不区分「没注册」和「版本不够」，报错前要再扫一遍旧版本
-         */
-        int32_t find_compatible_index(const PluginDependency& dep) const noexcept;
-
-    private:
-        static PluginManager s_instance;             // 唯一实例
-
-        const void*             m_service_slots[kMaxSlots]      = { nullptr };  // 固定槽位全局服务指针数组
-        const PluginDescriptor* m_registered[kMaxPlugins]       = { nullptr };  // 原始注册的插件描述符列表
-        const PluginDescriptor* m_topo_order[kMaxPlugins]       = { nullptr };  // 经 Kahn 拓扑排序后的有序插件列表
-        size_t                  m_registered_count              = 0;            // 已注册插件数量
-        size_t                  m_initialized_count             = 0;            // 已成功完成 on_init 的插件数量
-        bool                    m_is_initialized                = false;        // 系统是否已完成整体初始化
     };
 } // namespace ID

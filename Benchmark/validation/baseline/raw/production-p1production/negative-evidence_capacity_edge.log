@@ -1,0 +1,26 @@
+MODE: production-p1production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p1production
+CWD: F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production
+TARGET: production_expect_evidence_capacity_edge
+EXPECTED_MARKER: EvidenceEdgeMismatch
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production --target production_expect_evidence_capacity_edge
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[ 75%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_evidence_capacity_edge.dir/src/cases/case_evidence_capacity_edge.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_evidence_capacity_edge.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:945:101: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:EvidenceEdgeMismatch
+  945 |     static_assert(::ID::Bench::Production::error_differs<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_evidence_capacity_edge.cpp:44:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   44 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, EvidenceEdgeMismatch);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_evidence_capacity_edge.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_evidence_capacity_edge.dir/src/cases/case_evidence_capacity_edge.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1091: Benchmark/validation/production/CMakeFiles/production_expect_evidence_capacity_edge.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1098: Benchmark/validation/production/CMakeFiles/production_expect_evidence_capacity_edge.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:415: Benchmark/validation/production/CMakeFiles/production_expect_evidence_capacity_edge.dir/rule] Error 2
+

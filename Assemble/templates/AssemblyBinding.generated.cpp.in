@@ -1,0 +1,129 @@
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <string_view>
+
+#include "IDAssembly.generated.hpp"
+#include "IDAssemblyRuntime.generated.hpp"
+#include "Kernel/PluginRuntime.hpp"
+
+// 只包含选中模块的生命周期声明；未选中插件的头与回调地址都不出现在本 TU
+@ID_ASM_BINDING_INCLUDES@
+
+/**
+ *  运行期绑定 TU（计划书 9.2 / 10.2）
+ *  1. 绑定表只含选中模块的真实回调地址：未选中回调不进表，也不进本产品的链接清单；
+ *  2. 顺序来自编译期计划 kPlan 的 canonical 拓扑序，不是 catalog 顺序、也不是 profile 顺序；
+ *  3. 计划视图是固定宽度计数 + 原始指针 + 函数指针组成的 POD，静态存储期、常量初始化，
+ *     没有运行期全局构造，也不跨模块传 STL 容器；
+ *  4. 零插件产品合法：四个数组指针可以为空，start 直接进入 Ready、shutdown 回到 Idle（计划书 12.3）。
+ */
+
+namespace ID::Assembly::Generated
+{
+    namespace
+    {
+        // 选中插件的精确名字与四个回调：建表用，不参与运行期查找
+        inline constexpr std::array<const char*, kSelectedCount> kBindingNames{
+@ID_ASM_BINDING_NAMES@
+        };
+
+        inline constexpr std::array<ID::PluginRuntimeCallbacks, kSelectedCount> kBindingCallbacks{
+@ID_ASM_BINDING_CALLBACKS@
+        };
+
+        /**
+         *  @brief 按 canonical active 顺序重排身份与回调
+         *  @return plugin_count 项记录；身份取编译期计划的 id，回调取本模块的真实符号
+         */
+        constexpr std::array<ID::PluginRuntimeRecord, kSelectedCount> make_records() noexcept
+        {
+            std::array<ID::PluginRuntimeRecord, kSelectedCount> records{};
+            for (std::size_t active = 0; active < kSelectedCount; ++active)
+            {
+                for (std::size_t binding = 0; binding < kSelectedCount; ++binding)
+                {
+                    if (kPlan.active_identity[active].view() == std::string_view{ kBindingNames[binding] })
+                    {
+                        records[active].name      = kBindingNames[binding];
+                        records[active].plugin_id = kPlan.active_identity[active].id;
+                        records[active].callbacks = kBindingCallbacks[binding];
+                    }
+                }
+            }
+            return records;
+        }
+
+        /**
+         *  @brief 拷贝编译期拓扑序（运行期不再做任何排序）
+         *  @return plugin_count 项拓扑序
+         */
+        constexpr std::array<std::uint16_t, kSelectedCount> make_topo_order() noexcept
+        {
+            std::array<std::uint16_t, kSelectedCount> order{};
+            for (std::size_t index = 0; index < kSelectedCount; ++index)
+            {
+                order[index] = kPlan.topo_order[index];
+            }
+            return order;
+        }
+
+        /**
+         *  @brief 拷贝 64 槽的编译期归属表：空槽为 kNoIndex
+         *  @return 64 项槽位归属表
+         */
+        constexpr std::array<std::uint16_t, ID::PluginRuntime::kMaxSlots> make_slot_owner() noexcept
+        {
+            std::array<std::uint16_t, ID::PluginRuntime::kMaxSlots> owners{};
+            for (std::size_t slot = 0; slot < owners.size(); ++slot)
+            {
+                owners[slot] = kPlan.slot_owner[slot];
+            }
+            return owners;
+        }
+
+        /**
+         *  @brief 拷贝能力记录（能力名指向编译期计划的静态存储，生命周期覆盖到进程结束）
+         *  @return provision_count 项记录
+         */
+        constexpr std::array<ID::PluginRuntimeProvision, kProvisionCount> make_provisions() noexcept
+        {
+            std::array<ID::PluginRuntimeProvision, kProvisionCount> provisions{};
+            for (std::size_t index = 0; index < kProvisionCount; ++index)
+            {
+                provisions[index].capability   = kPlan.provision_capability[index];
+                provisions[index].api_revision = kPlan.provision_api_revision[index];
+                provisions[index].plugin_index = kPlan.provision_owner[index];
+                provisions[index].slot         = kPlan.provision_slot[index];
+            }
+            return provisions;
+        }
+
+        inline constexpr auto kRecords    = make_records();
+        inline constexpr auto kTopoOrder  = make_topo_order();
+        inline constexpr auto kSlotOwner  = make_slot_owner();
+        inline constexpr auto kProvisions = make_provisions();
+    } // namespace
+
+    // 计划视图本体：常量初始化，零运行期构造
+    constinit const ID::PluginRuntimePlanView kPlanView{
+        .abi_revision    = ID::kPluginRuntimeAbiRevision,
+        .struct_size     = sizeof(ID::PluginRuntimePlanView),
+        .plugin_count    = static_cast<std::uint16_t>(kSelectedCount),
+        .provision_count = static_cast<std::uint16_t>(kProvisionCount),
+        .records         = kSelectedCount > 0 ? kRecords.data() : nullptr,
+        .topo_order      = kSelectedCount > 0 ? kTopoOrder.data() : nullptr,
+        .provisions      = kProvisionCount > 0 ? kProvisions.data() : nullptr,
+        .slot_owner      = kSelectedCount > 0 ? kSlotOwner.data() : nullptr,
+    };
+
+    extern "C" const ID::PluginRuntimePlanView* ID_AssemblyPlanView() noexcept
+    {
+        return &kPlanView;
+    }
+
+    extern "C" std::uint64_t ID_AssemblyFingerprint() noexcept
+    {
+        return kProductFingerprint;
+    }
+} // namespace ID::Assembly::Generated

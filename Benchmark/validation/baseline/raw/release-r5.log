@@ -1,0 +1,118 @@
+=== IDGameEngine Benchmark Report ===
+generated     : 2026-10-19 16:04:38
+compiler      : GCC 16.2.0
+build         : Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+timer         : QPC (freq=10000000, resolution=100 ns) | affinity=core 0
+cpu           : 13th Gen Intel(R) Core(TM) i7-13700
+report        : F:/IDGameEngine/Benchmark/report.txt
+--------------------------------------------------------------------
+
+## ID.Kernel — Security
+  [PASS] type_id.deterministic            同一类型的 type_id 必须稳定
+  [PASS] type_id.distinct                 不同整型/浮点类型的 type_id 必须互不相同
+  [PASS] hash.fnv.offset_basis            空串必须等于 FNV-1a 64 位偏移基数
+  [PASS] hash.fnv.distinct                相同输入同值、不同输入异值
+  [PASS] log.default_sink                 未接管前 sink 必须是 default_bootstrap_sink
+  [PASS] log.sink_swap                    set_sink 之后 get_sink 必须返回新 sink
+  [SKIP] log.assert_dispatch              report_assert 最终走 Level::Fatal -> abort，需子进程隔离
+  [SKIP] log.set_sink_nullptr             契约是断言失败后 abort，需子进程隔离
+  [PASS] arena.linear.init                绑定缓冲区后 is_initialized 为真且 capacity 等于缓冲区大小
+  [PASS] arena.linear.bump_align          连续分配必须单调上移、16B 对齐且互不重叠
+  [PASS] arena.linear.used_remaining      used + remaining 必须恒等于 capacity
+  [PASS] arena.linear.exhaust_fallback    缓冲区不足必须返回 nullptr 并回调 (size, alignment)
+  [PASS] arena.linear.reset_rewinds       reset 后第一次分配必须回到缓冲区起点
+  [PASS] arena.segmented.init             配置 4KB 段与内核分配器来源应成功
+  [PASS] arena.segmented.init_twice       重复 init 必须返回 false（需先 shutdown）
+  [PASS] arena.segmented.grow             段满后必须自动向来源申请新段
+  [PASS] arena.segmented.oversize         单段放不下的请求必须返回 nullptr
+  [PASS] arena.segmented.reset_reuse      reset 必须保留已申请的段并从头复用
+  [PASS] arena.segmented.shutdown         shutdown 必须归还全部段并复位
+  [PASS] memory.alloc.non_null            64B/32 应返回非空
+  [PASS] memory.alloc.alignment_32        返回值必须满足请求的 32B 对齐
+  [PASS] memory.alloc.size_class_edges    1B..8KB 每个档位边界都必须成功并 16B 对齐
+  [PASS] memory.alloc.no_overlap          同时存活的小对象不得互相覆盖
+  [PASS] memory.alloc.above_small_max     8193B 必须走大对象路径且首尾字节可读写
+  [PASS] memory.alloc.large_alignment     16KB/64KB/128KB 对齐请求必须被满足
+  [PASS] memory.alloc.size_zero           size 0 按 1 字节处理，必须返回非空
+  [PASS] memory.alloc.alignment_zero      alignment 0 必须抬到 16 并成功
+  [PASS] memory.alloc.alignment_24        alignment 24 不是 2 的幂，必须返回 nullptr
+  [PASS] memory.alloc.error_logged        非法对齐必须发出一条 Error 级内核日志
+  [PASS] memory.alloc.alignment_48        alignment 48 不是 2 的幂，必须返回 nullptr
+  [PASS] memory.alloc.size_overflow       极大 size 必须返回 nullptr 而不是回绕
+  [PASS] memory.alloc.size_rounding       size 按对齐取整溢出必须返回 nullptr
+  [PASS] memory.free.null_is_noop         释放 nullptr 必须是 no-op
+  [SKIP] memory.free.interior_pointer     契约是破坏空闲链 / 断言 abort，不测
+  [SKIP] memory.free.double_free          契约是破坏空闲链，可能 abort，不测
+  [SKIP] memory.large.magic_collision     64KB 对齐大对象的页首 magic 误判是已知缺口（id-kernel K1），修复前不测
+  [PASS] memory.init.idempotent           重复 ID_MemoryInit 之后分配仍然可用
+  [PASS] memory.shutdown.allocatable      当前契约里 shutdown 只记日志，之后分配仍然可用
+  [PASS] memory.shutdown.idempotent       重复 shutdown 必须是 no-op
+  [PASS] memory.stats.active_slab         已分配小对象后 active_slab_count 必须大于 0
+  [PASS] memory.stats.reserved_bytes      至少应映射一页 64KB
+  [PASS] memory.stats.large_bytes_grow    大对象分配必须让 large_allocation_bytes 增长
+  [PASS] memory.stats.large_bytes_restore 大对象释放后计数必须回到分配前
+  [PASS] memory.free.preserves_tail       释放后再分配同档位必须拿回同一块且块尾哨兵未变
+  [PASS] memory.realloc.preserves_prefix  扩容到 9000B 后原 100B 内容必须保持不变
+  [PASS] memory.realloc.in_place          新尺寸不超过原块容量时必须原地返回同一指针
+  [PASS] memory.realloc.null_allocates    realloc(nullptr, 64, 32) 必须等价于一次新分配
+  [PASS] memory.realloc.zero_size_frees   new_size 为 0 时必须释放并返回 nullptr
+  [PASS] memory.realloc.invalid_alignment 非 2 的幂 alignment 必须失败且不改动原块
+  [PASS] memory.frame_arena.initialized   首次取用时帧 Arena 必须已绑定缓冲区
+  [PASS] memory.frame_arena.stable        同一线程两次取用必须是同一个实例
+  [PASS] memory.frame_arena.allocate      帧 Arena 分配必须成功且满足对齐
+  [PASS] memory.frame_arena.capacity      帧 Arena 容量必须是 kFrameArenaSize
+  [PASS] memory.frame_arena.over_capacity 超过 4MB 的请求必须返回 nullptr
+  [PASS] memory.thread.remote_harvest     跨线程释放的 8 块必须全部被 owner 线程收割回来
+  [PASS] memory.thread.child_alloc_free   子线程独立分配/释放必须成功
+  [PASS] memory.thread.tag_distinct       不同线程的 thread tag 必须不同
+  [PASS] plugin.register.accepted         A/B 首次注册必须成功
+  [PASS] plugin.register.duplicate        同一 plugin_id 第二次注册必须被拒绝
+  [PASS] plugin.register.count            三次成功注册后 registered_count 必须是 3
+  [PASS] plugin.init.success              无环依赖图必须初始化成功
+  [PASS] plugin.topo.chain_order          拓扑序必须是 A -> B -> C
+  [PASS] plugin.lifecycle.sequence        期望 RARBRCIAIBICSCSBSAUCUBUA 实际 RARBRCIAIBICSCSBSAUCUBUA
+  [PASS] plugin.shutdown.clears_registry  shutdown_all 后注册表与拓扑序必须清空
+  [PASS] plugin.lifecycle.reinit          shutdown_all 之后必须可以重新注册并再次初始化
+  [PASS] plugin.init.empty_graph          0 个插件时 initialize_all 必须成功
+  [PASS] plugin.register.capacity_128     128 个插件必须全部注册成功
+  [PASS] plugin.register.capacity_129     第 129 个插件必须被拒绝且不影响已有注册
+  [PASS] plugin.init.capacity_128         128 个零依赖插件必须完成拓扑排序与初始化
+  [PASS] plugin.dag.diamond_init          菱形依赖图 D -> {B, C} -> A 必须初始化成功
+  [PASS] plugin.dag.diamond_order         A 必须早于 B/C，B/C 必须早于 D
+  [PASS] plugin.dag.compatible_whitelist  白名单里任一上游版本达标即可满足依赖，旧版本候选不得导致失败
+  [PASS] plugin.dag.whitelist_order       达标的后端必须排在下游之前
+  [SKIP] plugin.dag.missing_dependency    契约是 Level::Fatal -> abort，需子进程隔离
+  [SKIP] plugin.dag.cycle                 契约是 Level::Fatal -> abort（Kahn 环路检测），需子进程隔离
+  [SKIP] plugin.dag.dependencies_over_32  契约是 Level::Fatal -> abort（每插件依赖 <= 32），需子进程隔离
+  [SKIP] plugin.register.null_descriptor  契约是 ID_KERNEL_ASSERT -> abort，需子进程隔离
+  [SKIP] plugin.register.after_init       契约是 ID_KERNEL_ASSERT -> abort，需子进程隔离
+  [SKIP] plugin.init.on_init_failure      on_init 失败走 Level::Fatal -> abort，回滚路径当前不可达（id-kernel K3）
+  [PASS] slot.store_and_load              写入槽位后可取回同一指针
+  [PASS] slot.overwrite_last_wins         同一槽位后写覆盖先写（当前契约）
+  [PASS] slot.independent                 不同槽位互不影响
+  [PASS] slot.unregister                  写 nullptr 表示卸下，取出必须为空
+  [SKIP] slot.out_of_range                槽位接口不做边界检查（id-kernel K4），越界写是 UB，不测
+  [SKIP] slot.concurrent_write            当前无并发写契约：槽位只在插件 on_register/on_unload 单线程写
+  [PASS] log.report_dispatch              report 必须把 level/category/message 原样交给当前 sink
+  [PASS] log.capture_observed             整轮测试期间内核确实产生过日志
+  [PASS] log.restore_default              测试结束必须把 sink 还原为 default_bootstrap_sink
+  result: 75 passed / 0 failed / 13 skipped
+
+## ID.Kernel — Performance
+  metric                              actual reference               ratio  grade
+  ---------------------------------------------------------------------------------
+  memory.alloc_free_16B              3.70 ns  22.94 ns [os-baseline]  0.16  world-class
+      └ 同轮 std::malloc(16)+free 实测；目标倍数 1.0（至少要打平通用分配器）
+  memory.alloc_free_512B             3.78 ns  22.80 ns [os-baseline]  0.17  world-class
+      └ 同轮 std::malloc(512)+free 实测；目标倍数 1.0（至少要打平通用分配器）
+  memory.large_object_page         2585.70 ns 2568.83 ns [os-baseline]  1.01  good
+      └ 同轮 os_alloc_aligned_64k(64KB)+free 实测（同一 OS 路径，缺大对象头写入与 magic 校验）；目标倍数 1.0
+  plugin.service_lookup_and_call     0.23 ns   0.40 ns [os-baseline]  0.57  excellent
+      └ 同轮 volatile 全局函数表指针 + 间接调用实测；目标倍数 1.2（多一次槽位数组 load ≈ L1 4-5 cycles）
+
+--------------------------------------------------------------------
+SUMMARY
+  security    : 1 domains / 75 passed / 0 failed / 13 skipped
+  performance : 1 domains / 4 metrics
+                world-class=2  excellent=1  good=1  fair=0  poor=0  terrible=0  ungraded=0
+  exit code   : 0

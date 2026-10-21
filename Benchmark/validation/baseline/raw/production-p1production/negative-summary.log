@@ -1,0 +1,80 @@
+[positive-registration] 全部正向 TU 已注册（positive_basics;positive_graph;positive_ownership;positive_permutation;positive_storage;positive_uneven）
+[self-check] missing-positive -> 已按预期拒绝（存在未注册的正向 TU：positive_uneven.cpp）
+[legal-objects] IDProductionLegalCases -> exit 0，70 个 TU 均有编译输出
+[positive-objects] IDProductionPositiveCases -> exit 0，6 个正向 TU 均有编译输出
+[legal-control] ProductionCaseControls -> exit 0，链接响应文件含 70 个合法对照对象 + 6 个正向对象
+[control-run] ProductionCaseControls -> exit 0（正向探针读数全部匹配）
+[self-check] mutated-positive-assert -> 已按预期拒绝（失败断言数=1）
+[expect-fail] active_overflow -> category TooManyActive OK（失败断言数=1）
+[expect-fail] ambiguous_old_new -> category AmbiguousProvider OK（失败断言数=1）
+[expect-fail] ambiguous_provider -> category AmbiguousProvider OK（失败断言数=1）
+[expect-fail] candidate_capability_mismatch -> category CandidateCapabilityMismatch OK（失败断言数=1）
+[expect-fail] catalog_overflow -> category TooManyCatalog OK（失败断言数=1）
+[expect-fail] contract_candidate_mismatch -> category ContractCandidateMismatch OK（失败断言数=1）
+[expect-fail] contract_count_mismatch -> category ContractRequirementMismatch OK（失败断言数=1）
+[expect-fail] cycle -> category Cycle OK（失败断言数=1）
+[expect-fail] cycle_tail -> category Cycle OK（失败断言数=1）
+[expect-fail] duplicate_active -> category DuplicateActive OK（失败断言数=1）
+[expect-fail] duplicate_candidate -> category DuplicateCandidate OK（失败断言数=1）
+[expect-fail] duplicate_capability_declaration -> category DuplicateCapability OK（失败断言数=1）
+[expect-fail] duplicate_capability_slots -> category DuplicateCapability OK（失败断言数=1）
+[expect-fail] duplicate_capability_unused -> category DuplicateCapability OK（失败断言数=1）
+[expect-fail] duplicate_plugin -> category DuplicatePlugin OK（失败断言数=1）
+[expect-fail] empty_inner_group -> category EmptyRequirementGroup OK（失败断言数=1）
+[expect-fail] evidence_binding_index_bounds -> category EvidenceProviderMismatch OK（失败断言数=1）
+[expect-fail] evidence_capacity_binding -> category EvidenceProviderMismatch OK（失败断言数=1）
+[expect-fail] evidence_capacity_edge -> category EvidenceEdgeMismatch OK（失败断言数=1）
+[expect-fail] evidence_capacity_runtime -> category RuntimeBindingMismatch OK（失败断言数=1）
+[expect-fail] evidence_capacity_selection -> category EvidenceSelectionMismatch OK（失败断言数=1）
+[expect-fail] evidence_capacity_slot -> category EvidenceSlotMismatch OK（失败断言数=1）
+[expect-fail] evidence_duplicate_binding -> category EvidenceProviderMismatch OK（失败断言数=1）
+[expect-fail] evidence_duplicate_edge -> category EvidenceEdgeMismatch OK（失败断言数=1）
+[expect-fail] evidence_duplicate_runtime -> category RuntimeBindingMismatch OK（失败断言数=1）
+[expect-fail] evidence_duplicate_selection -> category EvidenceSelectionMismatch OK（失败断言数=1）
+[expect-fail] evidence_duplicate_slot -> category EvidenceSlotMismatch OK（失败断言数=1）
+[expect-fail] evidence_edge_mismatch -> category EvidenceEdgeMismatch OK（失败断言数=1）
+[expect-fail] evidence_identity_mismatch -> category EvidenceIdentityMismatch OK（失败断言数=1）
+[expect-fail] evidence_macro_mismatch -> category EvidenceMacroMismatch OK（失败断言数=1）
+[expect-fail] evidence_provider_mismatch -> category EvidenceProviderMismatch OK（失败断言数=1）
+[expect-fail] evidence_selection_mismatch -> category EvidenceSelectionMismatch OK（失败断言数=1）
+[expect-fail] evidence_slot_index_bounds -> category EvidenceSlotMismatch OK（失败断言数=1）
+[expect-fail] evidence_slot_mismatch -> category EvidenceSlotMismatch OK（失败断言数=1）
+[expect-fail] evidence_target_mismatch -> category EvidenceTargetMismatch OK（失败断言数=1）
+[expect-fail] hash_collision -> category NameHashCollision OK（失败断言数=1）
+[expect-fail] interface_lifecycle_mismatch -> category InterfaceLifecycleMismatch OK（失败断言数=1）
+[expect-fail] interface_slot_mismatch -> category InterfaceLifecycleMismatch OK（失败断言数=1）
+[expect-fail] invalid_active -> category InvalidActive OK（失败断言数=1）
+[expect-fail] invalid_capability -> category InvalidCapability OK（失败断言数=1）
+[expect-fail] invalid_namespace -> category InvalidNamespace OK（失败断言数=1）
+[expect-fail] invalid_revision -> category InvalidRevision OK（失败断言数=1）
+[expect-fail] invalid_revision_range -> category InvalidRevisionRange OK（失败断言数=1）
+[expect-fail] invalid_slot -> category InvalidSlot OK（失败断言数=1）
+[expect-fail] invalid_target -> category InvalidTargetName OK（失败断言数=1）
+[expect-fail] missing_provider -> category MissingProvider OK（失败断言数=1）
+[expect-fail] namespace_conflict -> category NamespaceConflict OK（失败断言数=1）
+[expect-fail] name_boundaries -> category InvalidName OK（失败断言数=1）
+[expect-fail] name_first_char -> category InvalidName OK（失败断言数=1）
+[expect-fail] name_internal_nul -> category InvalidName OK（失败断言数=1）
+[expect-fail] name_unterminated -> category InvalidName OK（失败断言数=1）
+[expect-fail] plugin_version_not_api -> category RevisionMismatch OK（失败断言数=1）
+[expect-fail] pod_candidate_count_capacity -> category InvalidDeclaration OK（失败断言数=1）
+[expect-fail] pod_contract_count_capacity -> category InvalidDeclaration OK（失败断言数=1）
+[expect-fail] pod_group_count_capacity -> category InvalidDeclaration OK（失败断言数=1）
+[expect-fail] pod_invalid_kind -> category InvalidDeclaration OK（失败断言数=1）
+[expect-fail] pod_invalid_lifecycle -> category InvalidDeclaration OK（失败断言数=1）
+[expect-fail] pod_pool_bounds -> category InvalidDeclaration OK（失败断言数=1）
+[expect-fail] revision_mismatch -> category RevisionMismatch OK（失败断言数=1）
+[expect-fail] runtime_binding_id_mismatch -> category RuntimeBindingMismatch OK（失败断言数=1）
+[expect-fail] runtime_binding_revision_mismatch -> category RuntimeBindingMismatch OK（失败断言数=1）
+[expect-fail] schema_mismatch -> category SchemaMismatch OK（失败断言数=1）
+[expect-fail] self_dependency -> category SelfDependency OK（失败断言数=1）
+[expect-fail] slot_conflict -> category SlotConflict OK（失败断言数=1）
+[expect-fail] target_macro_conflict -> category TargetMacroConflict OK（失败断言数=1）
+[expect-fail] too_many_candidates -> category TooManyCandidates OK（失败断言数=1）
+[expect-fail] too_many_provides -> category TooManyProvides OK（失败断言数=1）
+[expect-fail] too_many_requirements -> category TooManyRequirements OK（失败断言数=1）
+[expect-fail] unknown_active -> category UnknownActive OK（失败断言数=1）
+[expect-fail] unknown_candidate -> category UnknownCandidate OK（失败断言数=1）
+[self-check] wrong_expectation -> 已按预期拒绝（错误类别不符（出现 MISMATCH 标记））
+[self-check] aux_assert_failure -> 已按预期拒绝（失败断言数=2（只允许类别断言失败））
+反向用例汇总：70 条按预期类别失败，0 条不符合预期

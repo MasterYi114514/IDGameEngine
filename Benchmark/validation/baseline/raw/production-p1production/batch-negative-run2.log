@@ -1,0 +1,18 @@
+MODE: r2-batch-repeat
+BUILD_DIR: F:\IDGameEngine\cmake-build-p1production
+CWD: F:\IDWorkbench
+TARGET: ProductionNegativeCases
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-p1production --target ProductionNegativeCases
+EXIT: 0
+SECONDS: 79.56
+
+[  6%] Built target ID
+[ 14%] Built target IDProductionPositiveCases
+[ 16%] Built target IDPluginStub
+[ 97%] Built target IDProductionLegalCases
+[100%] Linking CXX executable out\bin\ProductionCaseControls.exe
+澶嶅埗 ID 鍐呮牳 DLL 鍒?production 杈撳嚭鐩綍锛堟潵婧?F:/IDGameEngine/bin/bin/libID.dll锛?
+[100%] Built target ProductionCaseControls
+[100%] production negative cases: expect-fail targets + legal/positive control + self-checks
+-- production 反向用例批次通过（合法+正向对照 + 恰好 1 条断言 + 类别真实断言 + 4 个自检）
+[100%] Built target ProductionNegativeCases

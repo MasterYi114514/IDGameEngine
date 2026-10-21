@@ -1,0 +1,300 @@
+﻿[100%] 缂栬瘧骞舵牳瀵?19 涓弽鍚戠敤渚嬬殑閿欒绫诲埆锛堝惈鍚堟硶瀵圭収涓庨┍鍔ㄥ櫒鑷锛?
+-- [legal-control] IDFixtureLegalCases -> exit 0
+-- [expect-fail] self_dependency -> FAILED: 缺少 EXPECTED:SelfDependency 标记（类别未被真实断言）
+-- ---- 编译输出（self_dependency）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_self_dependency.dir/src/cases/case_self_dependency.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::SelfDependency
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_self_dependency.cpp:35:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   35 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::SelfDependency);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_self_dependency.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_self_dependency.dir/src/cases/case_self_dependency.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:581: Benchmark/validation/prototype/CMakeFiles/fixture_expect_self_dependency.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:588: Benchmark/validation/prototype/CMakeFiles/fixture_expect_self_dependency.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:191: Benchmark/validation/prototype/CMakeFiles/fixture_expect_self_dependency.dir/rule] Error 2
+
+-- [expect-fail] ambiguous_provider -> FAILED: 缺少 EXPECTED:AmbiguousProvider 标记（类别未被真实断言）
+-- ---- 编译输出（ambiguous_provider）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_ambiguous_provider.dir/src/cases/case_ambiguous_provider.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_ambiguous_provider.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::AmbiguousProvider
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_ambiguous_provider.cpp:38:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   38 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::AmbiguousProvider);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_ambiguous_provider.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_ambiguous_provider.dir/src/cases/case_ambiguous_provider.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:613: Benchmark/validation/prototype/CMakeFiles/fixture_expect_ambiguous_provider.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:620: Benchmark/validation/prototype/CMakeFiles/fixture_expect_ambiguous_provider.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:205: Benchmark/validation/prototype/CMakeFiles/fixture_expect_ambiguous_provider.dir/rule] Error 2
+
+-- [expect-fail] missing_provider -> FAILED: 缺少 EXPECTED:MissingProvider 标记（类别未被真实断言）
+-- ---- 编译输出（missing_provider）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_missing_provider.dir/src/cases/case_missing_provider.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_missing_provider.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::MissingProvider
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_missing_provider.cpp:36:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   36 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::MissingProvider);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_missing_provider.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_missing_provider.dir/src/cases/case_missing_provider.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:645: Benchmark/validation/prototype/CMakeFiles/fixture_expect_missing_provider.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:652: Benchmark/validation/prototype/CMakeFiles/fixture_expect_missing_provider.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:219: Benchmark/validation/prototype/CMakeFiles/fixture_expect_missing_provider.dir/rule] Error 2
+
+-- [expect-fail] cycle -> FAILED: 缺少 EXPECTED:Cycle 标记（类别未被真实断言）
+-- ---- 编译输出（cycle）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle.dir/src/cases/case_cycle.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::Cycle
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::Cycle);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_cycle.cpp:40:42: error: static assertion failed: cycle: 两节点环必须记录恰好两个成员
+   40 |     static_assert(kPlan.error_node_count == 2, "cycle: 两节点环必须记录恰好两个成员");
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~^~~~
+  • the comparison reduces to '(4 == 2)'
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_cycle.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle.dir/src/cases/case_cycle.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:677: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:684: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:233: Benchmark/validation/prototype/CMakeFiles/fixture_expect_cycle.dir/rule] Error 2
+
+-- [expect-fail] hash_collision -> FAILED: 缺少 EXPECTED:NameHashCollision 标记（类别未被真实断言）
+-- ---- 编译输出（hash_collision）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_hash_collision.dir/src/cases/case_hash_collision.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_hash_collision.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::NameHashCollision
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_hash_collision.cpp:45:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   45 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::NameHashCollision);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_hash_collision.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_hash_collision.dir/src/cases/case_hash_collision.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:709: Benchmark/validation/prototype/CMakeFiles/fixture_expect_hash_collision.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:716: Benchmark/validation/prototype/CMakeFiles/fixture_expect_hash_collision.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:247: Benchmark/validation/prototype/CMakeFiles/fixture_expect_hash_collision.dir/rule] Error 2
+
+-- [expect-fail] duplicate_candidate -> FAILED: 缺少 EXPECTED:DuplicateCandidate 标记（类别未被真实断言）
+-- ---- 编译输出（duplicate_candidate）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_candidate.dir/src/cases/case_duplicate_candidate.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_candidate.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::DuplicateCandidate
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_candidate.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::DuplicateCandidate);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_duplicate_candidate.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_candidate.dir/src/cases/case_duplicate_candidate.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:741: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_candidate.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:748: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_candidate.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:261: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_candidate.dir/rule] Error 2
+
+-- [expect-fail] empty_inner_group -> FAILED: 缺少 EXPECTED:EmptyRequirementGroup 标记（类别未被真实断言）
+-- ---- 编译输出（empty_inner_group）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/src/cases/case_empty_inner_group.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_empty_inner_group.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::EmptyRequirementGroup
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_empty_inner_group.cpp:36:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   36 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::EmptyRequirementGroup);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_empty_inner_group.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/src/cases/case_empty_inner_group.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:773: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:780: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:275: Benchmark/validation/prototype/CMakeFiles/fixture_expect_empty_inner_group.dir/rule] Error 2
+
+-- [expect-fail] unknown_candidate -> FAILED: 缺少 EXPECTED:UnknownCandidate 标记（类别未被真实断言）
+-- ---- 编译输出（unknown_candidate）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/src/cases/case_unknown_candidate.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_candidate.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::UnknownCandidate
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_candidate.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::UnknownCandidate);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_unknown_candidate.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/src/cases/case_unknown_candidate.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:805: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:812: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:289: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/rule] Error 2
+
+-- [expect-fail] active_overflow -> FAILED: 缺少 EXPECTED:TooManyActive 标记（类别未被真实断言）
+-- ---- 编译输出（active_overflow）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_active_overflow.dir/src/cases/case_active_overflow.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_active_overflow.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::TooManyActive
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_active_overflow.cpp:29:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   29 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::TooManyActive);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_active_overflow.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_active_overflow.dir/src/cases/case_active_overflow.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:837: Benchmark/validation/prototype/CMakeFiles/fixture_expect_active_overflow.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:844: Benchmark/validation/prototype/CMakeFiles/fixture_expect_active_overflow.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:303: Benchmark/validation/prototype/CMakeFiles/fixture_expect_active_overflow.dir/rule] Error 2
+
+-- [expect-fail] evidence_mismatch -> category EvidenceProviderMismatch OK
+-- [expect-fail] invalid_name -> FAILED: 缺少 EXPECTED:InvalidName 标记（类别未被真实断言）
+-- ---- 编译输出（invalid_name）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_invalid_name.dir/src/cases/case_invalid_name.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_invalid_name.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::InvalidName
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_invalid_name.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::InvalidName);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_invalid_name.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_invalid_name.dir/src/cases/case_invalid_name.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:901: Benchmark/validation/prototype/CMakeFiles/fixture_expect_invalid_name.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:908: Benchmark/validation/prototype/CMakeFiles/fixture_expect_invalid_name.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:331: Benchmark/validation/prototype/CMakeFiles/fixture_expect_invalid_name.dir/rule] Error 2
+
+-- [expect-fail] duplicate_plugin -> FAILED: 缺少 EXPECTED:DuplicatePlugin 标记（类别未被真实断言）
+-- ---- 编译输出（duplicate_plugin）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_plugin.dir/src/cases/case_duplicate_plugin.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_plugin.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::DuplicatePlugin
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_plugin.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::DuplicatePlugin);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_duplicate_plugin.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_plugin.dir/src/cases/case_duplicate_plugin.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:933: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_plugin.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:940: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_plugin.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:345: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_plugin.dir/rule] Error 2
+
+-- [expect-fail] too_many_requirements -> FAILED: 缺少 EXPECTED:TooManyRequirements 标记（类别未被真实断言）
+-- ---- 编译输出（too_many_requirements）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_requirements.dir/src/cases/case_too_many_requirements.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_requirements.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::TooManyRequirements
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_requirements.cpp:41:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   41 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::TooManyRequirements);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_too_many_requirements.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_requirements.dir/src/cases/case_too_many_requirements.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:965: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_requirements.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:972: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_requirements.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:359: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_requirements.dir/rule] Error 2
+
+-- [expect-fail] too_many_candidates -> FAILED: 缺少 EXPECTED:TooManyCandidates 标记（类别未被真实断言）
+-- ---- 编译输出（too_many_candidates）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_candidates.dir/src/cases/case_too_many_candidates.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_candidates.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::TooManyCandidates
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_candidates.cpp:60:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   60 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::TooManyCandidates);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_too_many_candidates.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_candidates.dir/src/cases/case_too_many_candidates.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:997: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_candidates.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1004: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_candidates.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:373: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_candidates.dir/rule] Error 2
+
+-- [expect-fail] too_many_catalog -> FAILED: 缺少 EXPECTED:TooManyCatalog 标记（类别未被真实断言）
+-- ---- 编译输出（too_many_catalog）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_catalog.dir/src/cases/case_too_many_catalog.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_catalog.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::TooManyCatalog
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_too_many_catalog.cpp:50:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   50 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::TooManyCatalog);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_too_many_catalog.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_catalog.dir/src/cases/case_too_many_catalog.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1029: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_catalog.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1036: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_catalog.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:387: Benchmark/validation/prototype/CMakeFiles/fixture_expect_too_many_catalog.dir/rule] Error 2
+
+-- [expect-fail] unknown_active -> FAILED: 缺少 EXPECTED:UnknownActive 标记（类别未被真实断言）
+-- ---- 编译输出（unknown_active）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_active.dir/src/cases/case_unknown_active.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_active.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::UnknownActive
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_active.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::UnknownActive);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_unknown_active.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_active.dir/src/cases/case_unknown_active.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1061: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_active.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1068: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_active.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:401: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_active.dir/rule] Error 2
+
+-- [expect-fail] duplicate_active -> FAILED: 缺少 EXPECTED:DuplicateActive 标记（类别未被真实断言）
+-- ---- 编译输出（duplicate_active）----
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_active.dir/src/cases/case_duplicate_active.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_active.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:93:67: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:ErrorCode::DuplicateActive
+   93 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<code>(plan),                          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_duplicate_active.cpp:35:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   35 |     ID_FIXTURE_EXPECT_ERROR(kPlan, ErrorCode::DuplicateActive);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_duplicate_active.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_active.dir/src/cases/case_duplicate_active.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1093: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_active.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1100: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_active.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:415: Benchmark/validation/prototype/CMakeFiles/fixture_expect_duplicate_active.dir/rule] Error 2
+
+-- [expect-fail] evidence_selection_mismatch -> category EvidenceSelectionMismatch OK
+-- [expect-fail] evidence_edge_mismatch -> category EvidenceEdgeMismatch OK
+-- [self-check] wrong_expectation -> 已按预期拒绝（错误类别不符（出现 MISMATCH 标记））
+cmake : CMake Error at F:/IDGameEngine/Benchmark/validation/prototype/cmake/RunNegativeCases.cmake:132 (message):
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792401411524-gdmjwm.ps1:954 字符: 116
++ ... og'; $out = cmake --build cmake-build-protoshared --target FixtureNeg ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CMake Error at ...:132 (message)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  反向用例批次失败：16 条未按预期类别失败（详见
+  F:/IDGameEngine/Benchmark/validation/prototype/../baseline/raw）
+
+
+mingw32-make[3]: *** [Benchmark\validation\prototype\CMakeFiles\FixtureNegativeCases.dir\build.make:70: Benchmark/valid
+ation/prototype/CMakeFiles/FixtureNegativeCases] Error 1
+mingw32-make[2]: *** [CMakeFiles\Makefile2:1221: Benchmark/validation/prototype/CMakeFiles/FixtureNegativeCases.dir/all
+] Error 2
+mingw32-make[1]: *** [CMakeFiles\Makefile2:1228: Benchmark/validation/prototype/CMakeFiles/FixtureNegativeCases.dir/rul
+e] Error 2
+mingw32-make: *** [Makefile:501: FixtureNegativeCases] Error 2

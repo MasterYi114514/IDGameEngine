@@ -1,0 +1,9 @@
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-protoshared --target fixture_scale_max_legal_128x32x4
+CWD: F:\IDGameEngine
+SOURCE_TOUCHED: F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_max_legal_128x32x4.cpp
+EXIT: 0
+SECONDS: 5.52
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_scale_max_legal_128x32x4.dir/src/scale/scale_max_legal_128x32x4.cpp.obj
+[100%] Built target fixture_scale_max_legal_128x32x4

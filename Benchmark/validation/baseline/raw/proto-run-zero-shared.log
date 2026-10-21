@@ -1,0 +1,7 @@
+COMMAND: F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureZeroPrototype.exe
+CWD: F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin
+EXE_SHA256: 35C5A7E2A263E41388D53DEECE35D10B3B5263C8AA79E5B0A334571B51FC40CC
+EXIT: 0
+SECONDS: 0.081
+
+fixture-zero-plugin: PASS

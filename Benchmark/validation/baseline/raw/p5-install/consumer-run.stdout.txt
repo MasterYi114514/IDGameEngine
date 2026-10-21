@@ -1,0 +1,2 @@
+[PASS] installed product start state=Ready
+[PASS] installed product shutdown state=Idle

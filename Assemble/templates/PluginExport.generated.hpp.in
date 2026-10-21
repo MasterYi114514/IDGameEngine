@@ -1,0 +1,22 @@
+#pragma once
+
+/**
+ *  逐插件导出头（Assemble 生成器由 templates/PluginExport.generated.hpp.in 产出，勿手改）
+ *  1. STATIC 归并（ID_STATIC_PLUGIN_LINK）时本插件 API 宏为空；
+ *  2. Windows SHARED 时只有本插件自己的 build 宏 ID_@ID_ASM_EXPORT_TOKEN@_BUILD_DLL 决定 export/import，
+ *     该 build 宏只在插件自身 target 上 PRIVATE 定义，绝不向下游传播；
+ *  3. 本头只处理“导出归属”，不声明身份宏 ID_USE_PLUGIN_<TARGET_ID>：
+ *     身份宏属于 PUBLIC usage requirement，与 build 宏完全分开（计划书 8.3 / 12.1）。
+ */
+
+#if defined(ID_STATIC_PLUGIN_LINK)
+    #define ID_@ID_ASM_EXPORT_TOKEN@_API
+#elif defined(_WIN32)
+    #if defined(ID_@ID_ASM_EXPORT_TOKEN@_BUILD_DLL)
+        #define ID_@ID_ASM_EXPORT_TOKEN@_API __declspec(dllexport)
+    #else
+        #define ID_@ID_ASM_EXPORT_TOKEN@_API __declspec(dllimport)
+    #endif
+#else
+    #define ID_@ID_ASM_EXPORT_TOKEN@_API __attribute__((visibility("default")))
+#endif

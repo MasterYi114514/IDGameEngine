@@ -1,0 +1,12 @@
+﻿[ 29%] Built target ID
+[ 41%] Built target IDPluginStub
+[ 47%] Built target IDAssemblyValidate
+[ 58%] Built target IDFixtureCore
+[ 70%] Built target IDFixtureMath
+[ 88%] Built target IDAssembly
+[ 94%] Building CXX object Sandbox/CMakeFiles/Sandbox.dir/src/main.cpp.obj
+[100%] Linking CXX executable ..\out\shared\bin\Sandbox.exe
+copy ID kernel runtime next to Sandbox
+copy selected plugin IDFixtureCore next to Sandbox
+copy selected plugin IDFixtureMath next to Sandbox
+[100%] Built target Sandbox

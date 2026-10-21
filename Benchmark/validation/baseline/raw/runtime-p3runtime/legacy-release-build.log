@@ -1,0 +1,9 @@
+-- Configuring done (0.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-release
+[  7%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 15%] Linking CXX shared library F:\IDGameEngine\bin\bin\libID.dll
+[ 46%] Built target ID
+[ 61%] Built target IDPluginStub
+[ 69%] Linking CXX executable F:\IDGameEngine\bin\bin\Benchmark.exe
+[100%] Built target Benchmark

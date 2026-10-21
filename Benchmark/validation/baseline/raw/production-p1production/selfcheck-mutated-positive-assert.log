@@ -1,0 +1,20 @@
+MODE: production-p1production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p1production
+TARGET: production_positive_mutated
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p1production/Benchmark/validation/production --target production_positive_mutated
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+MUTATED_MARKER_FOUND: TRUE
+
+[ 75%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_positive_mutated.dir/src/positive/mutated_assert_probe.cpp.obj
+
+F:\IDGameEngine\Benchmark\validation\production\src\positive\mutated_assert_probe.cpp:26:38: error: static assertion failed: ID_POSITIVE_MUTATED_ASSERT_DETECTED: 篡改的 active_count 期望
+   26 |     static_assert(kPlan.active_count == 127, "ID_POSITIVE_MUTATED_ASSERT_DETECTED: 篡改的 active_count 期望");
+      |                   ~~~~~~~~~~~~~~~~~~~^~~~~~
+  • the comparison reduces to '(3 == 127)'
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_positive_mutated.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_positive_mutated.dir/src/positive/mutated_assert_probe.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:2819: Benchmark/validation/production/CMakeFiles/production_positive_mutated.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:2826: Benchmark/validation/production/CMakeFiles/production_positive_mutated.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:1171: Benchmark/validation/production/CMakeFiles/production_positive_mutated.dir/rule] Error 2
+

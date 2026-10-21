@@ -1,0 +1,13 @@
+CMake Error at Benchmark/validation/prototype/cmake/RunNegativeCases.cmake:75 (message):
+  反向用例日志目录
+  F:/IDGameEngine/Benchmark/validation/baseline/raw/protoshared
+  已属于另一个构建目录：
+
+    已记录：F:/IDGameEngine/cmake-build-protoshared
+    当前  ：F:/IDGameEngine/cmake-build-protostatic
+
+  
+  同一模式目录不允许被两个构建目录共用（会互相覆盖）。请使用目录名不同的构建目录，或先人工确认后删除该归属文件。
+
+
+EXIT=1 

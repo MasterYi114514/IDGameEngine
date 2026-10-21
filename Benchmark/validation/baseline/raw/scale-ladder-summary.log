@@ -1,0 +1,10 @@
+﻿# 规模阶梯（每个目标先 touch 源文件强制重编，记录真实编译时间）
+fixture_scale_32x32x1 exit=0 sec=0.9
+fixture_scale_64x32x4 exit=0 sec=1.5
+fixture_scale_active_128 exit=0 sec=1
+fixture_scale_limit_128x32x16 exit=2 sec=11.5
+    F:/IDGameEngine/Benchmark/validation/prototype/include/FixturePluginApi.hpp:795:71: error: 'constexpr' evaluation operation count exceeds limit of 33554432 (use '-fconstexpr-ops-limit=' to increase the limit)
+fixture_scale_limit_128x32x8 exit=2 sec=9.4
+    F:/IDGameEngine/Benchmark/validation/prototype/include/FixturePluginApi.hpp:781:35: error: 'constexpr' evaluation operation count exceeds limit of 33554432 (use '-fconstexpr-ops-limit=' to increase the limit)
+fixture_scale_max_legal_128x32x4 exit=0 sec=3.6
+fixture_scale_probe exit=0 sec=1.5

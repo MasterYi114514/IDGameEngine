@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Fixture.Core",
+    "target": "IDFixtureCore",
+    "namespace": "ID::Fixture::Core",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Fixture.Core", "api_revision": 2, "slot": 60}
+    ],
+    "lifecycle": "standard"
+}

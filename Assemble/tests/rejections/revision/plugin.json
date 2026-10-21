@@ -1,0 +1,21 @@
+{
+    "schema_version": 1,
+    "name": "ID.Reject.Revision",
+    "target": "IDRejectRevision",
+    "namespace": "ID::Reject::Revision",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [
+        ["ID.Fixture.Core"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "ID.Fixture.Core",
+            "api_revisions": {
+                "ID.Fixture.Core": {"min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "standard"
+}

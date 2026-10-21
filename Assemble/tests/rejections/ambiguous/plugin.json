@@ -1,0 +1,22 @@
+{
+    "schema_version": 1,
+    "name": "ID.Reject.Ambiguous",
+    "target": "IDRejectAmbiguous",
+    "namespace": "ID::Reject::Ambiguous",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [
+        ["ID.Fixture.Core", "ID.Reject.CoreAlt"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "ID.Fixture.Core",
+            "api_revisions": {
+                "ID.Fixture.Core": {"min": 1, "max": 2},
+                "ID.Reject.CoreAlt": {"min": 1, "max": 2}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "standard"
+}

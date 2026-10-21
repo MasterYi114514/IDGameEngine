@@ -1,0 +1,9 @@
+MODE: protofix2-gcc  BUILD_DIR: F:/IDGameEngine/cmake-build-protofix2-gcc
+单配置生成器：$<TARGET_FILE_DIR:exe> 仍等于 out/bin，DLL 与 exe 同目录，路径未变化
+
+FixtureCaseControls.exe  93126 B
+FixturePrototype.exe  93202 B
+FixtureZeroPrototype.exe  84742 B
+libID.dll  93496 B
+libIDFixtureAlpha.dll  44542 B
+libIDFixtureBeta.dll  44520 B

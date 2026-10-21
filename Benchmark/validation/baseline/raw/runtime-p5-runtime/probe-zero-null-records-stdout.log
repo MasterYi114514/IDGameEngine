@@ -1,0 +1,26 @@
+=== IDGameEngine Benchmark Report ===
+generated     : 2026-10-19 23:30:16
+compiler      : GCC 16.2.0
+build         : Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+timer         : QPC (freq=10000000, resolution=100 ns) | affinity=core 0
+cpu           : 13th Gen Intel(R) Core(TM) i7-13700
+report        : F:/IDGameEngine/cmake-build-p5-runtime/Benchmark/validation/runtime/out/report.txt
+--------------------------------------------------------------------
+
+## ID.PluginRuntime — Security
+  [PASS] zero.null_records_view.precondition_idle expect=Idle actual=Idle
+  [PASS] zero.null_records_view.start_ok  expect=None actual=None at=Ready plugin=65535 slot=-1
+  [PASS] zero.null_records_view.ready     expect=Ready actual=Ready
+  [PASS] zero.null_records_view.no_callbacks
+  [PASS] zero.null_records_view.shutdown_ok expect=None actual=None at=Idle plugin=65535 slot=-1
+  [PASS] zero.null_records_view.idle      expect=Idle actual=Idle
+  [PASS] zero.null_records_view.shutdown_no_callbacks
+  [PASS] zero.null_records_view.slots_empty non_null_slots=0 expect=0
+  result: 8 passed / 0 failed / 0 skipped
+
+--------------------------------------------------------------------
+SUMMARY
+  security    : 1 domains / 8 passed / 0 failed / 0 skipped
+  performance : 1 domains / 0 metrics
+                world-class=0  excellent=0  good=0  fair=0  poor=0  terrible=0  ungraded=0
+  exit code   : 0

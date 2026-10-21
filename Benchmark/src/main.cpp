@@ -11,6 +11,7 @@ int main()
     ID::Bench::BeginSession();
 
     ID::Bench::Run("ID.Kernel", &ID::Bench::IDKernelSecurityTest, &ID::Bench::IDKernelPerformanceTest);
+    ID::Bench::Run("ID.Log",    &ID::Bench::IDLogSecurityTest,    &ID::Bench::IDLogPerformanceTest);
 
     ID::Bench::EndSession();
     return ID::Bench::ExitCode();

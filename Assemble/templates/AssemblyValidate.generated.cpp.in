@@ -1,0 +1,136 @@
+#include <cstddef>
+#include <cstdint>
+#include <iterator>
+
+#include "IDAssembly.generated.hpp"
+
+/**
+ *  编译期校验 TU（计划书 9.1）
+ *  1. 只依赖 ID 头与生成输入，不链接任何业务插件，也不 include 它们的实现头；
+ *  2. 校验结论以 static_assert 固化：结构错误不可能拖到运行期才暴露；
+ *  3. 诊断**按类别分派**：每个 PluginError 类别一条断言，失败信息直接是
+ *     `ID_ASSEMBLY_ERROR:<类别> - ...`，不需要再拿枚举值去反查类别（计划书第 7 节）；
+ *  4. CMake 只做轻量解析并派生证据，这里由第三个编译期操作族重新推导后逐项比较（计划书 8.5）；
+ *  5. 本 TU 属于 IDAssemblyValidate（OBJECT），业务插件与绑定目标反过来依赖它做构建期门控。
+ *
+ *  @note C++20 的 static_assert 只接受字面量消息，因此类别清单用 X-macro 维护一次：
+ *        同一份清单既生成“覆盖清单”（maxErrors 断言保证没有漏类别），也生成逐类别断言
+ *        （消息里带类别名）。新增类别不补清单会被这条断言直接发现，改名会直接编译失败。
+ */
+
+// 组装期诊断类别的完整清单（顺序与 ID::PluginCompileTime::PluginError 一致，不含 None）
+#define ID_ASM_DIAGNOSTIC_CATEGORY_LIST(X)   \
+    X(InvalidName)                           \
+    X(InvalidTargetName)                     \
+    X(InvalidNamespace)                      \
+    X(InvalidDeclaration)                    \
+    X(SchemaMismatch)                        \
+    X(TooManyCatalog)                        \
+    X(TooManyRequirements)                   \
+    X(TooManyCandidates)                     \
+    X(TooManyProvides)                       \
+    X(EmptyRequirementGroup)                 \
+    X(DuplicateCandidate)                    \
+    X(SelfDependency)                        \
+    X(InvalidCapability)                     \
+    X(InvalidRevision)                       \
+    X(InvalidRevisionRange)                  \
+    X(InvalidSlot)                           \
+    X(InterfaceLifecycleMismatch)            \
+    X(ContractRequirementMismatch)           \
+    X(ContractCandidateMismatch)             \
+    X(DuplicatePlugin)                       \
+    X(NameHashCollision)                     \
+    X(TargetMacroConflict)                   \
+    X(NamespaceConflict)                     \
+    X(UnknownCandidate)                      \
+    X(CandidateCapabilityMismatch)           \
+    X(TooManyActive)                         \
+    X(InvalidActive)                         \
+    X(UnknownActive)                         \
+    X(DuplicateActive)                       \
+    X(MissingProvider)                       \
+    X(AmbiguousProvider)                     \
+    X(RevisionMismatch)                      \
+    X(DuplicateCapability)                   \
+    X(SlotConflict)                          \
+    X(Cycle)                                 \
+    X(EvidenceSelectionMismatch)             \
+    X(EvidenceTargetMismatch)                \
+    X(EvidenceMacroMismatch)                 \
+    X(EvidenceIdentityMismatch)              \
+    X(EvidenceProviderMismatch)              \
+    X(EvidenceEdgeMismatch)                  \
+    X(EvidenceSlotMismatch)                  \
+    X(RuntimeBindingMismatch)
+
+namespace
+{
+    using ID::Assembly::Generated::kBindingCount;
+    using ID::Assembly::Generated::kCatalogCount;
+    using ID::Assembly::Generated::kEdgeCount;
+    using ID::Assembly::Generated::kPlan;
+    using ID::Assembly::Generated::kProvisionCount;
+    using ID::Assembly::Generated::kSelectedCount;
+    using ID::Assembly::Generated::kSlotCount;
+
+    // 上一份清单的机器可读形式：只用于证明清单覆盖了全部类别（不会进入运行期）
+    inline constexpr ID::PluginCompileTime::PluginError kDiagnosticCategories[] = {
+        #define ID_ASM_DIAGNOSTIC_CATEGORY_ENTRY(category) ID::PluginCompileTime::PluginError::category,
+        ID_ASM_DIAGNOSTIC_CATEGORY_LIST(ID_ASM_DIAGNOSTIC_CATEGORY_ENTRY)
+    };
+    #undef ID_ASM_DIAGNOSTIC_CATEGORY_ENTRY
+
+    static_assert(std::size(kDiagnosticCategories) + 1u
+                      == static_cast<std::size_t>(ID::PluginCompileTime::PluginError::MaxErrors),
+                  "ID_ASSEMBLY_ERROR:DiagnosticCategoryListOutOfDate - "
+                  "Assemble/templates/AssemblyValidate.generated.cpp.in must list every PluginError category");
+
+    /**
+     *  @brief 拓扑序必须是 0..active_count-1 的下标排列（漏项会让插件少跑一个阶段，重复会跑两次）
+     *  @return 是排列返回 true
+     */
+    constexpr bool topology_is_permutation() noexcept
+    {
+        bool seen[kSelectedCount > 0 ? kSelectedCount : 1] = {};
+        for (std::size_t index = 0; index < kPlan.active_count; ++index)
+        {
+            const std::uint16_t active = kPlan.topo_order[index];
+            if (active >= kPlan.active_count || seen[active])
+            {
+                return false;
+            }
+            seen[active] = true;
+        }
+        return true;
+    }
+
+    // ---- 诊断按类别分派：命中哪个类别，失败信息就是 ID_ASSEMBLY_ERROR:<类别> ----
+    #define ID_ASM_REJECT_CATEGORY(category)                                                    \
+        static_assert(kPlan.diagnostic.code != ID::PluginCompileTime::PluginError::category,     \
+                      "ID_ASSEMBLY_ERROR:" #category " - assembly plan rejected; "               \
+                      "see IDAssemblyEvidence.txt for the per-requirement providers");
+
+    ID_ASM_DIAGNOSTIC_CATEGORY_LIST(ID_ASM_REJECT_CATEGORY)
+    #undef ID_ASM_REJECT_CATEGORY
+
+    // ---- 结构一致性：即使没有诊断，计划本身也必须自洽 ----
+    static_assert(kPlan.diagnostic.phase == ID::PluginCompileTime::AssemblyPhase::None,
+                  "ID_ASSEMBLY_ERROR:FailurePhaseWithoutError - a successful plan must not carry a failure phase");
+    static_assert(kPlan.catalog_count == kCatalogCount,
+                  "ID_ASSEMBLY_ERROR:CatalogCountMismatch - C++ catalog size must equal the catalog listed by Assemble/catalog.cmake");
+    static_assert(kPlan.active_count == kSelectedCount,
+                  "ID_ASSEMBLY_ERROR:ActiveCountMismatch - C++ active count must equal the plugin count enabled by the profile");
+    static_assert(kPlan.edge_count == kEdgeCount,
+                  "ID_ASSEMBLY_ERROR:EdgeCountMismatch - deduplicated dependency edges must equal the PUBLIC link edges derived by CMake");
+    static_assert(kPlan.provision_count == kProvisionCount,
+                  "ID_ASSEMBLY_ERROR:ProvisionCountMismatch - provision count must equal the runtime binding records derived by CMake");
+    static_assert(kSlotCount <= ID::PluginCompileTime::kMaxSlots,
+                  "ID_ASSEMBLY_ERROR:SlotEvidenceOverflow - slot evidence cannot exceed the 64 product-level service slots");
+    static_assert(topology_is_permutation(),
+                  "ID_ASSEMBLY_ERROR:TopologyNotPermutation - topological order must be a permutation of the active indices");
+    static_assert(kSelectedCount == 0 || kPlan.fingerprint != 0,
+                  "ID_ASSEMBLY_ERROR:EmptyFingerprint - a non-empty product must have a non-zero deterministic fingerprint");
+} // namespace
+
+#undef ID_ASM_DIAGNOSTIC_CATEGORY_LIST

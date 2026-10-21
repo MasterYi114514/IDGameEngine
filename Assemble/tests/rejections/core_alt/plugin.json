@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Reject.CoreAlt",
+    "target": "IDRejectCoreAlt",
+    "namespace": "ID::Reject::CoreAlt",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Fixture.Core", "api_revision": 2}
+    ],
+    "lifecycle": "standard"
+}

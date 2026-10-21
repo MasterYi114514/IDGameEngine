@@ -1,0 +1,15 @@
+﻿-- The CXX compiler identification is GNU 16.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: D:/Code/Environment/MinGW/mingw64/bin/c++.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- ID: 未设置 ID_ASSEMBLY_PROFILE，跳过 Sandbox（宿主只通过 IDGameEngine 消费产品）
+-- 反向用例原始日志目录：F:/IDGameEngine/Benchmark/validation/prototype/../baseline/raw/p5-protoshared（模式 p5-protoshared，构建目录 F:/IDGameEngine/cmake-build-p5-protoshared）
+-- fixture 产品选择：ID.Fixture.Alpha;ID.Fixture.Beta
+-- fixture 链接边：IDFixtureBeta|IDFixtureAlpha|IDFIXTUREALPHA
+-- fixture 零插件选择数：
+-- fixture 压力目标 fixture_scale_target_128x32x16 使用 -fconstexpr-ops-limit=134217728（GCC 限定）
+-- Configuring done (0.6s)
+-- Generating done (0.5s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-p5-protoshared

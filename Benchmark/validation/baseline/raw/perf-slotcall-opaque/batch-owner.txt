@@ -1,0 +1,10 @@
+# 本目录与唯一构建目录的绑定（同 batch-owner.txt 约定，避免两个构建目录共用原始证据）
+PURPOSE      : perf-slotcall-opaque —— 去虚拟化修正后的 Release 两次运行 + 反汇编取证（含 report 副本）
+BUILD_DIR    : F:\IDGameEngine\cmake-build-p5-release
+BUILD_CONFIG : CMAKE_BUILD_TYPE=Release  ID_MONOLITHIC_BUILD=OFF  ID_BUILD_BENCHMARK=ON  ID_ASSEMBLY_PROFILE=(空)
+GENERATOR    : MinGW Makefiles
+COMPILER     : GCC 16.2.0 (D:/Code/Environment/MinGW/mingw64/bin/c++.exe)
+TOOL         : GNU objdump (GNU Binutils) 2.47.20260726
+CAPTURED_AT  : 2026-10-20 00:28:1x（构建）/ 00:28:36、00:28:45（两次运行）
+OFFICIAL_REPORT : F:\IDGameEngine\Benchmark\report.txt 由本目录对应的两次运行覆盖写，
+                  最终内容 = report-after-run2.txt（SHA256 82F5EB3E7DF224E2DC229E2AE2E5D1F9B004702971A63D50C0CEAAD6C725BFD1）

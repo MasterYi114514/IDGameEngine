@@ -1,0 +1,69 @@
+perf-slotcall-opaque：去虚拟化修正后的 Release 两次运行原始记录
+绑定构建目录：F:\IDGameEngine\cmake-build-p5-release（见 batch-owner.txt）
+性质：Benchmark/validation 校验资产的原始日志，不写官方报告之外的任何报告，不参与六档评级
+
+1. 构建（CWD = F:\IDGameEngine）
+--------------------------------------------------------------------------------
+命令：cmake --build F:\IDGameEngine\cmake-build-p5-release --target Benchmark --parallel
+退出码：0（0 warning / 0 error）
+重编：Benchmark/src/kernel/kernel_performance.cpp（本轮改动）；同一构建目录首次构建时
+      还重编过 ID/src/Kernel/PluginRuntime.cpp（源码树既有未提交状态，非本轮改动）
+产物：libID.dll（00:28:12，本轮构建前后未再变化）、Benchmark.exe（00:32:2x）
+配置事实：CMAKE_BUILD_TYPE=Release、ID_MONOLITHIC_BUILD=OFF（SHARED，无 IPO/LTO）、
+          ID_ASSEMBLY_PROFILE=（空）、ID_BUILD_SANDBOX=OFF、ID_BUILD_VALIDATION_* 全 OFF
+编译参数：与修正前同一份 flags.make（1B80E77F49B4F1E9C4B6068DA3D9F69FBEF762531A28504A4BF0FC0784B287B3）
+
+2. 运行 1（CWD = F:\IDWorkbench）
+--------------------------------------------------------------------------------
+命令：& 'F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe'
+退出码：0
+console：run1.stdout.txt（Out-File -Encoding utf8，带 BOM）
+report 副本：report-after-run1.txt，SHA256 260F53471694BE2E5C0A48B5A5295F280F0F5CCB76D7643F8F64C2A868B6E2AC
+逐字节比较：run1.stdout-as-file.txt（按 CRLF 补末尾换行、无 BOM）SHA256 与 report 副本相同
+读数：plugin.service_lookup_and_call 1.59 ns / 1.89 ns [os-baseline] / ratio 0.84 / good
+      security 102 passed / 0 failed / 6 skipped；世界档分布 world-class=2 good=2
+
+3. 运行 2（CWD = F:\IDGameEngine\cmake-build-p5-release\out\shared\bin）
+--------------------------------------------------------------------------------
+命令：& '.\Benchmark.exe'
+退出码：0
+console：run2.stdout.txt（Out-File -Encoding utf8，带 BOM）
+report 副本：report-after-run2.txt，SHA256 B0DF60C3C745FA89DC1A655251E303438597FEEB0D4032D8AF25F129C9206FF6
+逐字节比较：run2.stdout-as-file.txt（按 CRLF 补末尾换行、无 BOM）SHA256 与 report 副本相同
+读数：plugin.service_lookup_and_call 1.59 ns / 1.90 ns [os-baseline] / ratio 0.84 / good
+覆盖检查：Benchmark 目录下只有一份 report.txt（12212 B，00:32:39），
+          当前内容哈希 = 本次 run2 副本哈希（B0DF60C3…06FF6）⇒ 覆盖写而非追加
+
+4. 两次运行的差异范围
+--------------------------------------------------------------------------------
+Compare-Object 只有 10 行（5 对）：generated 时间戳 + 4 条指标读数。
+指标键、basis、note 文本、等级（含 world-class=2 good=2）全部一致，无 unstable 标注。
+
+5. 产物哈希
+--------------------------------------------------------------------------------
+B2BB99F3E67FE02D22DD358C2467CE31482AA78A115B6B24D5C2D6CD4BCBFF0B  Benchmark\src\kernel\kernel_performance.cpp
+24E5F108DB1D4214E3CB842E5119CCEE12B08798B1EFFF4FC3EDA91FE45CFF0E  Benchmark\CMakeFiles\Benchmark.dir\src\kernel\kernel_performance.cpp.obj
+A8772D139195C0FF22B2EC145E534B2E5F7375E4E9A3BA21EFD92E2561390C59  out\shared\bin\Benchmark.exe
+EF21F28E09857F626BD08C0EF059EA427ED97A39E2D65AA5BFF53E6EB90C4018  out\shared\bin\libID.dll
+1B80E77F49B4F1E9C4B6068DA3D9F69FBEF762531A28504A4BF0FC0784B287B3  Benchmark\CMakeFiles\Benchmark.dir\flags.make
+说明：源码只做过一次对齐格式调整（纯空白），重编后 .obj 哈希未变，说明目标代码不受格式调整影响；
+      exe 因重新链接而哈希变化，反汇编复核仍为同一指令形状（4 份槽位循环、守卫计数 0）。
+
+6. 反汇编存档
+--------------------------------------------------------------------------------
+objdump-Benchmark-TU-kernel_performance.obj.txt   objdump -drC --no-show-raw-insn <build>\Benchmark\CMakeFiles\Benchmark.dir\src\kernel\kernel_performance.cpp.obj
+objdump-Benchmark.exe-full.txt                     objdump -dC  --no-show-raw-insn <build>\out\shared\bin\Benchmark.exe
+工具：D:\Code\Environment\MinGW\mingw64\bin\objdump.exe（GNU Binutils 2.47.20260726），两条命令退出码均为 0
+经 shell 层以 Out-File -Encoding utf8 写出（未用 > 重定向，避免 UTF-16LE）
+
+7. 编码与 MSVC 补充核查
+--------------------------------------------------------------------------------
+run1.stdout.txt / run2.stdout.txt 由 Out-File -Encoding utf8 写出，带 UTF-8 BOM（比原始字节多 3 字节）；
+逐字节比较用 run1.stdout-as-file.txt / run2.stdout-as-file.txt（WriteAllBytes 写出，无 BOM）。
+msvc-syntax-check.bat：MSVC 19.52 + VS2026 x64（vcvarsall x64）单 TU 编译检查，命令
+  cl /nologo /std:c++20 /utf-8 /W4 /GR- /EHs-c- /c /I Benchmark\include /I ID\include
+     /DID_BENCHMARK_REPORT_DIR=... /DID_BENCH_CONFIG=... /DID_BENCH_LTO=0 /DID_BENCH_AVX2=1
+     /DID_BENCH_MONOLITHIC=0 /Fo kernel_performance.msvc.obj Benchmark\src\kernel\kernel_performance.cpp
+退出码 0；唯一输出是两条 C4324（对齐填充）警告，来自 LinearArena 与 PluginRuntime 的 alignas，
+在项目正式参数下由 /wd4324 关闭。该检查只证明 _MSC_VER 分支能编译，不证明 MSVC 下阻止了去虚拟化。
+================================================================================

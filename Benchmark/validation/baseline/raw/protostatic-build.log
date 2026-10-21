@@ -1,0 +1,47 @@
+[ 12%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/Memory.cpp.obj
+[ 12%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/BootstrapLog.cpp.obj
+[ 18%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginManager.cpp.obj
+[ 25%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/SlabSpan.cpp.obj
+[ 31%] Linking CXX static library F:\IDGameEngine\bin\lib\libID.a
+[ 31%] Built target ID
+[ 37%] Building CXX object IDPlugin/CMakeFiles/IDPluginStub.dir/Stub/IDPluginStub.cpp.obj
+[ 43%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDPluginStub.a
+[ 43%] Built target IDPluginStub
+[ 50%] Building CXX object Benchmark/validation/prototype/plugins/fixture_alpha/CMakeFiles/IDFixtureAlpha.dir/src/FixtureAlphaModule.cpp.obj
+[ 56%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDFixtureAlpha.a
+[ 56%] Built target IDFixtureAlpha
+[ 62%] Building CXX object Benchmark/validation/prototype/plugins/fixture_beta/CMakeFiles/IDFixtureBeta.dir/src/FixtureBetaModule.cpp.obj
+[ 68%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDFixtureBeta.a
+[ 68%] Built target IDFixtureBeta
+[ 75%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixturePlan.cpp.obj
+[ 81%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixtureProductEntry.cpp.obj
+[ 87%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDFixtureAssembly.a
+[ 87%] Built target IDFixtureAssembly
+[ 93%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj
+[100%] Linking CXX executable F:\IDGameEngine\bin\bin\FixturePrototype.exe
+D:\Code\Environment\MinGW\mingw64\bin\ar.exe: CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj: plugin needed to handle lto object
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[ 88%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj
+[100%] Linking CXX executable F:\IDGameEngine\bin\bin\FixtureZeroPrototype.exe
+D:\Code\Environment\MinGW\mingw64\bin\ar.exe: CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj: plugin needed to handle lto object
+[100%] Built target FixtureZeroPrototype
+[ 23%] Built target ID
+[ 38%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_self_dependency.cpp.obj
+[ 38%] Built target IDPluginStub
+[ 42%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_ambiguous_provider.cpp.obj
+[ 47%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_missing_provider.cpp.obj
+[ 52%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_cycle.cpp.obj
+[ 61%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_candidate.cpp.obj
+[ 61%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_hash_collision.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_empty_inner_group.cpp.obj
+[ 71%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_candidate.cpp.obj
+[ 76%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_active_overflow.cpp.obj
+[ 80%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_mismatch.cpp.obj
+[ 85%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_plugin.cpp.obj
+[ 90%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_invalid_name.cpp.obj
+[ 90%] Built target IDFixtureLegalCases
+[ 95%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixtureCaseControls.dir/src/cases/CaseControlMain.cpp.obj
+[100%] Linking CXX executable F:\IDGameEngine\bin\bin\FixtureCaseControls.exe
+[100%] Built target FixtureCaseControls

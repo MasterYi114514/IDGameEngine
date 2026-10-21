@@ -1,0 +1,7 @@
+LABEL: 128x32x8-default
+COMMAND: D:\Code\Environment\MinGW\mingw64\bin\g++.exe -O3 -DNDEBUG -std=c++20 -fsyntax-only -IF:\IDGameEngine\Benchmark\validation\prototype\include -IF:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\generated -IF:\IDGameEngine\ID\include -DIDF_PROBE_ACTIVE=128 -DIDF_PROBE_CATALOG=256 -DIDF_PROBE_REQUIREMENTS=32 -DIDF_PROBE_CANDIDATES=8 F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_probe.cpp
+CWD: F:\IDGameEngine
+EXIT: 0
+SECONDS: 10.22
+LIMIT: default (33554432)
+

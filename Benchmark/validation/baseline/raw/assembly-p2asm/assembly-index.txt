@@ -1,0 +1,35 @@
+# P2 组装层校验批次索引（RunAssemblyValidation.cmake 自动写入）
+# 判定：四个变体 configure/build/Smoke 全 0 且各 3 行 PASS；STATIC 与 SHARED 证据一致；
+#       zero profile 无未选中插件痕迹；8 类改坏证据全部按类别拒绝且有合法对照；
+#       profile 切换不删缓存即更新生成物；whole-archive 只桩 IDPluginStub；替换符号唯一
+MODE            : assembly-p2asm
+WORK_DIR        : F:/IDGameEngine/cmake-build-p2asm/Benchmark/validation/assembly/work
+GENERATOR       : MinGW Makefiles
+BUILD_TYPE      : Release
+CXX             : D:/Code/Environment/MinGW/mingw64/bin/c++.exe
+CXX_ID          : GNU
+STARTED         : 2026-10-19 22:43:11
+FINISHED        : 2026-10-19 22:43:43
+SHARED_MODE     : SHARED
+STATIC_MODE     : STATIC
+SHARED_SELECTED : IDFixtureApi;IDFixtureCore;IDFixtureMath
+STATIC_SELECTED : IDFixtureApi;IDFixtureCore;IDFixtureMath
+SHARED_STEMS    : ID IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+STATIC_STEMS    : IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+SHARED_BINDING  : b1f43cce871a0e54b12c50a25bac4531abeedeb9d0f129fb1c2e204c927a3e48
+STATIC_BINDING  : b1f43cce871a0e54b12c50a25bac4531abeedeb9d0f129fb1c2e204c927a3e48
+EVIDENCE_EQUAL  : TRUE
+LEGAL_CONTROL   : probe=0 validate=0
+CORRUPT provider expect=EvidenceProviderMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT edge expect=EvidenceEdgeMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT identity expect=EvidenceIdentityMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT slot expect=EvidenceSlotMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT selection expect=EvidenceSelectionMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT target expect=EvidenceTargetMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT macro expect=EvidenceMacroMismatch/Evidence probe=0 validate=1 wrong_expect=1
+CORRUPT runtime expect=RuntimeBindingMismatch/Evidence probe=0 validate=1 wrong_expect=1
+PROFILE_SWITCH  : noop: build_exit=0 hash_before=1622490468830d18993f416697dd0577ff304acd1b1ffbfeb45c254010d4da53 hash_after=1622490468830d18993f416697dd0577ff304acd1b1ffbfeb45c254010d4da53 time_before=2026-10-19 22:34:41 time_after=2026-10-19 22:34:41
+to_zero: configure_exit=0 build_exit=0 smoke_exit=0 generated_dirs=F:/IDGameEngine/cmake-build-p2asm/Benchmark/validation/assembly/work/shared/build/Assemble/generated/default-fixture;F:/IDGameEngine/cmake-build-p2asm/Benchmark/validation/assembly/work/shared/build/Assemble/generated/zero-fixture evidence=selected      : 0
+back_to_default: configure_exit=0 build_exit=0 smoke_exit=0 hash_after=1622490468830d18993f416697dd0577ff304acd1b1ffbfeb45c254010d4da53 time_after=2026-10-19 22:34:41
+NOTES           : RuntimeBindingMismatch 的失败阶段是 Evidence（AssemblyPhase::RuntimeMetadata 目前无诊断使用）；反向用例按实际阶段断言
+PROBLEMS        : 

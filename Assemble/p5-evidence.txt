@@ -1,0 +1,567 @@
+IDGameEngine P4/P5 实施取证（正式切换 + 交付/构建矩阵/契约固化）
+================================================================================
+记录时间：本轮执行（机器：Windows 11 + PowerShell 5.1，工程根 F:\IDGameEngine）
+工具链（本次实测，不是跨机器承诺）：CMake 4.4.4、GNU 16.2.0 (MinGW-w64, x86_64-posix-seh)、
+  MinGW Makefiles 生成器、gcc-ar/gcc-ranlib 存在。
+所有命令的 CWD 均为 F:\IDGameEngine，除非另行标注。
+
+--------------------------------------------------------------------------------
+0. 结论摘要
+--------------------------------------------------------------------------------
+- P4：旧运行期插件 API 已删除（单例、逐个描述符登记、initialize_all、shutdown_all、运行期
+  get_service/register_service、Kahn/OR 排序实现），`PluginManager` 变成不可实例化的纯编译期门面，
+  `ID/src/Kernel/PluginManager.cpp` 整个文件删除；Sandbox 改为经 `IDGameEngine` + `ID::Engine::start/shutdown`
+  消费产品并真实运行通过。
+- P5：性能参数与 IPO 归位到 `cmake/IDFlags.cmake`；三个公共 preset（dev / dev-mono / ship）在本机
+  （user presets 补 MinGW 生成器）全部 configure+build 通过；ship 不构建宿主/测试；输出按
+  `<build>/out/<shared|static>/` 隔离，同一 build dir 内两种模式实测共存；安装到临时前缀后在新构建目录
+  `find_package(IDGameEngine)` 消费成功并真实 start/shutdown；产品指纹在 catalog 与 profile 顺序翻转后不变。
+- 未完成/未验证：MSVC 与 clang（本机不存在）；Benchmark 的 `validation/prototype` 4 处旧 API 探针（另一 owner）；
+  `get_service` 的回归性能未测量。
+
+--------------------------------------------------------------------------------
+1. 环境核实（本次执行）
+--------------------------------------------------------------------------------
+$ cmake --version                       -> cmake version 4.4.4           exit 0
+$ g++ --version                         -> g++ (GCC) 16.2.0              exit 0
+$ nm -C --defined-only <产物>            -> 可用（用于替换符号统计）        exit 0
+
+--------------------------------------------------------------------------------
+2. P4 变更清单
+--------------------------------------------------------------------------------
+删除：
+  ID/src/Kernel/PluginManager.cpp          整个文件（旧运行期登记/Kahn+OR/生命周期调度）
+改写：
+  ID/include/Kernel/Plugin.hpp             仅保留 ServiceSlot(64 槽 ABI) + 不可实例化的编译期门面
+                                           （PluginManager 的构造/析构/拷贝全部 delete；只剩三个 consteval 操作族）
+  ID/include/Kernel/PluginRuntime.hpp       文档改为"内核唯一运行期入口"，不再宣称与旧接口并存
+  Sandbox/src/main.cpp                      只经 ID::Engine::start()/shutdown()，失败打印 code/state/slot
+  Sandbox/CMakeLists.txt                    只 link IDGameEngine；无 profile 时 FATAL_ERROR；SHARED 时把
+                                           内核与选中插件 DLL 复制到 exe 旁（Windows DLL 查找从 exe 目录开始）
+未改动（按授权边界）：
+  IDPlugin/**（只有 Stub/，无业务插件，因此没有新增 plugin.json）、Benchmark/**
+
+取证 A：仓库内旧入口只剩默认关闭的 prototype 探针（grep 结果）
+  pattern: PluginManager::instance|initialize_all|shutdown_all|PluginDescriptor|register_service
+  - ID/include/Kernel/Plugin.hpp:19-20                     注释（说明这些入口已退役）
+  - Benchmark/validation/prototype/src/apps/ZeroPluginMain.cpp:27     真实调用
+  - Benchmark/validation/prototype/src/apps/PrototypeMain.cpp:37      真实调用
+  - Benchmark/validation/prototype/plugins/fixture_beta/src/FixtureBetaModule.cpp:39   真实调用
+  - Benchmark/validation/prototype/plugins/fixture_alpha/src/FixtureAlphaModule.cpp:39 真实调用
+  - Benchmark/validation/prototype/include/FixtureAlphaApi.hpp:42     注释
+  - Benchmark/src/kernel/kernel_security.cpp:1037                      注释
+  结论：生产路径（ID / IDPlugin / Sandbox / Assemble / Benchmark/src）没有任何旧 API 调用；
+  prototype 默认 OFF（ID_BUILD_VALIDATION_PROTOTYPE=OFF），由 Benchmark owner 同批迁移。
+
+取证 B：退役 API 的编译反证（临时探针在 build/p5-consumer/，不入库）
+$ g++ -std=c++20 -fsyntax-only -I ID\include build\p5-consumer\retired_api_probe.cpp    exit 1（期望失败）
+  错误：'instance' is not a member of 'ID::PluginManager'（对 register_plugin(descriptor*)、
+  initialize_all、shutdown_all、register_service、get_service 五类入口各报一条）
+$ g++ -std=c++20 -fsyntax-only -I ID\include build\p5-consumer\facade_probe.cpp          exit 1（期望失败）
+  错误：use of deleted function 'ID::PluginManager::PluginManager()'（门面不可实例化）
+
+取证 C：Sandbox 真实运行（dev 构建产物）
+$ & .\build\dev\out\shared\bin\Sandbox.exe
+  [Sandbox] product started (state=Ready)
+  [Sandbox] product stopped (state=Idle)
+  exit 0
+
+取证 D：分配桩仍在每个模块接入（nm 统计 operator new(unsigned long long) 定义数）
+  build\dev\Assemble\out\bin\libIDFixtureCore.dll   -> 1
+  build\dev\Assemble\out\bin\libIDFixtureMath.dll   -> 1
+  build\dev\out\shared\bin\Sandbox.exe              -> 1
+  build\dev-mono\out\static\bin\Sandbox.exe         -> 1
+
+--------------------------------------------------------------------------------
+3. P5 变更清单
+--------------------------------------------------------------------------------
+新增：
+  cmake/IDFlags.cmake                    编译器参数矩阵 + CheckIPOSupported 探测 + MinGW 下改用 gcc-ar/gcc-ranlib
+  cmake/IDInstall.cmake                  install(TARGETS/EXPORT) + 生成头/清单/profile + 包配置
+  cmake/IDGameEngineConfig.cmake.in      @PACKAGE_INIT@ + include(Targets) + 产品名/模式/清单路径
+  cmake/IDBuildInfo.txt.in               构建元数据模板（assembly/profile/mode/配置/编译器/IPO/输出根）
+  CMakePresets.json                      公共 preset：dev / dev-mono / ship（不写生成器、不写绝对路径）
+  CMakeUserPresets.json                  本机 MinGW 生成器（.gitignore 已忽略）
+改写：
+  CMakeLists.txt                         cmake_minimum_required 3.21；只留 ID_ASSEMBLY_PROFILE + 内容/模式开关；
+                                         include(cmake/IDFlags.cmake)；输出 <build>/out/<mode>/{bin,lib}；
+                                         顺序 ID -> IDPlugin -> [Assemble] -> [Sandbox] -> [Benchmark] -> install
+  ID/CMakeLists.txt                      PUBLIC include 改成 BUILD_INTERFACE/INSTALL_INTERFACE（可重定位）
+  IDPlugin/CMakeLists.txt                IDPluginStub 的 include 同样区分构建树/安装树，且目录不存在时不暴露
+  Assemble/CMakeLists.txt                产品全局属性登记、消费目标传播生成头目录、IDAssemblySmoke 受
+                                         ID_BUILD_ASSEMBLY_SMOKE 控制、catalog 说明更新
+  Assemble/cmake/IDGenerateAssembly.cmake 逐插件 include 区分构建树/安装树；新增确定性序列（指纹输入）生成
+  Assemble/templates/*.in                暴露 kProductFingerprint / ID_AssemblyFingerprint()；清单增加确定性序列段
+  Assemble/catalog.cmake                 写明"catalog 是本源码/SDK 的全部可用插件；当前只有集成 fixture，
+                                         因为 IDPlugin 只有 Stub（分配桩不是插件）"
+说明：`IDAssemblySmoke` 默认 ON，保持 Benchmark 的组装校验驱动器既有路径
+      `<build>/Assemble/out/bin/IDAssemblySmoke.exe` 不变；ship 显式关闭。
+
+取证 E：三个 preset（公共 preset + 本机生成器）
+$ cmake --preset dev-mingw                                  exit 0
+$ cmake --build build/dev --parallel                        exit 0
+  产物：build/dev/out/shared/bin/{Sandbox.exe,Benchmark.exe,libID.dll,libIDFixture*.dll}
+        build/dev/out/shared/lib/{libID.dll.a,libIDPluginStub.a}
+        build/dev/Assemble/out/bin/IDAssemblySmoke.exe、build/dev/Assemble/out/lib/libIDAssembly.a
+        build/dev/Assemble/generated/default-fixture/{IDAssembly.generated.hpp,...}
+        build/dev/IDBuildInfo.txt（mode=shared, profile=default, assembly=default-fixture）
+
+$ cmake --preset dev-mono-mingw                             exit 0
+  配置期输出：ID: IPO 支持 = YES（GNU 16.2.0）
+              ID: IPO 归档器 = .../mingw64/bin/gcc-ar.exe / 索引器 = .../gcc-ranlib.exe
+$ cmake --build build/dev-mono --parallel                    exit 0
+  构建日志：无 "plugin needed to handle lto object"、无 warning:、无 error
+  产物：build/dev-mono/out/static/bin/{Sandbox.exe,Benchmark.exe}
+        build/dev-mono/out/static/lib/{libID.a,libIDPluginStub.a}
+        build/dev-mono/Assemble/out/lib/{libIDAssembly.a,libIDFixtureCore.a,libIDFixtureMath.a}
+        （STATIC 下选中插件与组装库的归档在 Assemble 的隔离输出目录，不在 out/static/lib；
+          本轮收口已按实际文件系统核对：out/static/lib 只有 libID.a 与 libIDPluginStub.a）
+
+$ cmake --preset ship-mingw                                 exit 0
+  配置期输出：assembly[default-fixture] 跳过 IDAssemblySmoke（ID_BUILD_ASSEMBLY_SMOKE=OFF）
+$ cmake --build build/ship --parallel                        exit 0
+
+取证 F：ship 不构建宿主/测试（同一 build dir）
+$ cmake --build build/ship --target help                     exit 0
+  可构建目标：all / clean / depend / edit_cache / install / install/local / install/strip /
+              list_install_components / rebuild_cache / ID / IDAssembly / IDAssemblyValidate /
+              IDFixtureCore / IDFixtureMath / IDPluginStub
+  → 没有 Sandbox、没有 Benchmark、没有 IDAssemblySmoke；Benchmark 的 validation* 资产因为 Benchmark
+    根本没有加入本构建而完全不存在（它们本来就默认 OFF）。
+$ Get-ChildItem build\ship\out -Recurse
+  只有 shared\bin\libID.dll、shared\lib\libID.dll.a、shared\lib\libIDPluginStub.a（内核与桩）
+
+取证 G：安装（临时前缀）与可重定位导出
+$ cmake --install build/ship --prefix build\p5-install        exit 0
+  关键产物：
+    bin\libID.dll, lib\libID.dll.a, lib\libIDPluginStub.a, lib\libIDAssembly.a
+    bin\libIDFixtureCore.dll / libIDFixtureMath.dll（SHARED 选中插件）+ 对应 .dll.a
+    include\ID\**（内核公开头）、include\IDGameEngine\IDGameEngine.hpp
+    include\IDGameEngine\plugins\<Target>\**（逐插件公开能力头）
+    include\IDGameEngine\generated\default-fixture\{IDAssembly.generated.hpp,
+        IDAssemblyRuntime.generated.hpp, IDFixture*Export.generated.hpp}
+    share\IDGameEngine\assemblies\default-fixture\{ProductManifest.txt, product-profile.json}
+    lib\cmake\IDGameEngine\{IDGameEngineConfig.cmake, IDGameEngineConfigVersion.cmake,
+        IDGameEngineTargets.cmake, IDGameEngineTargets-release.cmake}
+  可重定位检查：IDGameEngineTargets.cmake 里 include 目录全部是 ${_IMPORT_PREFIX}/include/...，
+  没有任何 F:/IDGameEngine 绝对路径。
+
+取证 G2：STATIC 安装（dev-mono 产物）
+$ cmake --install build/dev-mono --prefix build\p5-install-static    exit 0
+  lib\libID.a、lib\libIDAssembly.a、lib\libIDPluginStub.a、lib\libIDFixture{Core,Math}.a
+  没有 bin\（无 DLL）、没有导入库——STATIC 模式只交付静态库，与 SHARED 清单不混。
+
+取证 H：新构建目录用 find_package(IDGameEngine) 消费（临时工程 build/p5-consumer/，不入库）
+$ cmake -S build/p5-consumer -B build/p5-consumer/build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_PREFIX_PATH=F:/IDGameEngine/build/p5-install                 exit 0
+  consumer: product=default-fixture mode=SHARED
+  consumer: manifest=.../share/IDGameEngine/assemblies/default-fixture/ProductManifest.txt
+$ cmake --build build/p5-consumer/build --parallel                            exit 0
+$ & .\build\p5-consumer\build\consumer.exe                                    exit -1073741515（0xC0000135）
+  说明：Windows 的 DLL 查找从 exe 目录开始，安装前缀的 bin 不在默认搜索路径，属于 OS 规则而非打包缺陷。
+$ $env:PATH = '<prefix>\bin;' + $env:PATH ; & .\build\p5-consumer\build\consumer.exe   exit 0
+  [consumer] assembly fingerprint = 0xa75adbe422d2161a, selected plugins = 3
+  [PASS] start -> Ready, new/delete ok, shutdown -> Idle
+
+取证 I：产品指纹（同一份产品、不同配置/模式，以及打乱输入顺序）
+  探针方式：编译期模板诊断（不运行目标程序，交叉编译友好）
+    build/p5-consumer/fingerprint_probe.cpp：
+      template <unsigned long long> struct FingerprintProbe;
+      FingerprintProbe<ID::Assembly::Generated::kProductFingerprint> probe;
+    $ g++ -std=c++20 -fsyntax-only -I <gen> -I ID\include fingerprint_probe.cpp
+  读数：
+    build\dev      (Debug/SHARED)        => 0xa75adbe422d2161a
+    build\dev-mono (Release/STATIC+IPO)  => 0xa75adbe422d2161a
+    build\ship     (Release/SHARED)      => 0xa75adbe422d2161a
+    运行期（安装后 consumer）             => 0xa75adbe422d2161a（与编译期一致）
+  置换实验（临时改动，已完全复原）：
+    a) Assemble/catalog.cmake 的清单顺序改为 math/optional/core/api（反转）
+    b) 临时 profile permuted.json：enabled_plugins 反转为 Math/Core/Api
+    $ cmake -S . -B build/p5-permuted -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+            -DID_ASSEMBLY_PROFILE=permuted -DID_BUILD_SANDBOX=OFF -DID_BUILD_BENCHMARK=OFF
+            -DID_BUILD_ASSEMBLY_SMOKE=OFF                                   exit 0
+    $ 探针读数 => 0xa75adbe422d2161a（与基线相同）
+    复原核对：catalog.cmake SHA256 = 4E9A1CE0956AE7068BD354AE82ED23507FCB073DA1AEDBC517392638D5B73EBB
+              （与改动前记录值一致）；permuted.json 已删除；build/p5-permuted 已删除
+  指纹内容（写进生成物）：Assemble/templates/Assembly.generated.hpp.in 暴露
+    ID::Assembly::Generated::kProductFingerprint；IDAssemblyRuntime.generated.hpp + 绑定 TU 暴露
+    ID_AssemblyFingerprint()；IDAssemblyEvidence.txt（ProductManifest.txt）末尾写出确定性序列
+    canonical-selected / canonical-provide / canonical-binding / canonical-slot（按名字/槽位规范化排序）。
+    CMake 不重算哈希值（避免第二份算法），这一点在清单与模板注释里写明；指纹不是密码学签名。
+
+取证 J：产物隔离（同一 build dir 连续构建两种模式）
+$ cmake -S . -B build/p5-isolation -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_ASSEMBLY_PROFILE=default -DID_BUILD_SANDBOX=OFF -DID_BUILD_BENCHMARK=OFF
+        -DID_BUILD_ASSEMBLY_SMOKE=OFF                                     exit 0
+$ cmake --build build/p5-isolation --parallel                              exit 0
+  out\shared\bin\libID.dll、out\shared\lib\libID.dll.a、out\shared\lib\libIDPluginStub.a
+$ cmake -S . -B build/p5-isolation -DID_MONOLITHIC_BUILD=ON                exit 0
+$ cmake --build build/p5-isolation --parallel                              exit 0
+  out\shared\... 仍在（未被覆盖），新增 out\static\lib\libID.a、out\static\lib\libIDPluginStub.a
+  IDBuildInfo.txt: mode=static / monolithic=ON / ipo=YES
+  → 两种模式的产物在同一 build dir 内共存，不再出现 dllimport 头配静态库的链接失败。
+
+取证 K：回归复核（本轮的改动没有破坏既有契约）
+$ foreach invalid profile: cmake -S . -B build/p5-neg-<name> -G "MinGW Makefiles"
+      -DID_ASSEMBLY_PROFILE=<invalid-...> -DID_BUILD_BENCHMARK=OFF -DID_BUILD_SANDBOX=OFF
+      -DID_BUILD_ASSEMBLY_SMOKE=OFF
+    invalid-ambiguous            => exit 1（期望失败：AmbiguousProvider）
+    invalid-duplicate-capability => exit 1（期望失败：DuplicateCapability）
+    invalid-revision             => exit 1（期望失败：RevisionMismatch）
+    invalid-slot-conflict        => exit 1（期望失败：SlotConflict）
+$ cmake -S . -B build/p5-zero -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_ASSEMBLY_PROFILE=zero -DID_BUILD_BENCHMARK=OFF -DID_BUILD_SANDBOX=OFF      exit 0
+$ cmake --build build/p5-zero --parallel --target IDAssemblyValidate IDAssembly IDAssemblySmoke  exit 0
+$ & .\build\p5-zero\Assemble\out\bin\IDAssemblySmoke.exe                                exit 0
+    [PASS] start state=Ready
+    [PASS] host small new/delete completed (alloc and free succeeded)
+    [PASS] host large new/delete accounted by kernel stats (grew=1114112 bytes, released=1)
+    [PASS] shutdown state=Idle (code=None)
+
+取证 L：Benchmark 的运行期校验资产在 P4 之后仍能编译（只构建，不运行）
+$ cmake -S . -B build/p5-runtime-assets -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_ASSEMBLY_PROFILE=default -DID_BUILD_BENCHMARK=ON -DID_BUILD_VALIDATION_RUNTIME=ON
+        -DID_BUILD_SANDBOX=OFF -DID_BUILD_ASSEMBLY_SMOKE=OFF                             exit 0
+$ cmake --build build/p5-runtime-assets --parallel --target PluginRuntimeCases            exit 0
+  （该资产属于 Benchmark owner；本轮只证明它没有被旧 API 退役打断，未运行、未评级）
+
+取证 M：preset 可被 CMake 识别（JSON 合法、公共与 user preset 同时生效）
+$ cmake --list-presets                                                       exit 0
+  "dev-mingw" / "dev-mono-mingw" / "ship-mingw"（本机 user presets）
+  "dev" - dev：宿主 + Benchmark，SHARED
+  "dev-mono" - dev-mono：宿主 + Benchmark，STATIC + 可支持的 IPO
+  "ship" - ship：只交付产品（宿主与测试均关闭）
+
+最终产物清单（本轮结束时的真实状态）：
+  build\dev\out\shared\bin：Benchmark.exe / libID.dll / libIDFixtureCore.dll / libIDFixtureMath.dll / Sandbox.exe
+  build\dev-mono\out\static\bin：Benchmark.exe / Sandbox.exe
+  build\dev-mono\out\static\lib：libID.a / libIDPluginStub.a
+  build\ship\out\shared：libID.dll / libID.dll.a / libIDPluginStub.a（没有 Sandbox、没有 Benchmark）
+  build\Assemble\out\{bin,lib}：IDAssemblySmoke.exe、libIDAssembly.a、libIDFixture*.dll|.a（按构建目录分开）
+
+--------------------------------------------------------------------------------
+4. 构建矩阵与显式未验证项
+--------------------------------------------------------------------------------
+已验证（本机 GCC 16.2.0 + MinGW Makefiles）：
+  configure/build：dev(SHARED,Debug) / dev-mono(STATIC,Release,IPO=YES) / ship(Release,无宿主无测试)
+  安装 + find_package 消费 + 运行 start/shutdown、替换符号、指纹置换不变、输出隔离
+未验证（不要声称通过）：
+  - MSVC（/WHOLEARCHIVE 分支、多配置生成器 <Config>/ 目录）与 clang：本机无这些工具链。
+  - 非 Windows 平台：LIBRARY 安装路径与 visibility 导出未实测。
+  - `get_service` 的调用成本回归：本轮只做功能切换，未做性能测量（归 Benchmark owner）。
+  - `Benchmark.exe` 运行：本轮未运行（运行与评级由 Benchmark owner 负责），仅构建通过。
+  - Benchmark 的两套校验资产（validation/production、validation/runtime、validation/assembly）未在本轮重跑；
+    其中 validation/prototype 因仍引用已退役的 PluginManager::instance()，打开会编译失败。
+
+--------------------------------------------------------------------------------
+5. 已知风险 / 需要协调
+--------------------------------------------------------------------------------
+1. 输出路径变更：旧文档与脚本里的 `<engine>/bin/bin/Sandbox.exe`、`<engine>/bin/lib/*.a` 不再产生，
+   现在分别是 `<build>/out/<shared|static>/bin` 与 `<build>/out/<shared|static>/lib`。
+   `skills/shell-operation/SKILL.md` 的产物路径与"OFF/ON 共用 bin"描述已过期，需要其 owner 同步（不在本轮授权内）。
+2. `Sandbox` 现在必须有 `ID_ASSEMBLY_PROFILE` 才能构建。本轮收口把口径固定为：`ID_BUILD_SANDBOX`
+   默认 OFF，未要求宿主时跳过并打印一条 STATUS 说明；显式 `-DID_BUILD_SANDBOX=ON` 却没有 profile 时，
+   在配置期直接失败（Sandbox/CMakeLists.txt 的门卫可达）并给出二选一的可操作提示。
+3. Benchmark 的 `validation/prototype` 探针待 owner 迁移；迁移完成前不要打开 `ID_BUILD_VALIDATION_PROTOTYPE`。
+4. MinGW + IPO 依赖 `gcc-ar`/`gcc-ranlib`；缺失时会退回 `ar` 并打印一次提示（归档符号索引可能不完整，
+   属于工具链限制，不是本项目代码问题）。
+5. 既有不一致（本轮未改，属 Benchmark owner 范围）：`Assemble/tests/consumer/AssemblySmoke.cpp` 现在打印 4 行
+   `[PASS]`，而 `Benchmark/validation/assembly/cmake/RunAssemblyValidation.cmake` 的判定要求
+   `SMOKE_PASS_LINES == 3`；两者需要 owner 对齐，否则该驱动器会报"只打印了 4 行"。
+6. 文档残留：`skills/cpp-style/SKILL.md` 的 `PluginDescriptor` / `PluginManager.cpp` 示例与"C++ 导出"说法已在本轮
+   收口修复中同步（见第 6 节 6.1）；`skills/benchmark/SKILL.md` 仍写 `Assemble` "尚未建立" 且用
+   `<engine>/bin/bin/Benchmark.exe`、`skills/shell-operation/SKILL.md` 仍写共用 `bin` 的产物路径——两者属各自 owner，
+   不在本轮授权内。
+7. 本文件是执行取证，不是性能报告；不包含任何评级或性能结论。
+
+--------------------------------------------------------------------------------
+6. P5 收口修复（独立审查整改，本轮）
+--------------------------------------------------------------------------------
+6.1 cpp-style 事实样例同步（工作台 skills/cpp-style/SKILL.md，只改样例文字，未改规范条文）
+   :85  类型/别名示例 PluginDescriptor（P4 已删除）→ PluginRuntime
+   :98  文件名示例 PluginManager.cpp（P4 已删除）→ PluginRuntime.cpp
+   :124 跨模块边界条目改为事实口径：PluginRuntime 用 ID_KERNEL_API 导出 C++ 类；PluginManager 只是头文件里的
+        consteval 门面、没有任何导出符号（依据 ID/include/Kernel/PluginRuntime.hpp:267、Plugin.hpp:52）
+   验证：grep 'PluginDescriptor|PluginManager\.cpp' 命中 0；git diff -- skills/cpp-style/SKILL.md 只有这 3 行。
+
+6.2 kNoPluginIndex 注释改准（常量本身未动，语义不变）
+   ID/include/Kernel/PluginRuntime.hpp:48-52 注释改为"与 kNoIndex 同值、但是独立常量而不是别名；
+   取址/decltype/模板实参按独立实体处理；保留名字是因为 Benchmark/validation/runtime 夹具仍按它引用"。
+   skills/id-kernel/references/plugins.md 第 11 节同一条目同步。
+   验证（引用方仍可编译）：cmake --build build\p5-runtime-assets --target PluginRuntimeCases  exit 0。
+
+6.3 Sandbox 守卫口径（原状：根 CMakeLists 只打 STATUS 继续，Sandbox/CMakeLists 的 FATAL_ERROR 不可达）
+   实现：ID_BUILD_SANDBOX 默认改 OFF；根 CMakeLists 仅在它为真时 add_subdirectory(Sandbox)，由
+   Sandbox/CMakeLists.txt 的门卫在缺 IDGameEngine 时给出可操作错误；未要求宿主时跳过并打印原因。
+   实测（CWD=F:\IDGameEngine，MinGW Makefiles，CMAKE_BUILD_TYPE=Release）：
+   A 无 profile 默认：cmake -S . -B build\closeout-noprofile -DID_BUILD_BENCHMARK=OFF                 exit 0
+     -- ID: 未设置 ID_ASSEMBLY_PROFILE 且 ID_BUILD_SANDBOX=OFF，跳过 Sandbox（宿主只经 IDGameEngine 消费产品；
+           需要宿主时同时设置 profile 与 -DID_BUILD_SANDBOX=ON）
+   B 显式要求宿主但无 profile：同上加 -DID_BUILD_SANDBOX=ON                                          exit 1（期望失败）
+     CMake Error at Sandbox/CMakeLists.txt:12 (message):
+       ID_BUILD_SANDBOX=ON 需要产品消费目标 IDGameEngine，但当前没有设置 ID_ASSEMBLY_PROFILE。
+       二选一：
+         1) 设置产品：-DID_ASSEMBLY_PROFILE=<Assemble/profiles/名字>（如 default / zero；presets dev / dev-mono 已内置）；
+         2) 不构建宿主：-DID_BUILD_SANDBOX=OFF（默认值）。
+     -- Configuring incomplete, errors occurred!
+   C 有 profile + 显式宿主：-DID_ASSEMBLY_PROFILE=default -DID_BUILD_SANDBOX=ON                      exit 0
+     cmake --build build\closeout-profile --parallel                                                 exit 0
+     产物 build\closeout-profile\out\shared\bin：libID.dll、libIDFixtureCore.dll、libIDFixtureMath.dll、Sandbox.exe
+   D 有 profile 但宿主 OFF：同目录 -DID_BUILD_SANDBOX=OFF                                            exit 0
+     -- ID: ID_BUILD_SANDBOX=OFF，跳过 Sandbox（产品已组装；需要宿主时加 -DID_BUILD_SANDBOX=ON）
+   E 同一目录再要求宿主：-DID_BUILD_SANDBOX=ON exit 0；cmake --build ... --target Sandbox             exit 0
+   dev preset：cmake --preset dev-mingw exit 0；cmake --build build\dev --target ID exit 0；
+               cmake --build build\dev --parallel exit 0（out\shared\bin 仍有 Sandbox.exe）
+   口径变化（需知会）：单独 -DID_ASSEMBLY_PROFILE=... 不再自动构建宿主，必须同时给 -DID_BUILD_SANDBOX=ON；
+   三个公共 preset 都已显式写 ON，preset 流程不受影响。
+
+6.4 证据笔误更正（第 3 节取证 E 的 dev-mono 产物路径）
+   实测：build/dev-mono/out/static/lib 只有 libID.a、libIDPluginStub.a；
+        fixture 归档实际在 build/dev-mono/Assemble/out/lib：libIDAssembly.a、libIDFixtureCore.a、libIDFixtureMath.a。
+
+6.5 构建目录收敛
+   .gitignore：/build-p2-*/ → /build*/（验证：临时建目录 build-foo-probe 被命中，已删除）
+   删除残留 12 个：build-p2-{invalid-ambiguous,invalid-duplicate,invalid-revision,invalid-slot,legacy,
+   probe-globalmacro,shared,shared-optional,static,static-optional,zero-shared,zero-static}
+   删除前确认内容只有 CMakeCache.txt/Makefile/cmake_install.cmake/生成的 Assemble 头与产物、无用户源码；
+   git ls-files 对 build-p2-* 命中 0。本轮临时目录 build/closeout-* 也已删除。
+
+6.6 ID/README.md 同步：去掉已不存在的 BIN_DIR 指示，改为 preset 用法 + <build>/out/<mode> 产物路径 +
+   BUILD_INTERFACE/INSTALL_INTERFACE 的 include 传播说明（只写当前事实）。
+
+--------------------------------------------------------------------------------
+7. 收尾：MSVC 工具链实测、cpp-style 样例替换与 kNoPluginIndex 删除
+--------------------------------------------------------------------------------
+
+7.1 MSVC 可用性核验（本轮实测，2026-10-20）
+   C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe 存在；
+   vswhere -all -prerelease -products * 列出两套安装：
+     - Visual Studio Professional 2017 15.8.28010.2050（C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional）
+     - Visual Studio Community 2026 Insiders 18.12.12308.306（D:\Software\VS2026\Insiders）
+   cl.exe / msbuild.exe / ninja.exe 都不在 PATH：Get-Command 三者全部为空；
+   Test-Path "C:\Program Files\Microsoft Visual Studio\2022" = False，同路径 2019 = False。
+   Test-Path D:\Software\VS2026\Insiders\VC\Tools\MSVC = 14.52.37025；vcvars64.bat = True；
+   自带 Ninja = True（Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja\ninja.exe）；cmake 4.4.4。
+   cmake --help 列出生成器 "Visual Studio 18 2026"。
+   结论：MSVC 可用（MSVC 19.52.37025.0 + Windows SDK 10.0.26100.0）。
+   VS2017 的 19.16 不支持 /std:c++20，因此没有用它做本轮验证。
+
+7.2 MSVC 构建（独立目录，未触碰既有 build\dev / build\dev-mono / build\ship 等 MinGW 目录）
+   CWD = F:\IDGameEngine
+   cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-msvc-p5 -G "Visual Studio 18 2026" -A x64
+         -DID_ASSEMBLY_PROFILE=default -DID_BUILD_SANDBOX=ON -DID_BUILD_BENCHMARK=OFF                    exit 0
+     -- The CXX compiler identification is MSVC 19.52.37025.0
+     -- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+     -- assembly[default] catalog: 4 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional)
+     -- assembly[default-fixture] selected targets: IDFixtureApi;IDFixtureCore;IDFixtureMath
+   cmake --build F:\IDGameEngine\cmake-build-msvc-p5 --config Release --target ID --parallel               exit 0
+     -> out\shared\bin\Release\ID.dll（编译 BootstrapLog.cpp / Memory.cpp / SlabSpan.cpp / PluginRuntime.cpp）
+   cmake --build ... --config Release --target IDAssemblyValidate --parallel                               exit 0
+     -> Assemble\IDAssemblyValidate.dir\Release\IDAssemblyValidate.lib
+   cmake --build ... --config Release --target IDAssembly --parallel                                       exit 1
+     LINK : fatal error LNK1356: 找不到指定为已整体存档的库
+            "F:/IDGameEngine/cmake-build-msvc-p5/out/shared/lib/Release/IDPluginStub.lib"
+            [Assemble/plugins/IDFixtureCore/IDFixtureCore.vcxproj]
+   cmake --build ... --config Release --target IDPluginStub --parallel                                     exit 0
+   cmake --build ... --config Release --target IDAssembly --parallel（同一目录重试）                       exit 0
+     -> Assemble\out\bin\Release\IDFixtureCore.dll、IDFixtureMath.dll；Assemble\out\lib\Release\IDAssembly.lib
+   cmake --build ... --config Release --target Sandbox --parallel                                          exit 0
+     -> out\shared\bin\Release\Sandbox.exe（并把 ID.dll / IDFixtureCore.dll / IDFixtureMath.dll 复制到 exe 旁）
+   运行（宿主生命周期冒烟，不是性能测量）：
+     & 'F:\IDGameEngine\cmake-build-msvc-p5\out\shared\bin\Release\Sandbox.exe'                            exit 0
+     [Sandbox] product started (state=Ready)
+     [Sandbox] product stopped (state=Idle)
+
+7.3 MSVC 下的真实缺陷：/WHOLEARCHIVE 只加链接参数，没有建立构建依赖
+   干净目录复现（CWD=F:\IDGameEngine，configure 参数与 7.2 相同，只换 -B cmake-build-msvc-p5-order）：
+     cmake --build ... --target IDFixtureCore --parallel                                    exit 1（LNK1356，同上）
+     cmake --build ... --config Release --parallel（全量 all）                               exit 1（LNK1356，同上）
+       —— 并行下 IDFixtureCore 先链接，IDPluginStub.vcxproj 随后才产出 .lib
+   根因（代码事实）：
+     Assemble/cmake/IDGenerateAssembly.cmake:414-418
+       MSVC 分支：target_link_options(${TARGET} PRIVATE "/WHOLEARCHIVE:$<TARGET_FILE:IDPluginStub>")
+       GNU  分支：target_link_libraries(${TARGET} PRIVATE "-Wl,--whole-archive" IDPluginStub "-Wl,--no-whole-archive")
+     target_link_options 里的 $<TARGET_FILE:...> 只展开成路径，不产生构建期依赖；
+     生成的 Assemble/plugins/IDFixtureCore/IDFixtureCore.vcxproj 只有
+       <AdditionalOptions>%(AdditionalOptions) /machine:x64 /WHOLEARCHIVE:<...>/IDPluginStub.lib</AdditionalOptions>
+     没有任何 IDPluginStub 的 ProjectReference 或库项。GNU 分支走 target_link_libraries，天然有依赖边，
+     MinGW Makefiles 下因此掩盖了这个问题（此前 P5 构建通过不代表该分支可移植）。
+   处理：本轮可写范围不含 Assemble/**，只记录不修。候选修法（供 owner 决策，任选其一）：
+     a) MSVC 分支同时 target_link_libraries(${TARGET} PRIVATE IDPluginStub)，再保留 /WHOLEARCHIVE 选项；
+     b) MSVC 分支 add_dependencies(${TARGET} IDPluginStub)（只补排序，不改链接语义）；
+     c) 改用 CMake 3.24+ 的 $<LINK_LIBRARY:WHOLE_ARCHIVE,IDPluginStub>，一个分支覆盖两种工具链。
+   影响：MSVC / 多配置生成器上 `--target <单个插件>` 与并行全量构建都不可靠（先构建过桩的树重试可通过）。
+
+7.4 consteval 等 C++20 假设在 MSVC 下的结果
+   IDAssemblyValidate（生成的静态校验 TU，全部编译期校验）在 MSVC 19.52 的默认 /constexpr:steps 下
+   直接编译通过（exit 0），没有出现 GCC 专有假设（-fconstexpr-ops-limit 等）导致的失败；
+   因此本轮没有新增 /constexpr:steps 之类参数，也没有降低任何校验强度。
+   唯一诊断：warning D9025「正在重写"/Ob2"(用"/Ob3")」，来自 Release 追加 /Ob3，属既有良性告警。
+
+7.5 kNoPluginIndex 过渡哨兵删除
+   删除前全仓核对（CWD=F:\IDGameEngine，排除 build*/cmake-build*/out 后 Select-String 'kNoPluginIndex'）：
+     源码命中：只有 ID\include\Kernel\PluginRuntime.hpp:53；
+     历史证据文本命中：Assemble\p2-evidence.txt、Benchmark\validation\p5-revalidation-evidence.txt（不改写历史结论）；
+     另外 cmake-build-p5-ship-install\prefix\include\ID\Kernel\PluginRuntime.hpp 是旧安装快照，不是源码。
+   git --no-pager grep -i nopluginindex 返回空（PluginRuntime.hpp 仍是 untracked，git grep 不扫未跟踪文件；
+   tracked 文件里确实没有该名字）。
+   改动：删除 PluginRuntime.hpp 里 `inline constexpr uint16_t kNoPluginIndex = kNoIndex;` 及其四行说明注释；
+         保留 `using PluginCompileTime::kNoIndex; using PluginCompileTime::kNoSlot;`——哨兵唯一来源仍是 PluginCompileTime。
+   编译验证（都不运行 exe）：
+     GCC header 语法检查：
+       g++ -std=c++20 -fsyntax-only -I F:\IDGameEngine\ID\include -include Kernel/PluginRuntime.hpp -x c++ NUL   exit 0
+     GCC Benchmark 强制重编（含引用 PluginRuntime/kNoIndex 的 kernel_performance.cpp、kernel_security.cpp）：
+       cmake --build F:\IDGameEngine\build\dev --target Benchmark --parallel -- -B                                exit 0
+       -> 重新链接 build\dev\out\shared\bin\Benchmark.exe
+     GCC 运行期校验目标 PluginRuntimeCases：
+       cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-kprobe-gcc -G "MinGW Makefiles"
+             -DCMAKE_BUILD_TYPE=Release -DID_BUILD_SANDBOX=OFF -DID_BUILD_VALIDATION_RUNTIME=ON                   exit 0
+       cmake --build F:\IDGameEngine\cmake-build-kprobe-gcc --target PluginRuntimeCases --parallel                 exit 0
+     MSVC：PluginRuntime.cpp 随 ID 目标编译通过（改动发生在 7.2 的 configure 之前）
+   未做：没有运行 Benchmark.exe / PluginRuntimeCases.exe，也没有做任何性能测量或评级。
+
+7.6 cpp-style 样例与被删实现对齐
+   文件：F:\IDWorkbench\skills\cpp-style\references\style-examples.md 第 2 节（只改这一处过期样例，未改规范条款）
+   原样例演示 `PluginManager : SingletonEager<PluginManager>` 带 m_service_slots / m_registered / PluginDescriptor，
+   该实现已在 P4 删除（PluginManager 现在是头文件里的 consteval 门面，可实例化性与成员都不存在）。
+   现替换为当前真实代码：
+     PluginRuntime 类摘录——alignas(kCacheLineSize) + ID_KERNEL_API + friend class SingletonEager<PluginRuntime>
+     + protected constexpr 构造/析构 + static inline constexpr kMaxPlugins/kMaxSlots + 热路径 get_service
+     + 七个成员的三列对齐与行尾注释；
+     附 .cpp 里的 `constinit PluginRuntime PluginRuntime::s_instance;` 定义。
+   要点文案补充“跨 DLL 唯一实例 = SingletonEager + friend + protected constexpr 构造/析构 + .cpp constinit”，
+   并说明 PluginManager 只是 consteval 门面；标题由“哨兵下标”改为“constinit 单例”以匹配样例内容。
+
+7.7 本轮未验证 / 需要其它 owner 处理
+   - MSVC 没有构建或运行 Benchmark.exe（本轮 ID_BUILD_BENCHMARK=OFF，且禁止运行 Benchmark），无性能结论。
+   - MSVC SHARED 的导出与分配桩替换符号只有间接支持（能链接 + Sandbox 能 start/shutdown），
+     未做 dumpbin 符号核对；STATIC(mono)+LTCG 路径、多配置 <Config>/ 下的安装导出均未验证。
+   - clang、非 Windows 平台、Linux visibility 策略仍未验证。
+   - 7.3 的构建依赖缺陷仍需 Assemble owner 修复；修好后应重跑 7.2 的全部目标。
+   - skills/id-kernel/references/plugins.md 第 11 节仍把 kNoPluginIndex 记为现存常量（该 skill 不在本轮可写范围），
+     skills/benchmark/references/grading.md:31 仍写 PluginManager::instance()（归 Benchmark owner）。
+
+--------------------------------------------------------------------------------
+8. 追加更正：kNoPluginIndex 首次删除未落盘，删除后的验证已重跑
+--------------------------------------------------------------------------------
+   本节只更正取证顺序，不改写第 7 节已记录的结论文字。
+
+   - 第一次删除操作报告成功（"7 lines removed"），但随后核对发现
+     ID\include\Kernel\PluginRuntime.hpp 仍是 403 行、第 53 行仍有 kNoPluginIndex，
+     文件 mtime 未变化 —— 该次编辑没有真正落盘。
+   - 因此第 7 节里"删除后编译通过"的那批构建（MSVC ID/IDAssemblyValidate/IDAssembly/Sandbox、
+     GCC Benchmark 强制重编、GCC PluginRuntimeCases）实际是在常量仍存在的状态下取得的，
+     不能当作删除后的证据；这一点按事实更正。
+   - 重新执行删除后立即用 PowerShell 复核：文件 396 行、全文无 kNoPluginIndex、mtime 更新（落盘）。
+   - 删除落盘后重跑（同一批命令，真实退出码）：
+       cmake --build F:\IDGameEngine\cmake-build-msvc-p5 --config Release --target ID --parallel            exit 0
+         （PluginRuntime.cpp 重编、ID.dll 重链）
+       cmake --build ... --config Release --target IDAssemblyValidate --parallel                            exit 0
+       cmake --build ... --config Release --target Sandbox --parallel                                       exit 0
+         （IDAssembly.lib、Sandbox.exe 重链）
+       & 'F:\IDGameEngine\cmake-build-msvc-p5\out\shared\bin\Release\Sandbox.exe'                           exit 0
+         [Sandbox] product started (state=Ready) / [Sandbox] product stopped (state=Idle)
+       cmake --build F:\IDGameEngine\build\dev --target Benchmark --parallel                                exit 0
+         （重编 PluginRuntime.cpp、kernel_performance.cpp、kernel_security.cpp，重链 Benchmark.exe）
+       cmake --build F:\IDGameEngine\cmake-build-kprobe-gcc --target PluginRuntimeCases --parallel          exit 0
+         （重编 runtime_service_cases.cpp、runtime_plan_cases.cpp、runtime_provision_cases.cpp，重链 exe）
+   - 仍然没有运行 Benchmark.exe / PluginRuntimeCases.exe，也没有任何性能结论。
+
+--------------------------------------------------------------------------------
+9. 追加：MSVC 下 /WHOLEARCHIVE 缺少库依赖的修复与双工具链复核
+--------------------------------------------------------------------------------
+   本节只记录本轮修复与实测，不改写第 7 节的历史结论（7.3 记录的缺陷与候选修法保留原文）。
+
+9.1 修复
+   实测工具链：MSVC 19.52.37025.0 + Windows SDK 10.0.26100.0，生成器 "Visual Studio 18 2026"
+   （实例 D:/Software/VS2026/Insiders，用 -DCMAKE_GENERATOR_INSTANCE 指定）。
+   文件：Assemble/cmake/IDGenerateAssembly.cmake 的 id_assembly_add_module()，只改 MSVC 分支
+   （采用 7.3 候选 a）：
+     + target_link_libraries(${TARGET} PRIVATE IDPluginStub)      # 真实库依赖：ProjectReference + 增量重链接入
+       target_link_options(${TARGET} PRIVATE "/WHOLEARCHIVE:$<TARGET_FILE:IDPluginStub>")   # 整档保留强度不变
+   GNU 分支一字未改：仍是 "-Wl,--whole-archive" IDPluginStub "-Wl,--no-whole-archive"，
+   没有引入任何插件库的全量保留。
+
+9.2 修复前复现（干净目录 cmake-build-msvc-repro；CWD = F:\IDGameEngine）
+   cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-msvc-repro -G "Visual Studio 18 2026" -A x64
+         -DCMAKE_GENERATOR_INSTANCE=D:/Software/VS2026/Insiders
+         -DID_ASSEMBLY_PROFILE=default -DID_BUILD_SANDBOX=ON -DID_BUILD_BENCHMARK=OFF              exit 0
+   cmake --build F:\IDGameEngine\cmake-build-msvc-repro --target IDFixtureCore --config Debug       exit 1
+     LINK : fatal error LNK1356: 找不到指定为已整体存档的库
+            "F:/IDGameEngine/cmake-build-msvc-repro/out/shared/lib/Debug/IDPluginStub.lib"
+            [F:\IDGameEngine\cmake-build-msvc-repro\Assemble\plugins\IDFixtureCore\IDFixtureCore.vcxproj]
+     输出里只有 ID.vcxproj 与插件工程，没有 IDPluginStub.vcxproj —— 与 7.3 的根因判断一致。
+
+9.3 修复后 vcxproj 证据（干净目录 cmake-build-msvc-p5fix）
+   Assemble\plugins\IDFixtureCore\IDFixtureCore.vcxproj（Debug/Release/MinSizeRel/RelWithDebInfo 四配置一致）：
+     <AdditionalDependencies>..\..\..\out\shared\lib\Debug\IDPluginStub.lib;..\..\..\out\shared\lib\Debug\ID.lib;...
+     <AdditionalOptions>%(AdditionalOptions) /machine:x64 /WHOLEARCHIVE:F:/IDGameEngine/cmake-build-msvc-p5fix/out/shared/lib/Debug/IDPluginStub.lib
+     <ProjectReference Include="F:\IDGameEngine\cmake-build-msvc-p5fix\IDPlugin\IDPluginStub.vcxproj"> <Name>IDPluginStub</Name>
+   => 库项、ProjectReference、/WHOLEARCHIVE 三者同时存在。
+
+9.4 修复后 MSVC 构建（干净目录 cmake-build-msvc-p5fix；不先手工建桩）
+   configure 参数同 9.2，只换 -B                                                                   exit 0
+   cmake --build ... --target IDFixtureCore --config Debug                                         exit 0
+     先出现 IDPluginStub.vcxproj -> out\shared\lib\Debug\IDPluginStub.lib，再链接 IDFixtureCore.dll
+   cmake --build ... --target IDFixtureMath --config Debug                                         exit 0
+   cmake --build ... --target IDAssembly    --config Debug                                         exit 0
+     -> Assemble\out\lib\Debug\IDAssembly.lib
+   cmake --build ... --target Sandbox       --config Debug                                         exit 0
+     -> out\shared\bin\Debug\Sandbox.exe（并复制 ID.dll / IDFixtureCore.dll / IDFixtureMath.dll）
+   cmake --build ... --target all           --config Debug                                         exit 1
+     MSBUILD : error MSB1009: 项目文件不存在。开关:all.vcxproj
+     多配置 VS 生成器没有名为 all 的项目（all 是 Makefile/Ninja 的聚合名），与本次缺陷无关；
+     等价全量改用 ALL_BUILD：
+   cmake --build ... --target ALL_BUILD     --config Debug                                         exit 0
+   全新目录一次性全量：cmake-build-msvc-clean-all（configure exit 0）
+     cmake --build F:\IDGameEngine\cmake-build-msvc-clean-all --target ALL_BUILD --config Debug    exit 0
+     全程没有 LNK*、warning C*、error C* 行（同一 .lib 既作库项又进 /WHOLEARCHIVE 未产生重复符号告警）。
+   单配置生成器上的同名全量目标复核（Ninja + MSVC 19.52；vcvarsall x64 + VS 自带 ninja；未指定
+   CMAKE_BUILD_TYPE，只验证链接图与目标名，不涉及性能）：
+     cmake -S ... -B ...\cmake-build-msvc-ninja -G Ninja -DID_ASSEMBLY_PROFILE=default
+           -DID_BUILD_SANDBOX=ON -DID_BUILD_BENCHMARK=OFF                                        exit 0
+     cmake --build ...\cmake-build-msvc-ninja --target all                                       exit 0
+       19/19 步一次通过（并行链接插件 DLL、IDAssembly、IDAssemblySmoke、Sandbox），无 LNK/warning/error；
+       all 是 Ninja/Make 的聚合目标名，多配置 VS 生成器对应 ALL_BUILD。
+     & '...\cmake-build-msvc-ninja\out\shared\bin\Sandbox.exe'                                   exit 0
+     dumpbin /imports ...\cmake-build-msvc-ninja\Assemble\out\bin\IDFixtureCore.dll
+       -> ID_AlignedAlloc / ID_AlignedFree（桩同样被抽入）
+   运行（宿主生命周期冒烟，不是性能测量）：
+     & 'F:\IDGameEngine\cmake-build-msvc-p5fix\out\shared\bin\Debug\Sandbox.exe'                   exit 0
+     [Sandbox] product started (state=Ready)
+     [Sandbox] product stopped (state=Idle)
+   桩保留强度抽查（不是符号全表统计）：
+     dumpbin /imports Assemble\out\bin\Debug\IDFixtureCore.dll   （dumpbin 取 VS2017 14.15 工具集，仅作导入表读取）
+       -> 从 ID.dll 导入 ID_AlignedAlloc、ID_AlignedFree：桩对象确实被抽进插件 DLL，
+          说明"补库依赖"没有把整档保留降级成按引用抽取。
+   本轮 ID_BUILD_BENCHMARK=OFF，未运行 Benchmark.exe，无性能结论。
+
+9.5 GNU 回归（干净目录 cmake-build-mingw-p5fix；MinGW GCC 16.2.0 + MinGW Makefiles，Release）
+   cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-mingw-p5fix -G "MinGW Makefiles"
+         -DCMAKE_BUILD_TYPE=Release -DID_ASSEMBLY_PROFILE=default -DID_BUILD_SANDBOX=ON
+         -DID_BUILD_BENCHMARK=OFF                                                                  exit 0
+   cmake --build ... --target IDAssemblyValidate --parallel                                        exit 0
+   cmake --build ... --target IDAssembly         --parallel                                        exit 0
+   cmake --build ... --target Sandbox            --parallel                                        exit 0
+   whole-archive 区间（MinGW 的库清单在 linkLibs.rsp；link.txt 里那对区间包的是 CMake 自己的 objects.a）：
+     Assemble\plugins\IDFixtureCore\...\linkLibs.rsp
+       -Wl,--whole-archive ../../../out/shared/lib/libIDPluginStub.a -Wl,--no-whole-archive ../../../out/shared/lib/libID.dll.a ...
+     Assemble\plugins\IDFixtureMath\...\linkLibs.rsp
+       同上：区间内只有 libIDPluginStub.a
+     Sandbox\...\linkLibs.rsp
+       ... libIDAssembly.a libIDFixtureMath.dll.a libIDFixtureCore.dll.a
+       -Wl,--whole-archive ../out/shared/lib/libIDPluginStub.a ../out/shared/lib/libID.dll.a -Wl,--no-whole-archive ...
+     => 每个区间都含 IDPluginStub，且没有任何插件库进入区间（没有全插件 whole-archive）。
+        宿主区间里除桩还夹着内核导入库 libID.dll.a（它跟着 IDPluginStub PUBLIC ID 的位置进入区间）：
+        属既有现象、本轮未改该分支，也不属于插件全量保留，与 Benchmark/validation/assembly
+        既有判定（区间内只禁止出现插件库）一致。
+   运行：& 'F:\IDGameEngine\cmake-build-mingw-p5fix\out\shared\bin\Sandbox.exe'                    exit 0
+     [Sandbox] product started (state=Ready) / [Sandbox] product stopped (state=Idle)
+
+9.6 本轮未验证 / 需其它 owner 处理
+   - MSVC 的 LTCG/IPO（ID_MONOLITHIC_BUILD=ON）、安装导出后在新构建目录 find_package 消费、
+     clang 与非 Windows 平台均未验证；本轮 MSVC 只用了默认 Debug 配置。
+   - "每个模块只有一组替换符号"只有导入表层面的间接支持，未做 dumpbin 全量符号统计。
+   - Benchmark/validation/prototype/cmake/IDFixtureModule.cmake:41 的 MSVC 分支同样是
+     "只加 /WHOLEARCHIVE、不建库依赖"，属同一缺陷（prototype 默认 OFF）；Benchmark 归另一 owner，本轮未改。
+   - 未修改 ID、IDPlugin、Sandbox、Benchmark 的源码与构建脚本；未提交、未推送、未清理既有构建目录。

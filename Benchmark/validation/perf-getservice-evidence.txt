@@ -1,0 +1,300 @@
+perf-getservice 证据：服务读取热路径（get_service）反汇编核对
+对应方案：docs/plugin-assembly-refactor-plan.md §10.1 / §11.2 / §16.4 / §16.5
+性质：Benchmark/validation 校验资产（纯证据文本、无构建目标，永不进入官方 Benchmark.exe，
+      不写 report.txt，不参与评级；原始反汇编目录 raw/perf-getservice/ 绑定唯一构建目录）
+================================================================================
+
+0. 结论先行（事实，不含新评级）
+--------------------------------------------------------------------------------
+0.1 `PluginRuntime::get_service<ApiTable>(ServiceSlot::Math)` 的真实调用点上只有一次槽位数组
+    load：`mov 0x10(%r15),%rdx`（r15 = &PluginRuntime::s_instance，0x10 = Math(2) × 8B）。
+    该指令在编译单元内共 4 处，对应 measure/calibrate 的 4 份内联副本，循环内没有第二次槽位读。
+0.2 全 TU 扫描未发现：状态读取（m_state / m_active_plan）、锁或原子 RMW、堆分配、
+    strcmp/memcmp 之类字符串查找、虚表分派。逐项计数见第 3.4 节。
+0.3 发现一条"超出一次 load + 一次间接调用"的指令：`cmp %rsi,%rdx / jne` 目标守卫 +
+    内联的 `mix_round` 主体；`call *%rdx` 只保留在守卫失败分支。该守卫由被测调用表达式
+    `table->mix(...)` 的去虚拟化产生（kServiceTable 是同 TU constexpr），不是 get_service
+    的额外开销，但它使本指标实测循环的默认路径没有真正执行间接调用。详见第 4 节。
+0.4 本轮没有重跑官方套件：report.txt 未被改写（SHA256 225DF67ABA340BA4F9C5922B13927A36
+    D0FF85176FBEB6684A158C0FAD8ACFBA，generated 2026-10-19 23:32:50）。本轮不新增指标、
+    不改参考值、不改评级带宽、不改 report.txt 口径，也不把任何 ns 读数当作跨机器阈值。
+0.5 **2026-10-20 追加（见第 10 节）**：0.3 与第 4 节记录的去虚拟化已在 `Benchmark` 内修正——被测
+    表达式与对照表达式的函数指针都过一次空 asm 屏障，默认执行路径现在真的执行 `call *%rax`。
+    第 4、5 节描述并引用的 0.24 ns / 0.23 ns 属**退役口径**读数，不再代表"固定槽 load + 一次间接
+    调用"；修正后读数、汇编复核与不可比原因见第 10 节。
+
+1. 核对范围
+--------------------------------------------------------------------------------
+在范围内：
+  - ID/include/Kernel/PluginRuntime.hpp 的读取路径 `get_service<ApiTableType>(ServiceSlot)`；
+  - 官方性能域 Benchmark/src/kernel/kernel_performance.cpp 中
+    `SlotLookupCall::operator()`（指标 plugin.service_lookup_and_call）的编译结果；
+  - 该指标同轮对照 `GlobalTableCall::operator()`（volatile 全局表指针）——只用来对照指令形状。
+不在范围内（本轮不核对、不改动）：
+  - publish_service / revoke_service 写入冷路径的阶段/owner/重复发布校验；
+  - 其它域（memory.*）与全部正确性用例；
+  - ID/**、Assemble/**、Sandbox/**、IDPlugin/**、工作台与 skill：本轮零改动；
+  - 未做新的性能测量，未重跑 Benchmark.exe。
+
+2. 方法与可复核信息
+--------------------------------------------------------------------------------
+构建目录 : F:\IDGameEngine\cmake-build-p5-release（既有目录，本轮未重新 configure）
+生成器   : MinGW Makefiles；编译器 GCC 16.2.0（D:/Code/Environment/MinGW/mingw64/bin/c++.exe）
+配置事实 : CMAKE_BUILD_TYPE=Release、ID_MONOLITHIC_BUILD=OFF（⇒ SHARED，无 IPO/LTO）、
+           ID_BUILD_BENCHMARK=ON、ID_BUILD_VALIDATION_* 全 OFF
+           （与 report.txt 头 `Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF` 一致）
+配置时间 : 2026-10-19（构建目录既有缓存，本轮只 build，不 configure）
+
+命令 1（构建）:
+  cmake --build F:\IDGameEngine\cmake-build-p5-release --target Benchmark --parallel
+  → exit 0；实际重编 ID/src/Kernel/PluginRuntime.cpp、Benchmark 的 kernel_performance.cpp 与
+    kernel_security.cpp，重链接 libID.dll（00:01:56）与 Benchmark.exe（00:01:57），
+    构建时刻 2026-10-20 00:01:5x。
+命令 2（幂等核对）:
+  同一条 build 再跑一次 → exit 0，无任何重编（产物与当前源码一致）。
+命令 3（反汇编，只读）:
+  D:\Code\Environment\MinGW\mingw64\bin\objdump.exe（GNU Binutils 2.47.20260726）
+  a) objdump -drC --no-show-raw-insn
+       <build>\Benchmark\CMakeFiles\Benchmark.dir\src\kernel\kernel_performance.cpp.obj
+     → 存档 raw\perf-getservice\objdump-Benchmark-TU-kernel_performance.obj.txt（2476 行）
+  b) objdump -dC --no-show-raw-insn --start-address=<起始> --stop-address=<结束>
+       <build>\out\shared\bin\Benchmark.exe
+     → 存档 raw\perf-getservice\objdump-Benchmark.exe-slotlookup.txt（段 A–E，起止均取指令边界）
+
+编译参数片段（flags.make 原文，副本见 raw\perf-getservice\build-flags.make.txt）:
+  CXX_FLAGS   = -O3 -DNDEBUG -std=c++20 -Wall -Wextra -fno-rtti -fno-exceptions
+                -O3 -ffast-math -fomit-frame-pointer -mavx2 -mfma
+  CXX_DEFINES = -DID_BENCHMARK_REPORT_DIR=\"F:/IDGameEngine/Benchmark\" -DID_BENCH_AVX2=1
+                -DID_BENCH_CONFIG=\"Release\" -DID_BENCH_LTO=0 -DID_BENCH_MONOLITHIC=0
+
+被测头/源 SHA256（完整清单与时间戳见 raw\perf-getservice\source-hashes.txt）:
+  66EAC557936585B4BE699C63525A3A9F255E17A2C28822B1934C782F2649F95B  ID\include\Kernel\PluginRuntime.hpp
+  1EEF0EA872A4FA4470E233F2919140D980C52041A1A91EB51690B5800756E3F6  ID\src\Kernel\PluginRuntime.cpp
+  05FA96D940E2284969435992BE8A98DDB0CD80D3167D8049690B25160F4D3470  ID\include\Kernel\Plugin.hpp
+  BA89850A79D2C409AC79C62460E08EFBA4278B0D4082C6F6B63D2674CD57C6C4  ID\include\Common\templates\Singleton.hpp
+  933AAD0DE8DC505A84CB52C867059176C24B6D8CF29495B71428B24EEC1FC5F3  Benchmark\src\kernel\kernel_performance.cpp
+    （该值与 validation\kernel-p4-evidence.txt 第 253 行记录的哈希一致：P4 迁移后该源未被改动）
+
+产物 SHA256:
+  1B80E77F49B4F1E9C4B6068DA3D9F69FBEF762531A28504A4BF0FC0784B287B3  flags.make
+  19870A4256CCD22912F1EDA3E041E5342A6380BAAC1B2E57AC4415FFE4A23BC9  kernel_performance.cpp.obj
+  054322FE9552B50F93273766B17DD496FC2E7A7ADC7D7533C555473844A258A4  out\shared\bin\Benchmark.exe
+  44C67129219C13AAAE7E8C4DB3CDC02F13CB8FFACB0A1E669BDA9BBB4073870D  out\shared\bin\libID.dll
+  225DF67ABA340BA4F9C5922B13927A36D0FF85176FBEB6684A158C0FAD8ACFBA  Benchmark\report.txt（本轮未改写）
+
+重建前后一致性（同一构建目录、同一参数）:
+  kernel_performance.cpp.obj 重建前 2026-10-19 23:32:20 与重建后 00:01:56 同为
+  19870A42…A23BC9；两轮 objdump 输出逐行相同（2469 行，Compare-Object 无差异）。
+  ⇒ report.txt 那次运行（23:32:54）所用的调用点目标代码，与本次反汇编的调用点完全相同。
+  注意：libID.dll 因 PluginRuntime.cpp 重编而重链接（ID/include/Kernel/PluginRuntime.hpp
+  在 00:01:29 有一次改动，26403 B → 26942 B，SHA256 66EAC557…F95B），本轮没有保存旧 DLL，
+  因此 DLL 侧代码差异未逐指令比对，列入第 8 节未验证项；被测循环本身在 exe 的这个 TU 里。
+
+3. 反汇编事实
+--------------------------------------------------------------------------------
+3.1 调用点定位
+  - TU 内 `mov 0x0(%rip),%r15` + 重定位 `__imp__ZN2ID13PluginRuntime10s_instanceE`
+    ⇒ r15 = &PluginRuntime::s_instance（obj 偏移 0x1ce，存档第 142–143 行）。
+  - 槽位地址 = 实例 + 0x10：m_service_slots 是对象第一个成员（偏移 0），
+    ServiceSlot::Math == 2（Plugin.hpp:33），sizeof(void*) == 8 ⇒ 2×8 = 0x10。
+    布局交叉核对（libID.dll）：m_active_plan=0x200、m_state=0x208、
+    m_current_owner=0x20a、m_registered_count=0x20c（start/shutdown 写状态字节处可见）。
+  - exe 中同一调用点：140003382 / 14000342a / 1400035bd / 1400036dc（4 份副本）。
+    TU 内 `0x10(%r15)` 读共 4 处，无其它偏移的实例成员读用于该表达式。
+
+3.2 期望与实际（逐条；期望口径 = 方案 §11.2 / id-kernel 不变量 12：一次固定下标 + 一次指针 load）
+  - 槽位数组 load 次数        : 1 次（mov 0x10(%r15),%rdx；循环体内无第二次）
+  - 状态读取（state/owner 等）: 无（全 TU 无 0x200/0x208/0x20a/0x20c 偏移引用）
+  - 锁 / 原子 RMW             : 无（无 lock 前缀、无 cmpxchg；全 TU 唯一相关字节是
+                                0x1bc7 的 `xchg %ax,%ax`，即 2 字节对齐填充 nop）
+  - 堆分配                    : 不在本指标循环内（本 TU 有 malloc/free 调用，属 memory.*
+                                用例及其对照实现）
+  - 字符串查找                : 不在计时区间内（strlen 仅 3 处，全部在 record() 克隆内，
+                                obj 偏移 0xa1/0x138/0x171）
+  - 虚表分派                  : 无（无虚表式 `call *偏移(%基址寄存器)`；4 处
+                                `call *0x0(%rip)` 是 dllimport IAT 跳板：
+                                publish_service / revoke_service / start / shutdown）
+  - 间接调用                  : 指令存在但被守卫跳过（见第 4 节）
+
+3.3 关键指令序列（obj 偏移；存档文件行号）
+  19fb : lea -0x1a02(%rip),%rsi  → rsi = &mix_round            （存档第 1391 行）
+  1ec2 : mov 0x10(%r15),%rdx     → 一次槽位 load（get_service） （存档第 1638 行）
+  1ec6 : mov (%rdx),%rdx         → table->mix 成员 load         （存档第 1639 行）
+  1ec9 : cmp %rsi,%rdx           → 目标守卫                     （存档第 1640 行）
+  1ecc : jne 2097                → 不等则走间接调用             （存档第 1641 行）
+  ...  : imul $0x9e3779b1 / lea / add → 内联 mix_round（相等分支）
+  2097 : mov %ebx,%ecx; add $0x1,%rbx; call *%rdx → 守卫失败分支（存档第 1738 行）
+  exe 对应：140003382（load）、140003386（表成员 load）、140003389/14000338c（守卫）、
+            140003557 与 140003529（call *%rdx）、14000168e（r15 来源）、140002ebb（rsi 来源）。
+
+3.4 全 TU 计数证据（obj，`objdump -drC`）
+  - `0x10(%r15)` 槽位 load : 4（= 4 份内联副本，每份 1 次）
+  - `call *%rdx`           : 8（槽位循环 4 + 对照循环 4，均在守卫失败分支）
+  - `call *%r??`（非 rdx） : 36（rbx 12 + rsi 12 + r12 8 + rbp 4；ID_AlignedAlloc/Free、
+                              os_alloc/free、malloc/free 等被提升到 callee-saved 的函数指针，
+                              属 memory.* 用例，不在本指标循环）
+  - `call *0x0(%rip)`      : 4（dllimport IAT：publish_service / revoke_service / start / shutdown）
+  - `lock` / `cmpxchg`     : 0
+  - `strlen`               : 3（全部在 record() 克隆内）
+  - `0x200/0x208/0x20a/0x20c(%r??)` : 0
+
+4. 超出"一次 load + 一次间接调用"的指令：归因与影响
+--------------------------------------------------------------------------------
+事实：本指标循环里 `table->mix(i)` 被 GCC 去虚拟化——把 `table->mix` 与已知目标 &mix_round
+      比较，相等就执行内联的 `i*2654435761 + 12345`（内联后还做了展开与强度削减，出现
+      lea/add 组合的闭式循环），不相等才 `call *%rdx`。
+      因此在本次构建中，被测循环的默认路径**没有执行间接调用**。
+归因：kServiceTable 是本 TU 的 `constexpr` 对象，`publish_benchmark_table()` 又把它的地址
+      写进槽位，编译器能看见槽位内容；这是被测调用表达式的可见性，不是 get_service 的额外开销
+      （get_service 只返回指针；槽位 load 仍是恰好一次）。
+影响：0.2x ns 的读数说明的是"槽位 load + 表成员 load + 整数运算"，不能当作
+      "查表 + 一次间接调用"的成本；也不能据此宣布"没有额外间接层"的完整结论。
+      这与既有 D3（MONOLITHIC+LTO 下整段闭式求值 → actual<=0 → ungraded）同源，但程度不同：
+      本构建只是去虚拟化 + 内联，尚未折叠到 ungraded。
+处理：本轮只记录，不改指标、不改参考值、不改被测表达式（改指标属于口径变更，需用户确认）。
+      可修方向（不本轮实施）：让表内容对编译器不可知（跨 TU 的 volatile 表指针，或从真实
+      插件回调里读表），使被测表达式落到 `call *%rdx`；这同时是
+      baseline-release-mingw-gcc16.2.0.txt 第 7.2 节提出的方向，属于指标设计变更。
+后续（2026-10-20）：该修法已实施，见第 10 节；本节其余事实保持为"修正前"的记录。
+
+5. 与 report.txt 中 ns 读数的关系（只作事实并列）
+--------------------------------------------------------------------------------
+- Benchmark/report.txt（当前唯一报告，generated 2026-10-19 23:32:50，本轮未改写）记录：
+    plugin.service_lookup_and_call   0.24 ns   0.44 ns [os-baseline]   ratio 0.55   excellent
+    note（原文）：同轮 volatile 全局函数表指针 + 间接调用实测；目标倍数 1.2（多一次槽位数组
+    load ≈ L1 4-5 cycles）
+  报告头 build 行：Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF —— 与本证据的构建目录一致。
+- 更早保存的 5 轮基线（validation/baseline/baseline-release-mingw-gcc16.2.0.txt 第 88–95 行）
+  为 0.23 ns / ratio 0.55~0.60 / 5 次稳定 excellent；用户提到的 0.23 ns 即该处记录。
+  0.23 与 0.24 属同一量级的历史记录，不是本轮新测。
+- 本证据与上述数值的关系只有两点：① 数值背后的目标代码里，get_service 部分确实只有一次
+  槽位 load；② 数值不能被解释为"一次间接调用"的成本（见第 4 节）。
+  不据此给新评级、不下调/上调参考值、不把 0.24/0.23 ns 当作跨机器或跨构建阈值。
+- 本轮未运行 Benchmark.exe，因此没有新的 5 轮样本、没有 unstable 判定，也没有覆盖 report.txt。
+
+6. 既有 D3 局限（本轮不修）
+--------------------------------------------------------------------------------
+- D3 原文见 validation/prototype-p0-evidence.txt（“D3. 既有 benchmark 指标
+  plugin.service_lookup_and_call 在 MONOLITHIC=ON + LTO 下会被常量折叠 … ungraded”）；
+  另见 baseline-release-mingw-gcc16.2.0.txt 第 158–165 节的复测记录与
+  raw/monolithic-metric-observation.log。
+- 结论：同一指标在 STATIC + IPO(LTO) 下不可用（actual=n/a → ungraded → SUMMARY 记 1 failed）。
+  本轮的 Release/SHARED 构建不受该折叠影响（未重跑 MONOLITHIC 构建）。
+- 本轮按任务要求不修 D3，也不调整其口径；只在第 4 节记录"去虚拟化"这一相邻事实。
+
+7. 旧路径不可 A/B 的限制
+--------------------------------------------------------------------------------
+- 旧运行期 `PluginManager`（运行期槽表 + `register_service`/`get_service`）已随 P4 退役：
+  ID/src/Kernel/PluginManager.cpp 已删除（git status 记 `D`），源码树里没有第二份运行期槽表，
+  也没有保留旧实现的可执行产物，因此无法在同一进程、同一轮里做"旧槽表 vs get_service"的 A/B。
+- 本证据只能做"与公开契约一致性核对"：一次固定下标 + 一次指针 load（方案 §11.2、
+  id-kernel 不变量 12、grading.md 第 2 节 A 类对 slot.lookup_and_call 的路径描述），
+  不是新旧实现的测量对照，也不提供任何"零回归"或"等价成本"的数值结论。
+- 同一构建目录里，23:32 那次运行所用的调用点 TU 目标文件与本轮的逐字节相同
+  （19870A42…A23BC9），但这只说明"本次重建没有改变该 TU 的目标代码"，
+  不能替代新旧实现的 A/B。
+
+8. 未验证项（不得当成已验证）
+--------------------------------------------------------------------------------
+- libID.dll 侧：本轮重建前没有保存旧 DLL，PluginRuntime.cpp 的重编差异未逐指令比对；
+  被测循环在 exe 的这个 TU 里，DLL 只负责在 on_register 里写槽位，未做 DLL 侧热路径核对。
+- 未在 MSVC / clang 上反汇编核对（本机没有这两个编译器）。
+- 未对 ID_MONOLITHIC_BUILD=ON（STATIC + LTO）产物反汇编；该模式受 D3 影响，仍不可用作证据。
+- 未对"表来自另一个模块（真实插件 DLL）"的形态取证；本 TU 内表可见，因此出现去虚拟化。
+  生产形态预期落到 `call *%rdx`，但本轮没有真实业务插件可链接（IDPlugin 只有 Stub）。
+- 未验证 Debug 构建、其它机型、多核/超线程工况；未做任何新的性能测量与评级。
+- 未覆盖 publish_service/revoke_service 冷路径的指令核对（不在本轮范围）。
+
+9. 本轮改动与产物清单
+--------------------------------------------------------------------------------
+新增（全部位于 Benchmark/**，默认 OFF 的校验资产，不参与官方构建与报告）：
+  Benchmark/validation/perf-getservice-evidence.txt                            （本文件）
+  Benchmark/validation/baseline/raw/perf-getservice/objdump-Benchmark-TU-kernel_performance.obj.txt
+  Benchmark/validation/baseline/raw/perf-getservice/objdump-Benchmark.exe-slotlookup.txt
+  Benchmark/validation/baseline/raw/perf-getservice/build-flags.make.txt
+  Benchmark/validation/baseline/raw/perf-getservice/source-hashes.txt
+  Benchmark/validation/baseline/raw/perf-getservice/batch-owner.txt
+未改动：ID/**、Assemble/**、Sandbox/**、IDPlugin/**、Benchmark/src/**、Benchmark/CMakeLists.txt、
+        Benchmark/report.txt、工作台与 skills。
+构建副作用（工程产物目录，非源码）：cmake-build-p5-release 下重编了 ID 的 PluginRuntime.cpp、
+        Benchmark 两个源文件并重链接 libID.dll 与 Benchmark.exe。
+
+10. 修正：让默认执行路径真的包含一次间接调用（2026-10-20）
+--------------------------------------------------------------------------------
+10.1 修正前事实（第 4 节的复核，本条只重述结论）
+  - TU 目标文件（旧，19870A4256CCD22912F1EDA3E041E5342A6380BAAC1B2E57AC4415FFE4A23BC9）槽位循环：
+      1ec2 mov 0x10(%r15),%rdx → 1ec6 mov (%rdx),%rdx → 1ec9 cmp %rsi,%rdx → 1ecc jne 2097；
+      相等分支内联 mix_round（imul $0x9e3779b1 …），`call *%rdx` 只在 2097（守卫失败分支）。
+    exe（旧，054322FE9552B50F93273766B17DD496FC2E7A7ADC7D7533C555473844A258A4）4 份副本同形：
+      140003382 / 14000342a / 1400035bd / 1400036dc。
+  - 同轮对照 GlobalTableCall 也被同样守卫化（全 TU 8 处 `call *%rdx` 全部在守卫失败分支）：
+    旧口径下**被测与对照都不是"一次间接调用"**，两边都在测"表成员 load + 内联整数运算"。
+  - 因此 report.txt（generated 2026-10-19 23:32:50，0.24 ns / ratio 0.55 / excellent）与
+    baseline-release-mingw-gcc16.2.0.txt 第 88–95 行的 0.23 ns 都是**退役口径**读数。
+10.2 修法（只改 Benchmark/src/kernel/kernel_performance.cpp，不碰 ID/Assemble/Sandbox）
+  - 新增 `ID_FORCEINLINE ApiTable::TargetFn opaque_target(ApiTable::TargetFn)`：
+      GCC/Clang 分支 `asm volatile("" : "+r"(fn));`
+      MSVC 分支 `volatile ApiTable::TargetFn hidden = fn; return hidden;`（未做反汇编核对）
+  - `SlotLookupCall` 与 `GlobalTableCall` 都在调用前把表成员过一次该屏障：
+      `const ApiTable::TargetFn mix = opaque_target(table->mix); accumulator += mix(i);`
+  - 未改：指标名 `plugin.service_lookup_and_call`、`basis`（仍 os-baseline）、目标倍数 1.2、
+    评级带宽、迭代/预热/轮数/计时源配置。参考值仍 = 同轮对照实测 × 1.2，未为维持等级调整。
+10.3 修正后反汇编（本轮实测，原始存档见第 10.7 节）
+  - TU 目标文件（24E5F108DB1D4214E3CB842E5119CCEE12B08798B1EFFF4FC3EDA91FE45CFF0E）槽位循环：
+      1dd0 mov 0x10(%rbp),%rax → 1dd4 mov (%rax),%rax → 1ddd call *%rax。
+    无 `cmp/jne` 守卫；`imul $0x9e3779b1` 全 TU 只剩 1 处，位于 mix_round 自己的函数体（偏移 0）。
+  - exe（A8772D139195C0FF22B2EC145E534B2E5F7375E4E9A3BA21EFD92E2561390C59；前一次链接的
+    9096EA47…4CA0 指令形状与本二进制相同，源码随后只做过一次纯空白的对齐调整，.obj 哈希未变）槽位循环 4 份：
+      140003260 / 1400032b0 / 140003380 / 140003440，形如
+      `mov 0x10(%rbp),%rax; mov (%rax),%rax; mov %ebx,%ecx; add $0x1,%rbx; call *%rax`。
+    循环体内没有第二次槽位 load，也没有状态字节/锁/字符串查找/虚表分派；
+    全 exe `cmp %rsi,%rdx` 守卫计数 = 0。
+  - `rbp` = `&PluginRuntime::s_instance`：14000165e `mov 0x1bdd3(%rip),%rbp`
+    # `__imp__ZN2ID13PluginRuntime10s_instanceE`，在循环外只取一次；
+    0x10 = ServiceSlot::Math(2) × 8B。
+  - 对照循环（140002f30 起）形如
+      `mov 0x100c9(%rip),%rax`（.data 的 volatile 全局表指针）→ `mov (%rax),%rax` → `call *%rax`，
+    两侧现在都在默认路径执行一次间接调用，差别只剩"多一次槽位数组 load"。
+10.4 修正后读数（同一构建目录 `cmake-build-p5-release`、同一 flags.make 1B80E77F…87B3）
+  构建行：Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+  | 运行 | 时间 / CWD | exit | actual | reference（同轮对照×1.2） | ratio | grade |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | run1 | 2026-10-20 00:32:30 / F:\IDWorkbench | 0 | 1.59 ns | 1.89 ns | 0.84 | good |
+  | run2 | 2026-10-20 00:32:34 / out\shared\bin | 0 | 1.59 ns | 1.90 ns | 0.84 | good |
+  - 两次 console 与各自 report 副本逐字节一致（SHA256 260F5347…E2AC / B0DF60C3…6FF6），
+    report.txt 单文件覆盖（12212 B），两次差异只有时间戳与 4 条读数，无 unstable 标注。
+  - 指标键、basis、note 文本、等级分布（world-class=2 excellent=0 good=2）均按实情记录；
+    本条不新增指标、不改评级规则。（同一构建目录在源码纯空白调整前还跑过一次
+    1.61 / 1.59 ns、ratio 0.84 / 0.81，等级同为 good；那两次的副本已被本次覆盖。）
+10.5 与旧 0.23 / 0.24 ns 不可直接比较的原因
+  - 代码不同：旧读数默认路径是"槽位 load + 表成员 load + 内联 imul/lea 闭式"，新读数默认路径
+    一定执行 `call *%rax`。0.24 → 1.59 ns（≈6.6 倍）反映**被测表达式口径变了**，既不表示实现
+    变慢，也不表示这次修法引入了额外开销；对照侧同样从 0.44 → 1.89~1.90 ns，比值才从 0.55 变 0.84。
+  - 旧二进制不存在：旧 .obj 19870A42… 与旧 exe 054322FE… 已被重建覆盖，仓库不保存旧产物，
+    也没有第二份运行期槽表（PluginManager 已随 P4 退役），因此无法在新旧二进制/新旧实现之间
+    做同进程同轮 A/B。本文件不提供"零回归"或"等价成本"的数值结论。
+  - 等级变化如实呈现：excellent → good（ratio 0.55 → 0.84）。参考值口径未动，
+    没有为了维持原等级调整目标倍数或带宽。
+  - 不把 1.59 ns 当作跨机器/跨构建阈值，也不宣称任何帧率提升。
+10.6 未验证（不得当成已验证）
+  - MSVC：_MSC_VER 分支（volatile 局部对象）已用 MSVC 19.52 + VS2026 x64 做过单 TU 编译检查
+    （cl /std:c++20 /utf-8 /W4 /GR- /EHs-c- /c …，exit 0，仅两条 C4324 对齐填充警告，
+    该警告在项目正式参数里由 /wd4324 关闭），但**未反汇编**核对它是否真的阻止去虚拟化；
+    也没有用 MSVC 构建/运行整个 Benchmark。
+  - clang：未编译、未反汇编。
+  - ID_MONOLITHIC_BUILD=ON（STATIC + IPO/LTO）：未重测，D3 现象（该模式下指标不可用）不受本修正影响。
+  - "表来自真实插件 DLL"的形态仍未取证（IDPlugin 目前只有 Stub/Fixture）。
+  - 未重跑 validation 其它资产，未复核 libID.dll 侧指令差异。
+10.7 本节新增原始存档（均在 Benchmark/validation/baseline/raw/perf-slotcall-opaque/）
+  meta.txt                                    命令、CWD、退出码、哈希、差异范围
+  batch-owner.txt                             目录与本构建目录的绑定
+  run1.stdout.txt / run2.stdout.txt           console 原始输出（Out-File -Encoding utf8 写出，
+                                              带 UTF-8 BOM，比原始字节多 3 字节）
+  report-after-run1.txt / report-after-run2.txt  两次运行的 report.txt 副本
+  run1.stdout-as-file.txt / run2.stdout-as-file.txt  按 CRLF 补末尾换行的 console 副本（无 BOM，
+                                              用于逐字节比较：与 report 副本哈希一致）
+  objdump-Benchmark-TU-kernel_performance.obj.txt    修正后 TU 反汇编
+  objdump-Benchmark.exe-full.txt                     修正后 exe 全量反汇编
+  msvc-syntax-check.bat / kernel_performance.msvc.obj  MSVC 单 TU 编译检查（exit 0，
+                                              1241EA24CB0670521738CF225C4B18B8E00EAA7A1DC3B9D33A2A6D328BF56F14，不链接）
+================================================================================

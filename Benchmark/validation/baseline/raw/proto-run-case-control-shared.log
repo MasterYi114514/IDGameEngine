@@ -1,0 +1,7 @@
+COMMAND: F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin\FixtureCaseControls.exe
+CWD: F:\IDGameEngine\cmake-build-protoshared\Benchmark\validation\prototype\out\bin
+EXE_SHA256: C33E38CAEBE84DFC9594A42FD90F452EF84DE42F0B6AFBA0572C7A07D2C802E3
+EXIT: 0
+SECONDS: 0.073
+
+fixture-case-controls: PASS

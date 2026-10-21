@@ -1,0 +1,79 @@
+﻿== files ==
+F:\IDGameEngine\cmake-build-protostatic-dbg\Benchmark\validation\prototype\out\bin\FixturePrototype.exe 421964 2026-10-19T17:18:16.3924282+08:00
+F:\IDGameEngine\cmake-build-protostatic-dbg\Benchmark\validation\prototype\out\bin\FixtureZeroPrototype.exe 233802 2026-10-19T17:18:17.1754145+08:00
+F:\IDGameEngine\cmake-build-protostatic-dbg\Benchmark\validation\prototype\out\lib\libIDFixtureAlpha.a 36224 2026-10-19T17:18:14.9077682+08:00
+F:\IDGameEngine\cmake-build-protostatic-dbg\Benchmark\validation\prototype\out\lib\libIDFixtureAssembly.a 100256 2026-10-19T17:18:15.9080438+08:00
+F:\IDGameEngine\cmake-build-protostatic-dbg\Benchmark\validation\prototype\out\lib\libIDFixtureBeta.a 35124 2026-10-19T17:18:15.3601266+08:00
+
+== nm --defined-only FixturePrototype.exe (filtered) ==
+000000014000329d T FixtureAlphaHeapProbe
+000000014000328f T FixtureAlphaKernelInstance
+0000000140003318 T FixtureAlphaOnInit
+0000000140003302 T FixtureAlphaOnRegister
+0000000140003332 T FixtureAlphaOnShutdown
+0000000140003348 T FixtureAlphaOnUnload
+0000000140003275 T FixtureAlphaPublish
+0000000140003282 T FixtureAlphaState
+000000014000314b T FixtureBetaHeapProbe
+000000014000313d T FixtureBetaKernelInstance
+00000001400031c6 T FixtureBetaOnInit
+00000001400031b0 T FixtureBetaOnRegister
+000000014000322c T FixtureBetaOnShutdown
+0000000140003242 T FixtureBetaOnUnload
+0000000140003130 T FixtureBetaState
+0000000140001750 T FixtureProductStart
+00000001400017f9 T FixtureProductStop
+
+== nm -u (undefined operator new/delete) ==
+
+== operator new/delete definition count ==
+count=0
+
+== ar members ==
+-- libIDFixtureAlpha.a
+FixtureAlphaModule.cpp.obj
+-- libIDFixtureAssembly.a
+FixturePlan.cpp.obj
+FixtureDeterminism.cpp.obj
+FixtureProductEntry.cpp.obj
+-- libIDFixtureBeta.a
+FixtureBetaModule.cpp.obj
+
+== objdump -p imports ==
+	DLL Name: KERNEL32.dll
+	DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+	DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+	DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+	DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+	DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+	DLL Name: api-ms-win-crt-math-l1-1-0.dll
+	DLL Name: api-ms-win-crt-private-l1-1-0.dll
+	DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+	DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+	DLL Name: api-ms-win-crt-string-l1-1-0.dll
+	DLL Name: libstdc++-6.dll
+
+== nm -C --defined-only | operator new/delete ==
+defined_count=16
+0000000140003033 T operator delete[](void*)
+00000001400030bb T operator delete[](void*, std::align_val_t)
+0000000140003075 T operator delete[](void*, unsigned long long)
+0000000140003105 T operator delete[](void*, unsigned long long, std::align_val_t)
+0000000140003014 T operator delete(void*)
+0000000140003098 T operator delete(void*, std::align_val_t)
+0000000140003052 T operator delete(void*, unsigned long long)
+00000001400030de T operator delete(void*, unsigned long long, std::align_val_t)
+0000000140002f03 T operator new[](unsigned long long)
+0000000140002f4d T operator new[](unsigned long long, std::nothrow_t const&)
+0000000140002f9a T operator new[](unsigned long long, std::align_val_t)
+0000000140002fea T operator new[](unsigned long long, std::align_val_t, std::nothrow_t const&)
+0000000140002ee0 T operator new(unsigned long long)
+0000000140002f26 T operator new(unsigned long long, std::nothrow_t const&)
+0000000140002f74 T operator new(unsigned long long, std::align_val_t)
+0000000140002fc0 T operator new(unsigned long long, std::align_val_t, std::nothrow_t const&)
+
+== nm -C -u | operator new/delete ==
+undefined_count=0
+
+== sha256 ==
+25005D5F85B5F8E4338D36E4AA2E66053D024DCF05047DFF42457FC0446AC43B  F:\IDGameEngine\cmake-build-protostatic-dbg\Benchmark\validation\prototype\out\bin\FixturePrototype.exe

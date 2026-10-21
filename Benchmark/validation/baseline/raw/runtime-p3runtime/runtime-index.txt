@@ -1,0 +1,28 @@
+# P3 运行期 PluginRuntime 用例批次索引（RunRuntimeCases.cmake 自动写入）
+# 判定：两条探针 exit == 0 && 主矩阵 exit == 0 && [FAIL] == 0 && [SKIP] == 0
+#       && 每组 PASS >= 3 && 主矩阵 console == out/report.txt 且 report 被覆盖写
+#       && 官方 Benchmark/report.txt 前后 hash 不变 && 驱动器自检通过
+MODE            : runtime-p3runtime
+BUILD_DIR       : F:/IDGameEngine/cmake-build-p3runtime
+BUILD_TYPE      : Release
+STARTED         : 2026-10-19 22:11:16
+FINISHED        : 2026-10-19 22:11:16
+PROBE           : zero_null_shutdown|exit=Illegal instruction|logs=probe-zero-null-stdout.log,probe-zero-null-stderr.log
+PROBE           : zero_null_records_shutdown|exit=0|logs=probe-zero-null-records-stdout.log,probe-zero-null-records-stderr.log
+MATRIX_EXIT     : 0
+PASSED          : 239
+FAILED          : 0
+SKIPPED         : 0
+GROUPS          : lifecycle=7 zero=7 initfail=33 register=41 state=18 slot=31 upstream=12 plan=86 
+GROUP_TOTAL     : 235
+CONSOLE_EQUALS_REPORT : TRUE
+REPORT_TIME     : 2026-10-19 22:11:16
+REPORT_HASH_BEFORE : ba7fe16cba26495f62bfb7d20bce1ce3b0cec3ddd2a237be3ffa4b69fccc8e75
+REPORT_HASH_AFTER  : 8e948e7c63b0b29eaa1bc3298c7e8fada505ac21e5e809c7f5560310aaadf71f
+METRICS         : 0
+UNGRADED        : 0
+OFFICIAL_REPORT_BEFORE : present aeec8d5bfef746684a87adde790bbcd5c37a3f896d7303b126859af9184ea224
+OFFICIAL_REPORT_AFTER  : present aeec8d5bfef746684a87adde790bbcd5c37a3f896d7303b126859af9184ea224
+SELFCHECK_FAIL_REGEX   : fail_hits=1 pass_false_positive=0
+MATRIX_STDERR_ASSERT   : -1
+LOGS            : run-stdout.log run-stderr.log run-meta.txt

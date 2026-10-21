@@ -5,12 +5,18 @@
 
 #include "Kernel/Memory.hpp"
 #include "Kernel/Plugin.hpp"
+#include "Kernel/PluginRuntime.hpp"
 
 /**
  *  ID.Kernel 性能基准：Slab 小对象、大对象页、服务槽查表 + 间接调用
  *  1. 每条指标都在同一轮、同一进程内测出对照实现（os-baseline），参考值 = 对照值 × 目标倍数；
  *  2. 单轮目标 100 ms，共 5 轮取中位数；极差超过 20% 时在 note 里标 unstable；
- *  3. 防优化：迭代结果在计时结束之后才交给 KeepAlive，绝不留"没人用"的局部变量。
+ *  3. 防优化：迭代结果在计时结束之后才交给 KeepAlive，绝不留"没人用"的局部变量；
+ *  4. 服务槽读取走运行期 `PluginRuntime::get_service`（P4 起不再使用 PluginManager 的旧槽表）：
+ *     槽表由计划里的唯一 owner 在自己的 on_register 发布、on_unload 注销，与产品路径一致；
+ *  5. 服务槽指标的被测表达式与对照表达式都把函数指针经 `opaque_target` 过一次编译器屏障：
+ *     否则 GCC 会把 `table->mix(...)` 推测性去虚拟化成"守卫 + 内联目标"，实测循环的默认
+ *     路径就没有间接调用，读数也就不再代表"一次固定槽 load + 一次间接调用"。
  */
 
 namespace
@@ -233,7 +239,9 @@ namespace
 
     struct ApiTable
     {
-        ID::uint32_t (*mix)(ID::uint32_t) noexcept;
+        using TargetFn = ID::uint32_t (*)(ID::uint32_t) noexcept;
+
+        TargetFn mix;                                        // 唯一成员：被测的唯一一次间接调用目标
     };
 
     ID::uint32_t mix_round(ID::uint32_t value) noexcept
@@ -243,19 +251,101 @@ namespace
 
     constexpr ApiTable kServiceTable{ &mix_round };
 
-    // 对照实现：volatile 全局表指针，强制每轮真的重新 load 一次并走间接调用，目标对编译器不可知
+    /**
+     *  @brief 把已 load 的函数指针过一次空屏障，让优化器不再知道它的值
+     *  @param fn 从服务表成员里读出的目标函数指针（调用前求值，不受屏障影响）
+     *  @return 同一个指针
+     *  @note 只用于本文件的被测/对照表达式。表对象是本 TU 的 constexpr 常量，GCC 会据此把
+     *        `table->mix(...)` 推测性去虚拟化成 `cmp 守卫 + 内联 mix_round`，`call *%rdx`
+     *        只留在守卫失败分支；那样实测默认路径就没有间接调用（证据见
+     *        validation/perf-getservice-evidence.txt 第 4 节与第 10 节）。寄存器输入输出的空
+     *        asm 屏障是唯一在本构建参数下稳定、且 LTO 下同样有效的做法：跨 TU 常量不可见只在
+     *        非 LTO 构建成立。
+     */
+    ID_FORCEINLINE ApiTable::TargetFn opaque_target(ApiTable::TargetFn fn) noexcept
+    {
+        #if defined(_MSC_VER)
+            // MSVC/x64 没有内联汇编：用 volatile 局部对象强制一次真实 load，
+            // 优化器不能把已知值直接传下去（MSVC 分支未做反汇编核对）
+            volatile ApiTable::TargetFn hidden = fn;
+            return hidden;
+        #else
+            asm volatile("" : "+r"(fn));
+            return fn;
+        #endif
+    }
+
+    // ---- 运行期计划：单插件，唯一 owner 发布槽位 Math ----
+    // 与产品路径一致：槽只在 owner 的 on_register 发布、on_unload 注销，计划数据是静态存储期常量
+    void publish_benchmark_table() noexcept
+    {
+        static_cast<void>(ID::PluginRuntime::instance().publish_service(
+            static_cast<ID::uint32_t>(ID::ServiceSlot::Math), &kServiceTable));
+    }
+
+    void revoke_benchmark_table() noexcept
+    {
+        static_cast<void>(ID::PluginRuntime::instance().revoke_service(
+            static_cast<ID::uint32_t>(ID::ServiceSlot::Math)));
+    }
+
+    inline constexpr ID::PluginRuntimeCallbacks kServiceCallbacks{
+        &publish_benchmark_table, nullptr, nullptr, &revoke_benchmark_table };
+
+    inline constexpr ID::PluginRuntimeRecord kServiceRecord{
+        .name      = "Bench.Kernel.ServiceHost",
+        .plugin_id = ID::hash_fnv_1a64("Bench.Kernel.ServiceHost"),
+        .callbacks = kServiceCallbacks
+    };
+
+    inline constexpr ID::uint16_t kServiceTopo[1] = { 0 };
+
+    inline constexpr ID::PluginRuntimeProvision kServiceProvisions[1] = {
+        { .capability = "bench.kernel.math", .api_revision = 1, .plugin_index = 0,
+          .slot = static_cast<int16_t>(ID::ServiceSlot::Math) }
+    };
+
+    struct ServiceSlotOwners
+    {
+        ID::uint16_t cells[ID::PluginRuntime::kMaxSlots];
+
+        constexpr ServiceSlotOwners() noexcept
+            : cells{}
+        {
+            for (ID::size_t slot = 0; slot < ID::PluginRuntime::kMaxSlots; ++slot)
+            {
+                cells[slot] = ID::kNoIndex;
+            }
+            cells[static_cast<ID::size_t>(ID::ServiceSlot::Math)] = 0;
+        }
+    };
+
+    inline constexpr ServiceSlotOwners kServiceOwners{};
+
+    inline constexpr ID::PluginRuntimePlanView kServicePlan{
+        .plugin_count    = 1,
+        .provision_count = 1,
+        .records         = &kServiceRecord,
+        .topo_order      = kServiceTopo,
+        .provisions      = kServiceProvisions,
+        .slot_owner      = kServiceOwners.cells
+    };
+
+    // 对照实现：volatile 全局表指针，强制每轮真的重新 load 一次并走间接调用。
+    // 光靠 volatile 不够：GCC 仍会对已知目标做守卫式去虚拟化，所以目标指针同样过 opaque_target
     constinit const ApiTable* volatile g_control_table = &kServiceTable;
 
     struct SlotLookupCall
     {
         void operator()(ID::size_t iters) const noexcept
         {
-            ID::PluginManager& manager     = ID::PluginManager::instance();
-            ID::uint32_t       accumulator = 0;
+            const ID::PluginRuntime& runtime = ID::PluginRuntime::instance();
+            ID::uint32_t             accumulator = 0;
             for (ID::size_t i = 0; i < iters; ++i)
             {
-                const ApiTable* table = manager.get_service<ApiTable>(ID::ServiceSlot::Math);
-                accumulator += table->mix(static_cast<ID::uint32_t>(i));
+                const ApiTable*          table = runtime.get_service<ApiTable>(ID::ServiceSlot::Math);
+                const ApiTable::TargetFn mix   = opaque_target(table->mix);
+                accumulator += mix(static_cast<ID::uint32_t>(i));
             }
             ID::Bench::KeepAlive(&accumulator);
         }
@@ -268,8 +358,9 @@ namespace
             ID::uint32_t accumulator = 0;
             for (ID::size_t i = 0; i < iters; ++i)
             {
-                const ApiTable* table = g_control_table;
-                accumulator += table->mix(static_cast<ID::uint32_t>(i));
+                const ApiTable*          table = g_control_table;
+                const ApiTable::TargetFn mix   = opaque_target(table->mix);
+                accumulator += mix(static_cast<ID::uint32_t>(i));
             }
             ID::Bench::KeepAlive(&accumulator);
         }
@@ -280,9 +371,16 @@ namespace ID::Bench
 {
     void IDKernelPerformanceTest() noexcept
     {
-        // 服务槽必须先绑定，否则查表取到 nullptr
-        ID::PluginManager& manager = ID::PluginManager::instance();
-        manager.register_service(ID::ServiceSlot::Math, &kServiceTable);
+        // 服务槽必须先由计划里的 owner 发布，否则查表取到 nullptr。
+        // 只有失败才输出判定行：健康路径不往指标表里插 PASS 行，失败则明确报错并计入退出码
+        ID::PluginRuntime&                runtime = ID::PluginRuntime::instance();
+        const ID::PluginRuntimeDiagnostic started = runtime.start(kServicePlan);
+        if (!started.is_ok())
+        {
+            ID::Bench::Check(false, "perf.service_plan.start",
+                             "计划内的唯一 owner 必须发布槽位并进入 Ready，服务槽指标才有意义");
+            return;
+        }
 
         // ---------- 小对象 16B：对照 std::malloc(16) ----------
         {
@@ -321,9 +419,17 @@ namespace ID::Bench
             const double    control_ns = measure(control_call).median_ns;
             const Sample    slot       = measure(slot_call);
             record("plugin.service_lookup_and_call", slot, control_ns * 1.2, "os-baseline",
-                   "同轮 volatile 全局函数表指针 + 间接调用实测；目标倍数 1.2（多一次槽位数组 load ≈ L1 4-5 cycles）");
+                   "被测路径 = get_service 一次固定槽 load + 表成员 load + 一次真间接调用，"
+                   "对照 = 同轮 volatile 全局表指针 + 同样一次真间接调用（两侧函数指针都过空 asm 屏障，"
+                   "GCC 不能去虚拟化）；目标倍数 1.2（多一次槽位数组 load ≈ L1 4-5 cycles）");
         }
 
-        manager.register_service(ID::ServiceSlot::Math, nullptr);
+        // 关闭：on_unload 注销自己发布的槽，关闭后槽表必须为空；失败同样只输出判定行
+        const ID::PluginRuntimeDiagnostic stopped = runtime.shutdown();
+        if (!stopped.is_ok())
+        {
+            ID::Bench::Check(false, "perf.service_plan.shutdown",
+                             "运行期关闭必须回到 Idle 并清空槽位");
+        }
     }
 } // namespace ID::Bench

@@ -1,0 +1,17 @@
+MODE            : runtime-p5-runtime
+BUILD_DIR       : F:/IDGameEngine/cmake-build-p5-runtime
+BATCH_CWD       : F:/IDGameEngine/cmake-build-p5-runtime/Benchmark/validation/runtime
+BUILD_TYPE      : Release
+MONOLITHIC      : OFF
+GENERATOR       : MinGW Makefiles
+CXX             : D:/Code/Environment/MinGW/mingw64/bin/c++.exe
+CXX_ID          : GNU 16.2.0
+DRIVER          : F:/IDGameEngine/Benchmark/validation/runtime/cmake/RunRuntimeCases.cmake
+EXE             : F:/IDGameEngine/cmake-build-p5-runtime/Benchmark/validation/runtime/out/bin/PluginRuntimeCases.exe
+REPORT          : F:/IDGameEngine/cmake-build-p5-runtime/Benchmark/validation/runtime/out/report.txt
+OFFICIAL_REPORT : F:/IDGameEngine/Benchmark/report.txt
+STARTED         : 2026-10-19 23:30:16
+FINISHED        : 2026-10-19 23:30:16
+PROBE_NULL_EXIT          : 0
+PROBE_NULL_RECORDS_EXIT  : 0
+MATRIX_EXIT     : 0

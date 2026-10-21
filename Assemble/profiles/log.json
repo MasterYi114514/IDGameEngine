@@ -1,0 +1,7 @@
+{
+    "schema_version": 1,
+    "assembly_name": "log",
+    "enabled_plugins": [
+        "ID.Log"
+    ]
+}

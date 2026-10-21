@@ -1,0 +1,26 @@
+MODE: production-p5-production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p5-production
+CWD: F:/IDGameEngine/cmake-build-p5-production/Benchmark/validation/production
+TARGET: production_expect_name_internal_nul
+EXPECTED_MARKER: InvalidName
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p5-production/Benchmark/validation/production --target production_expect_name_internal_nul
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[ 75%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_name_internal_nul.dir/src/cases/case_name_internal_nul.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_name_internal_nul.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:945:101: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:InvalidName
+  945 |     static_assert(::ID::Bench::Production::error_differs<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_name_internal_nul.cpp:38:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   38 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, InvalidName);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_name_internal_nul.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_name_internal_nul.dir/src/cases/case_name_internal_nul.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:2027: Benchmark/validation/production/CMakeFiles/production_expect_name_internal_nul.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:2034: Benchmark/validation/production/CMakeFiles/production_expect_name_internal_nul.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:849: Benchmark/validation/production/CMakeFiles/production_expect_name_internal_nul.dir/rule] Error 2
+

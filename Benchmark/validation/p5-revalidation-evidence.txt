@@ -1,0 +1,434 @@
+================================================================================
+P5 全量复验证据：P0–P5 校验资产在“旧运行期 API 已退役”后的真实重建与复跑
+================================================================================
+性质：实测证据记录（不是设计文档，也不是 Benchmark 报告）。
+      本文每个结论都来自本轮真实 configure / build / 运行；静态推断与实测严格分开，
+      未跑的项目在最后一节逐条列出，不写成“通过”。
+
+环境（本轮全部实测）：
+  OS          : Windows（PowerShell 5.1 调用，CWD 见每节）
+  编译器      : GCC 16.2.0（MinGW-w64 x86_64-posix-seh），D:/Code/Environment/MinGW/mingw64/bin/c++.exe
+  CMake       : 4.4.4，生成器 MinGW Makefiles
+  CPU         : 13th Gen Intel(R) Core(TM) i7-13700
+  构建基线    : CMAKE_BUILD_TYPE=Release（第 6 节的 dev 预设例外，它是 Debug 预设）
+                ID_MONOLITHIC_BUILD=OFF（除第 5 节静态原型）、ID_ENABLE_AVX2=ON、
+                ID_ASSEMBLY_PROFILE 默认空（只有第 6/7 节按预设启用 default）
+  git HEAD    : ada3b40（工作树有内核 owner 的本轮未提交改动，本文只读被测实现）
+
+本轮可写范围：只写 Benchmark/**。未修改 ID/**、Assemble/**、IDPlugin/**、Sandbox/**、
+  根 CMakeLists.txt、cmake/**、工作台与 skills/**；未提交、未推送、未派 subagent。
+生成物（非源码，均在被 .gitignore 忽略的构建目录内）：
+  F:\IDGameEngine\cmake-build-p5-release、-runtime、-production、-assembly、
+  -protoshared、-protostatic、-consumer、-ship-install、F:\IDGameEngine\build\{dev,ship}
+
+--------------------------------------------------------------------------------
+1. kernel-p4 迁移后的主 suite（官方 Benchmark）：Release，跑两次
+--------------------------------------------------------------------------------
+1.1 配置与构建（CWD = F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-release
+        -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release                 -> exit 0
+  cmake --build F:\IDGameEngine\cmake-build-p5-release --target Benchmark --parallel
+                                                                        -> exit 0
+  告警：构建日志里 warning:/error: 命中 0 行。
+  raw: Benchmark/validation/baseline/raw/kernel-p5-release/{configure.log, build.log}
+
+1.2 运行（可执行文件 F:\IDGameEngine\cmake-build-p5-release\out\shared\bin\Benchmark.exe）
+  run1  CWD = F:\IDWorkbench                    exit 0  stdout 12045 B  stderr 0 B
+  run2  CWD = <build>\out\shared\bin            exit 0  stdout 12045 B  stderr 0 B
+  console == report.txt：两次都逐字节相等
+        run1 stdout/report SHA256 6D1EFFB07B235651B66E8A74BFE987C33A1D574399195E693B44BF08A47689CB
+        run2 stdout/report SHA256 32BBCB1DFF16100AC914B107A549FF485EC313327AD77BEF7051F60F2C7CDF5E
+  报告单文件覆盖：Benchmark 下 report*.txt 始终只有 1 个（report.txt）；
+        run1 与 run2 的 report 哈希不同（时间戳 + 指标值），证明是覆盖写而不是追加。
+  CWD 无关性：run2 从构建目录运行，report 仍落在 Benchmark/report.txt（宏注入的绝对路径）。
+  raw: .../raw/kernel-p5-release/{run1.stdout.txt, run1.stderr.txt, report-after-run1.txt,
+       run2.stdout.txt, run2.stderr.txt, report-after-run2.txt}
+
+1.3 计数（两次运行相同）
+  报告头 8 行：compiler GCC 16.2.0；build Release | LTO=OFF | AVX2=ON | MONOLITHIC=OFF；
+                timer QPC (freq=10000000, resolution=100 ns) | affinity=core 0；cpu i7-13700
+  ID.Kernel — Security ：102 passed / 0 failed / 6 skipped
+  ID.Kernel — Performance：4 metrics，world-class=2 excellent=1 good=1 fair/poor/terrible/ungraded=0
+  SUMMARY / exit code   ：0（两次都是 0）
+  两次报告 diff 只有 5 行：generated 时间戳 1 行 + 4 条指标实测值；等级分布完全相同，不跳档。
+
+1.4 逐项 skip 理由（6 条，全部不是“可返回错误却跳过”）
+  1) log.assert_dispatch            report_assert 最终走 Level::Fatal -> abort，需子进程隔离
+  2) log.set_sink_nullptr           set_sink(nullptr) 走 report_assert -> abort，需子进程隔离
+  3) memory.free.interior_pointer   契约是破坏空闲链（UB），不是可返回错误
+  4) memory.free.double_free        契约是破坏空闲链
+  5) memory.large.magic_collision   64KB 对齐大对象页首 magic 误判是已知缺口（id-kernel K1），修复前不测
+  6) runtime.slot.concurrent_write  新契约不提供并发写：publish/revoke 只允许在宿主控制线程的生命周期回调内
+
+--------------------------------------------------------------------------------
+2. validation/runtime（P3）：278 用例复跑
+--------------------------------------------------------------------------------
+2.1 配置 / 构建 / 驱动器（CWD = F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-runtime
+        -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_BUILD_VALIDATION_RUNTIME=ON                                -> exit 0
+  cmake --build F:\IDGameEngine\cmake-build-p5-runtime --target PluginRuntimeCases --parallel
+                                                                        -> exit 0（0 warning/error）
+  cmake --build F:\IDGameEngine\cmake-build-p5-runtime --target PluginRuntimeCasesRun
+                                                                        -> exit 0
+  驱动器判定行：两条零插件探针 exit 0，主矩阵 exit 0，passed=278，failed=0，skipped=0，
+                groups=lifecycle=7 zero=14 initfail=33 register=41 state=18 slot=31
+                       upstream=12 plan=86 provision=32，console==report.txt
+
+2.2 复核项（本轮实测）
+  零插件空视图：两条独立进程探针（records/topo_order/slot_owner 全 nullptr；以及全空视图）均 exit 0
+  kNoSlot（无运行期槽位能力）：含 no_slot 的 PASS 行 14 条
+  混合 provision（kNoSlot + 有槽）：含 provision 的 PASS 行 68 条，provision 组 32 条 PASS
+  报告：CONSOLE_EQUALS_REPORT=TRUE；报告写在本构建目录的 out/，官方 Benchmark/report.txt
+        前后哈希不变（32bbcbd1… -> 32bbcbd1…），METRICS=0
+  stderr：只有 2 行预期冷路径诊断（ServiceOwnerMismatch 越权注销、ServicePublishRejected Ready 期间发布）
+  raw: Benchmark/validation/baseline/raw/runtime-p5-runtime/
+       {configure.log, build.log, driver.log, runtime-index.txt, run-stdout.log, run-stderr.log,
+        run-meta.txt, probe-zero-null-*.log, probe-zero-null-records-*.log, batch-owner.txt}
+
+--------------------------------------------------------------------------------
+3. validation/production（P1）：70 反向 + 70 合法对照 + 6 正向 + 4 自检
+--------------------------------------------------------------------------------
+3.1 配置与驱动器（CWD = F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-production
+        -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_BUILD_VALIDATION_PRODUCTION=ON                             -> exit 0
+  cmake --build ... --target ProductionNegativeCases                     -> exit 0
+
+3.2 计数（negative-index.txt 原值）
+  PASSED 70 / FAILED 0 / EXPECTED_TOTAL 70（每条按“exit!=0 + status 失败断言恰好 1 + 含 EXPECTED:<类别>
+  + 不含 MISMATCH”判定）
+  LEGAL  IDProductionLegalCases     exit 0（70 个合法分支在编译期 static_assert 通过，链接进对照 exe）
+  POSITIVE IDProductionPositiveCases exit 0；注册核对 positive_basics/graph/ownership/permutation/
+           storage/uneven 共 6 个 TU，RESULT: TRUE
+  CONTROL_RUN ProductionCaseControls exit 0 → 6 条正向探针 + production_schema 共 7 passed / 0 failed
+  SELF_CHECKS 4 条全部生效：
+           wrong_expectation=MISMATCH-rejected、aux_assert_failure=assert-count-rejected、
+           missing-positive=registration-rejected、mutated-positive-assert=assert-rejected
+  raw: Benchmark/validation/baseline/raw/production-p5-production/
+       {configure.log, driver.log, negative-index.txt, negative-*.log × 70 + 2 自检,
+        legal-objects.log, positive-objects.log, positive-registration.log, control-run.log,
+        control-link-inputs.log, selfcheck-*.log, batch-owner.txt}
+
+3.3 常量求值预算档（按现状如实记录，未重跑全部压力档）
+  本轮重跑：
+    production_scale_128x32x1        （默认预算 33554432，带完整证据）exit 0，墙钟 5.8 s
+    production_scale_target_128x32x16（有限档 -fconstexpr-ops-limit=184549376）exit 0，墙钟 41.5 s
+    raw: production-p5-production/{scale-128x32x1.log, scale-target-128x32x16.log}
+  其余档引用既有 raw（未在本轮重跑，标注为历史测量）：
+    Benchmark/validation/baseline/raw/production-p1production/r2-scale-matrix.txt
+    默认预算 33554432 下：active_128 / 32x32x1 / 128x32x1 通过；
+      plan_only_128x32x1、128x32x2/4/8、limit_128x32x16、plan_only_128x32x16 超限失败（位置见该文件）；
+    有限档：2/4/8 候选 @134217728 通过；16 候选二分到 184549376 才通过，184549376 为实测最小可通过档。
+  可引用性核对：本轮实测 PluginCompileTime.hpp SHA256
+    44416C713DC383E069EC0F9853521F28BE0BE5206653CFBA83E19781406B9527 与上述矩阵记录的被测头哈希
+    完全相同（即被测量的常量求值算法未变）；Plugin.hpp 哈希已变化（文档/门面重写），
+    因此该矩阵的"成本"结论仍适用于当前头，但其行号定位若与 Plugin.hpp 相关则可能漂移。
+
+--------------------------------------------------------------------------------
+4. validation/assembly（P2）：STATIC/SHARED/zero 各构建运行 + Smoke 行数事实
+--------------------------------------------------------------------------------
+4.1 配置与驱动器（CWD = F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-assembly
+        -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_BUILD_VALIDATION_ASSEMBLY=ON                               -> exit 0
+  cmake --build ... --target IDAssemblyValidationRun                    -> exit 2（批次判定未通过）
+  墙钟 40 s（四个变体各自 configure --clean-first build + Smoke 运行 + 8 类改坏证据反向编译 +
+  profile 切换 + 符号检查）。
+
+4.2 四个变体（assembly-index.txt 原值）
+  variant      mode    profile  configure / build / smoke / Smoke [PASS] 行数
+  shared       SHARED  default  0 / 0 / 0 / 4
+  static       STATIC  default  0 / 0 / 0 / 4
+  zero-shared  SHARED  zero     0 / 0 / 0 / 4
+  zero-static  STATIC  zero     0 / 0 / 0 / 4
+  其余判定全部通过（不是放宽，是原样实测）：
+    STATIC/SHARED selected 集合相同：IDFixtureApi;IDFixtureCore;IDFixtureMath
+    STATIC stems = IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath
+    SHARED stems = ID IDAssembly IDAssemblySmoke IDFixtureCore IDFixtureMath（多一份内核制品，属模式差异）
+    运行期绑定 TU SHA256 相同：9222cd45afe94fac0e0a3e028fd1eb5ac0e9291ea742967260a6ac0fefb1eb89
+    EVIDENCE_EQUAL=TRUE；legal/probe/validate 全 0
+    8 类改坏证据（provider/edge/identity/slot/selection/target/macro/runtime）全部按具体类别被拒，
+      且每条都带"错误类别不符则编译失败"的反向探针与同环境合法对照
+    profile 切换：noop 后 hash 与 mtime 都不变；to_zero 生成 zero-fixture 且证据 selected: 0；
+      back_to_default 生成头 hash 回到 a604645e…（与首次逐字相同）
+  raw: Benchmark/validation/baseline/raw/assembly-p5-assembly/{configure.log, driver.log, assembly-index.txt}
+       逐变体证据在 F:\IDGameEngine\cmake-build-p5-assembly\Benchmark\validation\assembly\work\
+       <variant>/{configure.log, build.log, smoke.log, variant-summary.txt, identity-macros.txt,
+                  link*.txt, symbols-*.txt, ...} 与 work/corrupt/**、work/profile-switch-summary.txt
+
+4.3 事实：Smoke 打印 4 行 [PASS]，驱动器要求恰好 3 行（既有不一致，本轮确认）
+  驱动器问题清单（4 条，每个变体一条）：
+    [shared] / [static] / [zero-shared] / [zero-static]
+      "IDAssemblySmoke 只打印了 4 行 [PASS]（要求 3）"
+  Smoke 实际输出（shared 与 zero-static 的 smoke.log 逐字相同）：
+    [PASS] start state=Ready
+    [PASS] host small new/delete completed (alloc and free succeeded)
+    [PASS] host large new/delete accounted by kernel stats (grew=1114112 bytes, released=1)
+    [PASS] shutdown state=Idle (code=None)
+  Smoke 进程 exit 0；也就是说"功能全 PASS"，失败点只有行数判据。
+  两侧现状（只陈述，不改断言）：
+    · 驱动器的判据写在 Benchmark/validation/assembly/cmake/RunAssemblyValidation.cmake
+      第 5 行注释（"Smoke 必须打印 3 行 [PASS]：start -> Ready、宿主 new/delete 走桩、
+      shutdown -> Idle"）与第 508-510 行断言（smoke_pass EQUAL 3）。
+    · 产品侧 Assemble/tests/consumer/AssemblySmoke.cpp 现在是 4 条断言：把小对象 new/delete 记为
+      "能分配释放"、把 >8KB 的 new 作为"内核记账"证据单列一行（第 72-80 行），因此比旧版多一行。
+    · 历史上它是 3 行：Benchmark/validation/assembly-p2-evidence.txt 第 114-120 行记录的
+      2026-10-19 22:34 那批是 0/0/0/3，三行文案含 "[PASS] host new/delete routed through IDPluginStub"。
+  结论（仅事实）：产品侧 Smoke 由 3 条断言扩为 4 条（文案也变了），Benchmark 侧驱动器仍固定要求 3 行，
+  因此批次必然以 exit 2 结束。改哪一侧属方案决策，本轮按要求只给事实，未改判据、未改 Smoke。
+  附带观察：当前判据只数 "[PASS]" 出现次数，既没有点名要求某条文案，也没有把旧文案
+  "routed through IDPluginStub" 纳入断言——即使把 3 改成 4，也不等于恢复了这条语义校验。
+  → 后续状态：该项已在本文末尾"附：P5 收口复验"里修复（改为逐条点名 + 判定器自检），本节保留为当时的实测记录。
+
+--------------------------------------------------------------------------------
+5. validation/prototype（P0）：修完 4 处旧 API 引用后可配置构建，28 反向用例 28/28
+--------------------------------------------------------------------------------
+5.1 修法（只动 Benchmark/validation/prototype 的 4 处探针 + 1 处注释）
+  4 处 `&ID::PluginManager::instance()` 全部改为 `&ID::PluginRuntime::instance()`，
+  头文件从 "Kernel/Plugin.hpp" 换成 "Kernel/PluginRuntime.hpp"。
+  理由：P4 退役后内核唯一运行期实例是 PluginRuntime（PluginManager 只剩三个 consteval 操作，
+  已不可实例化），探针语义"模块与宿主看到同一个内核实例"因此保持不变；
+  探针只取地址，不调用 start/shutdown，所以原型自己的四阶段绑定表（FixtureProductEntry.cpp）
+  与 28 条反向用例的期望一字未改。
+  受影响文件：
+    Benchmark/validation/prototype/src/apps/PrototypeMain.cpp                   00B54E604E77EFC0  67 行
+    Benchmark/validation/prototype/src/apps/ZeroPluginMain.cpp                  BD681BAEB2A26F62  33 行
+    Benchmark/validation/prototype/plugins/fixture_alpha/src/FixtureAlphaModule.cpp 8849710B0ACC1625  74 行
+    Benchmark/validation/prototype/plugins/fixture_beta/src/FixtureBetaModule.cpp   F90A230EE3889D8D  80 行
+    Benchmark/validation/prototype/include/FixtureAlphaApi.hpp                  C3AA1B18B36AEA71  59 行（@return 注释）
+  输出文案同步：kernel-instance 行由 "(legacy ID::PluginManager singleton, PluginRuntime not implemented
+  in P0)" 改为 "(ID::PluginRuntime singleton)"——这是探针对象改变的必然结果，不是放宽判定。
+
+5.2 SHARED 原型（CWD = F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-protoshared
+        -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_BUILD_VALIDATION_PROTOTYPE=ON                              -> exit 0
+        （配置输出：产品选择 ID.Fixture.Alpha;ID.Fixture.Beta；链接边 IDFixtureBeta|IDFixtureAlpha）
+  cmake --build ... --target FixturePrototype FixtureZeroPrototype FixtureCaseControls --parallel
+                                                                        -> exit 0（0 warning/error）
+  运行（CWD = 原型 out\bin）：
+    FixturePrototype      exit 0 → "kernel-instance: host=00007ffadb0fb040 alpha=00007ffadb0fb040
+                                   beta=00007ffadb0fb040 shared=yes (ID::PluginRuntime singleton)"
+                                   "fixture-prototype: PASS"
+    FixtureZeroPrototype  exit 0 → "fixture-zero-plugin: PASS"
+    FixtureCaseControls   exit 0 → "fixture-case-controls: PASS"
+  28 条反向用例：
+    cmake --build ... --target FixtureNegativeCases                     -> exit 0
+    negative-index.txt：PASSED 28 / FAILED 0；LEGAL_CONTROL IDFixtureLegalCases exit 0；
+    两个驱动器自检都被按预期拒绝（wrong_expectation=MISMATCH、aux_assert_failure=断言数=2）
+  逐条判定都是 "exit 2 + 恰好 1 条静态断言失败 + 含 EXPECTED:<类别> + 不含 MISMATCH"，
+  28 条期望类别与改动前完全一致（self_dependency … name_first_char）。
+  raw: Benchmark/validation/baseline/raw/p5-protoshared/
+       {configure.log, build.log, negative-driver.log, negative-index.txt, negative-*.log × 28 + 2,
+        FixturePrototype.*.txt, FixtureZeroPrototype.*.txt, FixtureCaseControls.*.txt, batch-owner.txt}
+
+5.3 STATIC 归并原型（CWD = F:\IDWorkbench）
+  cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-protostatic
+        -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+        -DID_BUILD_VALIDATION_PROTOTYPE=ON -DID_MONOLITHIC_BUILD=ON      -> exit 0
+  cmake --build ... --target FixturePrototype FixtureZeroPrototype --parallel -> exit 0
+  FixturePrototype exit 0（三处地址相等，同一 PluginRuntime 实例）、FixtureZeroPrototype exit 0
+  raw: Benchmark/validation/baseline/raw/p5-protostatic/{configure.log, build.log, *.stdout.txt}
+
+--------------------------------------------------------------------------------
+6. 新 preset 产物：dev-mingw 的 Sandbox、ship-mingw 的 target 集合
+--------------------------------------------------------------------------------
+6.1 dev-mingw（CWD = F:\IDGameEngine）
+  cmake --preset dev-mingw                                              -> exit 0
+        assembly[default-fixture] selected targets: IDFixtureApi;IDFixtureCore;IDFixtureMath
+        generated: F:/IDGameEngine/build/dev/Assemble/generated/default-fixture
+  cmake --build build/dev --target Sandbox --parallel                   -> exit 0（本轮首跑为 up-to-date）
+  为取得本轮真实编译证据，删除 Sandbox 的 main.cpp.obj 后重建：
+  cmake --build build/dev --target Sandbox --parallel                   -> exit 0
+        （重编 + 重链 + 复制 ID 内核与两个选中插件 DLL 到 exe 旁）
+  运行（CWD = build\dev\out\shared\bin）：
+    Sandbox.exe exit 0 → "[Sandbox] product started (state=Ready)" / "[Sandbox] product stopped (state=Idle)"，
+    stderr 空。只做 start/shutdown，未跑任何额外测量。
+  raw: Benchmark/validation/baseline/raw/p5-presets/
+       {configure-dev-mingw.log, build-dev-sandbox.log, rebuild-dev-sandbox.log,
+        sandbox.stdout.txt, sandbox-after-rebuild.stdout.txt, sandbox*.stderr.txt}
+
+6.2 ship-mingw（CWD = F:\IDGameEngine）
+  cmake --preset ship-mingw                                             -> exit 0
+  cmake --build build/ship --parallel                                   -> exit 0（0 warning/error）
+  cmake --build build/ship --target help                                -> exit 0
+        target 总数 15：all / clean / depend / edit_cache / install / install/local /
+        install/strip / list_install_components / rebuild_cache / ID / IDAssembly /
+        IDAssemblyValidate / IDFixtureCore / IDFixtureMath / IDPluginStub
+        匹配 Sandbox|Benchmark|Validation|IDAssemblySmoke|PluginRuntimeCases 的行：0
+        （IDAssemblyValidate 是默认构建的静态门控，属产品验证而非游戏/测试目标）
+  产物：build/ship/out/shared/{bin,lib} 与 build/ship/Assemble/out/{bin,lib}；
+        IDBuildInfo.txt：assembly default-fixture / mode shared / configuration Release / ipo false
+  raw: Benchmark/validation/baseline/raw/p5-presets/{configure-ship-mingw.log, build-ship.log,
+       ship-target-help.log}
+
+--------------------------------------------------------------------------------
+7. 安装消费：ship 安装到临时前缀，独立构建目录 find_package 消费
+--------------------------------------------------------------------------------
+7.1 安装（CWD = F:\IDGameEngine）
+  cmake --install build/ship --prefix F:\IDGameEngine\cmake-build-p5-ship-install\prefix
+                                                                        -> exit 0
+  安装树（节选）：bin/{libID.dll, libIDFixtureCore.dll, libIDFixtureMath.dll}
+                 include/ID/**（公开内核头）、include/IDGameEngine/**（产品入口 + 生成头 + 插件能力头）
+                 lib/{libID.dll.a, libIDAssembly.a, libIDFixture*.dll.a, libIDPluginStub.a}
+                 lib/cmake/IDGameEngine/{IDGameEngineConfig.cmake, IDGameEngineConfigVersion.cmake,
+                                         IDGameEngineTargets.cmake, IDGameEngineTargets-release.cmake}
+                 share/IDGameEngine/assemblies/default-fixture/{ProductManifest.txt, product-profile.json}
+  raw: Benchmark/validation/baseline/raw/p5-install/install.log
+
+7.2 消费工程（本轮新增 Benchmark/validation/install-consumer/，属 Benchmark 授权的校验资产）
+  CMakeLists.txt  E29D71C5BE5F639F  28 行：只 find_package(IDGameEngine REQUIRED) +
+                                            target_link_libraries(... IDGameEngine)
+  main.cpp        874533283E9B2723  51 行：只 include "IDGameEngine.hpp"，start -> 检查 -> shutdown
+  配置（独立构建目录，CWD = F:\IDWorkbench）：
+    cmake -S F:\IDGameEngine\Benchmark\validation\install-consumer
+          -B F:\IDGameEngine\cmake-build-p5-consumer -G "MinGW Makefiles"
+          -DCMAKE_BUILD_TYPE=Release
+          "-DCMAKE_PREFIX_PATH=F:\IDGameEngine\cmake-build-p5-ship-install\prefix"   -> exit 0
+  构建：cmake --build F:\IDGameEngine\cmake-build-p5-consumer --parallel              -> exit 0（0 warning）
+  运行（CWD = 消费构建目录，PATH 前置 <prefix>\bin 以解析 DLL）：
+    install_consumer.exe exit 0 → "[PASS] installed product start state=Ready"
+                                  "[PASS] installed product shutdown state=Idle"，stderr 空
+  raw: Benchmark/validation/baseline/raw/p5-install/
+       {consumer-configure.log, consumer-build.log, consumer-run.stdout.txt, consumer-run.stderr.txt}
+  说明：消费方没有引用任何源码树路径，也没有链接源码树目标；配置成功即证明导出 target 可重定位。
+
+--------------------------------------------------------------------------------
+8. 性能：本轮不做新评级，只记录既有指标事实
+--------------------------------------------------------------------------------
+  report.txt 中 `plugin.service_lookup_and_call` 仍然存在，指标键未改；basis=os-baseline、
+  note 文案与参考值算法与改造前一致（同轮 volatile 全局函数表指针 + 间接调用 × 目标倍数 1.2）。
+  本轮两次运行的事实数值（Release / SHARED / LTO=OFF）：
+    run1  0.23 ns  reference 0.41 ns  ratio 0.55  excellent
+    run2  0.23 ns  reference 0.39 ns  ratio 0.59  excellent
+  同报告其余 3 条：memory.alloc_free_16B 3.71~3.75/22.38~22.84；memory.alloc_free_512B
+  3.82~3.87/21.92~22.69；memory.large_object_page 2553~2561/2527~2610。
+  与改造前 Release 基线（benchmark/validation/baseline/baseline-release-mingw-gcc16.2.0.txt 第 4 节）
+  的 0.23 ns / ratio 0.55~0.57 同档——这只是"同机、同构建类型、相邻实现"的事实并列，不是回归结论。
+  局限（必须随数值一起引用，沿用既有 D3 与基线第 5 节）：
+   a) 参考值是同轮 volatile 全局表指针，不是被退役的 PluginManager 槽表；旧二进制已不存在，
+      因此无法做前后 A/B，"热路径零回归"在本轮不可证明。
+   b) 该指标在 MONOLITHIC=ON + LTO 下会被常量折叠成 actual=n/a -> ungraded + 1 failed（D3，
+      改造前既有问题）；因此它不能作为热路径证据，也不能用于 STATIC/SHARED 对比。
+   c) 本轮没有做反汇编/目标代码检查（计划书 16.4 要求），所以"get_service 没有新增间接层"
+      仍属未验证项。
+   d) 亚纳秒量级、单机单配置单次会话：只作记录，不作为阈值或评级依据；本轮未新增、未修改任何
+      参考值、basis 或评级带宽。
+
+--------------------------------------------------------------------------------
+9. 缺陷与不一致（只报告，不改生产实现）
+--------------------------------------------------------------------------------
+F-P5-1（既有，本轮确认）：驱动器的 Smoke 行数判据与产品侧 Smoke 输出不一致
+  位置：Benchmark/validation/assembly/cmake/RunAssemblyValidation.cmake:508-510（判据 EQUAL 3）
+        Assemble/tests/consumer/AssemblySmoke.cpp:72-80（实际打印 4 行 [PASS]）
+  最小复现：cmake -S F:\IDGameEngine -B <dir> -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+            -DID_BUILD_VALIDATION_ASSEMBLY=ON
+            cmake --build <dir> --target IDAssemblyValidationRun      -> exit 2
+            输出：四个变体各一条 "IDAssemblySmoke 只打印了 4 行 [PASS]（要求 3）"
+  影响：P2 批次判定必然失败；功能层面四项 Smoke 断言全 PASS、进程 exit 0。
+  归属：产品侧 Smoke 在 Assemble/**（内核 owner 范围），判据在 Benchmark/**（本代理范围）；
+        本轮遵守"不得直接改断言来适配"，未改任何一侧。
+
+F-P5-2（本轮已修，仅 Benchmark 范围）：P0 原型 4 处旧运行期 API 引用
+  原形态：static_cast<const void*>(&ID::PluginManager::instance())，开启
+          ID_BUILD_VALIDATION_PROTOTYPE=ON 时编译失败（PluginManager 已不可实例化）。
+  现形态：&ID::PluginRuntime::instance()（只取地址）。28 条反向用例期望未改，实测仍 28/28。
+
+F-P5-3（既有，仅记录）：kNoPluginIndex 过渡别名
+  ID/include/Kernel/PluginRuntime.hpp 仍保留 kNoPluginIndex = kNoIndex，因为
+  Benchmark/validation/runtime/src/** 仍在用（RuntimeFixture.hpp/cpp、runtime_provision_cases.cpp）。
+  本轮未迁移（迁移会改动 278 条用例的初始化路径，收益不足且风险更大），属内核 owner 与
+  Benchmark 需同批处理的事项。
+
+--------------------------------------------------------------------------------
+10. 未验证项 / 不宣称
+--------------------------------------------------------------------------------
+1) MSVC 与 clang：本机未安装，未做任何配置或构建验证；本文所有 PASS 只对
+   GCC 16.2.0 + MinGW Makefiles 成立。
+2) 性能评级：本轮没有做新的六档评级，也没有改任何参考值/band；第 8 节只是既有指标的事实记录。
+3) 反汇编级证明：未检查 get_service 的目标代码，不宣称"热路径零回归/零额外间接层"。
+4) MONOLITHIC=ON + LTO 下的 Benchmark 套件未重跑（D3 的常量折叠局限仍在）。
+5) Debug 配置下只跑了 dev 预设的 Sandbox，没有跑 Debug 版 Benchmark 套件。
+6) 真实 DLL 插件 discovery / 热重载、跨编译器 ABI 混用未验证（仓库目前没有业务插件）。
+7) 第 3 节其余压力档未在本轮重跑，引用的是既有 raw（已标注文件名与可引用性核对结果）。
+8) 第 4 节四个变体的 build 均为 --clean-first 全量重建，但本驱动不测性能，时间数字只用于说明耗时。
+================================================================================
+
+================================================================================
+附：P5 收口复验（F-P5-1 / F-P5-3 修复后的真实重建与复跑）
+================================================================================
+性质：实测证据追加（不是设计文档）。本轮只写 Benchmark/**，以及工作台 skills/benchmark、
+      skills/shell-operation 里的事实句；未改 ID/**、Assemble/**、IDPlugin/**、Sandbox/**、根 CMakeLists、
+      agents/、cpp-style、subagent-management；未提交、未推送、未派 subagent。
+
+环境：GCC 16.2.0 + MinGW Makefiles + CMake 4.4.4，CMAKE_BUILD_TYPE=Release，ID_MONOLITHIC_BUILD=OFF，
+      ID_ASSEMBLY_PROFILE 为空（只有 preset 的 build/dev 例外）。被测内核头在本轮被内核 owner 改过
+      （ID/include/Kernel/PluginRuntime.hpp mtime 2026-10-19 23:28:02），本节结论对应该版本。
+
+1. F-P5-1：驱动器改为"点名断言"（Benchmark/validation/assembly/cmake/RunAssemblyValidation.cmake 第 0 节）
+   判据（集合相等，缺一不可）：
+     ① [PASS] start state=Ready
+     ② [PASS] host small new/delete completed (alloc and free succeeded)
+     ③ [PASS] host large new/delete accounted by kernel stats (grew=<n> bytes, released=1)，且额外要求 grew ≥ 1 MiB
+     ④ [PASS] shutdown state=Idle (code=None)
+   缺行 / 多行 / 重复行 / 文案改动 / 数值越界都失败；不再数 [PASS] 出现次数（旧判据只数次数，
+   即使把 3 改成 4 也不校验文案与语义）。[PASS] 次数只作为信息字段 SMOKE_PASS_LINES 记录。
+   判定器自检（每次批次都跑，结果落 assembly-index.txt 的 SMOKE_SELFCHECK 行与 work/driver-selfcheck-summary.txt）：
+     ok               : rejected=0 expect=0  as-expected
+     missing-line     : rejected=1 expect=1  Smoke 输出 3 行，点名表要求 4 行 | 期望文案命中 0 次（应为 1）：…small new/delete…
+     duplicate-line   : rejected=1 expect=1  Smoke 输出 5 行… | 期望文案命中 2 次（应为 1）：…shutdown state=Idle…
+     extra-line       : rejected=1 expect=1  Smoke 输出 5 行… | 出现未点名的输出行：[INFO] driver self-check unexpected line
+     changed-state    : rejected=1 expect=1  期望文案命中 0 次（应为 1）：…start state=Ready | 出现未点名的输出行：[PASS] start state=Initializing
+     fail-not-pass    : rejected=1 expect=1  期望文案命中 0 次（应为 1）：…shutdown state=Idle | 出现未点名的输出行：[FAIL] shutdown state=Idle (code=None)
+     large-not-routed : rejected=1 expect=1  大对象行 grew=4096 低于 1 MiB 下限 1048576
+   顺带修一处证据格式缺陷：variant-summary.txt 原用多参数 set() 生成 CMake 列表，写盘时每行之间多出 ';'；
+   改用 string(CONCAT) 后逐变体摘要恢复为纯文本（不影响任何判定，判定仍只看上面的点名断言）。
+
+2. F-P5-3：去掉对过渡名 kNoPluginIndex 的依赖（用例语义未变）
+   Benchmark/validation/runtime/src/RuntimeFixture.hpp:166,176、RuntimeFixture.cpp:555,577、
+   runtime_provision_cases.cpp:88 全部改为显式 PluginCompileTime::kNoIndex（在 ID 作用域内解析）。
+   事实：ID/include/Kernel/PluginRuntime.hpp:53 的过渡别名在节末仍存在（内核 owner 本轮未删）；
+   Benchmark 侧已不再引用它，内核删除该别名不会影响本校验资产。
+
+3. 复跑（CWD = F:\IDWorkbench；cmake = D:\Code\Environment\CMake\bin\cmake.exe）
+   3.1 assembly：cmake -S F:\IDGameEngine -B F:\IDGameEngine\cmake-build-p5-assembly -DID_BUILD_SANDBOX=OFF -> exit 0
+       cmake --build <同目录> --target IDAssemblyValidationRun                                -> exit 0（批次通过）
+       四变体：shared / static / zero-shared / zero-static 各 configure=0 build=0 smoke=0，
+       SMOKE_CONTRACT=name-by-name-ok、SMOKE_PASS_LINES=4；PROBLEMS 为空；8 类改坏证据仍按具体类别被拒；
+       profile 切换（noop / to_zero / back_to_default）仍通过；STATIC 与 SHARED 证据仍一致。
+       raw：Benchmark/validation/baseline/raw/assembly-p5-assembly/{configure.log, driver.log, assembly-index.txt}
+       逐变体证据：cmake-build-p5-assembly/Benchmark/validation/assembly/work/<variant>/{smoke.log,
+       smoke-contract.txt, variant-summary.txt, ...} 与 work/driver-selfcheck-summary.txt
+   3.2 runtime：cmake -S ... -B cmake-build-p5-runtime -DID_BUILD_SANDBOX=OFF -> exit 0
+       cmake --build ... --target PluginRuntimeCasesRun -> exit 0；MATRIX_EXIT=0，
+       PASSED 278 / FAILED 0 / SKIPPED 0，groups=lifecycle=7 zero=14 initfail=33 register=41 state=18
+       slot=31 upstream=12 plan=86 provision=32，CONSOLE_EQUALS_REPORT=TRUE，METRICS=0，
+       官方 Benchmark/report.txt 前后哈希不变（32bbcb1d…）。
+       raw：.../raw/runtime-p5-runtime/{configure.log, driver.log, runtime-index.txt, run-stdout.log, run-stderr.log, run-meta.txt}
+   3.3 主 suite：cmake -S ... -B cmake-build-p5-release -DID_BUILD_SANDBOX=OFF -> exit 0
+       cmake --build ... --target Benchmark --parallel -> exit 0（构建日志 warning:/error: 0 行）
+       运行两次（CWD 分别为 F:\IDWorkbench 与 <build>\out\shared\bin）：exit 0 / exit 0；
+       console 与 Benchmark\report.txt 逐字节一致（补末尾 CRLF 后；两次 SHA256 分别
+       F78E114C9E28FFADD905A5F5069F441D2AD81FEE40779168D53C3DA9DC52166E 与
+       225DF67ABA340BA4F9C5922B13927A36D0FF85176FBEB6684A158C0FAD8ACFBA）；
+       report 仍单文件覆盖（Benchmark 下 report*.txt 只有 report.txt，两次哈希不同），
+       `result: 102 passed / 0 failed / 6 skipped`、4 条 perf、`exit code : 0`。
+       两次报告 diff 只有 generated 时间戳 + 4 条实测值，等级不跳档（world-class / world-class / good / excellent）。
+       raw：.../raw/kernel-p5-release/{configure.log, build.log, run1.stdout.txt, run2.stdout.txt,
+            report-after-run1.txt, report-after-run2.txt}
+       口径说明：第一次比对时 console 与 report 哈希不同，原因是 PowerShell 把 stdout 拆成行数组后
+       丢失最后一个换行；补 "`r`n" 后逐字节相等。这是捕获方式问题，不是报告不一致。
+
+4. 本轮遇到并绕开的既有环境陷阱（不是代码缺陷）
+   cmake-build-p5-{runtime,assembly,release} 三个构建目录的缓存里是 ID_BUILD_SANDBOX=ON + 空 profile；
+   root CMakeLists / Sandbox 的配置期门卫严格化后，直接 --build 会在 Sandbox/CMakeLists.txt:12 FATAL_ERROR。
+   处理：只对这三个校验构建目录加 -DID_BUILD_SANDBOX=OFF 重配（校验不需要宿主），未改任何源码。
+
+5. 未验证 / 不宣称
+   5.1 本轮没有重跑 validation/production 与 validation/prototype（上一轮记录仍在第 3、5 节）；
+   5.2 没有做新的性能测量、没有改任何参考值 / basis / 评级带宽；第 3.3 节的 4 条数值只是本次实测记录；
+   5.3 反汇编级检查仍未做；MSVC / clang / 多配置生成器仍未验证；
+   5.4 删除 kNoPluginIndex 别名属内核 owner 的动作，本轮未做；
+   5.5 本机 skills/shell-operation/scripts/*.ps1 仍按旧布局定位 exe/产物（本轮只更新 SKILL.md 事实句，未改脚本）。
+================================================================================

@@ -1,0 +1,50 @@
+CMake is re-running because F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/CMakeFiles/generate.stamp is out-of-date.
+  the file 'F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt'
+  is newer than 'F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- ID: 未设置 ID_ASSEMBLY_PROFILE 且 ID_BUILD_SANDBOX=OFF，跳过 Sandbox（宿主只经 IDGameEngine 消费产品；需要宿主时同时设置 profile 与 -DID_BUILD_SANDBOX=ON）
+-- 反向用例原始日志目录：F:/IDGameEngine/Benchmark/validation/prototype/../baseline/raw/msvc-protofix2（模式 msvc-protofix2，构建目录 F:/IDGameEngine/cmake-build-msvc-protofix2）
+-- fixture 产品选择：ID.Fixture.Alpha;ID.Fixture.Beta
+-- fixture 链接边：IDFixtureBeta|IDFixtureAlpha|IDFIXTUREALPHA
+-- fixture 零插件选择数：
+-- fixture 压力目标跳过：有限常量求值预算只在 GCC 16.2.0 上实测（当前编译器 MSVC 未验证）
+-- Configuring done (0.0s)
+-- Generating done (0.2s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-msvc-protofix2
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  1>Checking Build System
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  IDFixtureAlpha.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureAlpha.dll
+  IDFixtureBeta.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureBeta.dll
+  FixtureDeterminism.cpp
+  FixtureProductEntry.cpp
+  正在生成代码...
+  IDFixtureAssembly.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\lib\Debug\IDFixtureAssembly.lib
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt
+  PrototypeMain.cpp
+  FixturePrototype.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixturePrototype.exe
+  复制 ID 内核 DLL 到原型可执行文件旁边（来源 F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/Debug/ID.dll，目标 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/Debug）
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  FixtureZeroPrototype.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixtureZeroPrototype.exe
+  复制 ID 内核 DLL 到原型可执行文件旁边（来源 F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/Debug/ID.dll，目标 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/Debug）
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  IDFixtureAlpha.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureAlpha.dll
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  IDFixtureAlpha.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureAlpha.dll
+  IDFixtureBeta.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\IDFixtureBeta.dll

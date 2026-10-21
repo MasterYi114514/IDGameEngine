@@ -1,0 +1,56 @@
+CMake is re-running because F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/CMakeFiles/generate.stamp is out-of-date.
+  the file 'F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt'
+  is newer than 'F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/CMakeFiles/generate.stamp.depend'
+  result='-1'
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+-- ID: 未设置 ID_ASSEMBLY_PROFILE 且 ID_BUILD_SANDBOX=OFF，跳过 Sandbox（宿主只经 IDGameEngine 消费产品；需要宿主时同时设置 profile 与 -DID_BUILD_SANDBOX=ON）
+-- 反向用例原始日志目录：F:/IDGameEngine/Benchmark/validation/prototype/../baseline/raw/msvc-protofix2（模式 msvc-protofix2，构建目录 F:/IDGameEngine/cmake-build-msvc-protofix2）
+-- fixture 产品选择：ID.Fixture.Alpha;ID.Fixture.Beta
+-- fixture 链接边：IDFixtureBeta|IDFixtureAlpha|IDFIXTUREALPHA
+-- fixture 零插件选择数：
+-- fixture 压力目标跳过：有限常量求值预算只在 GCC 16.2.0 上实测（当前编译器 MSVC 未验证）
+-- Configuring done (1.4s)
+-- Generating done (0.3s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-msvc-protofix2
+适用于 .NET Framework MSBuild 版本 18.12.0-1.26475.12+694f366b5
+
+  Checking File Globs
+  ID.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\bin\Debug\ID.dll
+  case_self_dependency.cpp
+  case_ambiguous_provider.cpp
+  case_missing_provider.cpp
+  case_cycle.cpp
+  case_hash_collision.cpp
+  case_duplicate_candidate.cpp
+  case_empty_inner_group.cpp
+  case_unknown_candidate.cpp
+  case_active_overflow.cpp
+  case_evidence_mismatch.cpp
+  case_invalid_name.cpp
+  case_duplicate_plugin.cpp
+  case_too_many_requirements.cpp
+  case_too_many_candidates.cpp
+  case_too_many_catalog.cpp
+  case_unknown_active.cpp
+  case_duplicate_active.cpp
+  case_evidence_selection_mismatch.cpp
+  case_evidence_edge_mismatch.cpp
+  case_evidence_duplicate_selection.cpp
+  正在生成代码...
+  正在编译...
+  case_evidence_duplicate_binding.cpp
+  case_evidence_duplicate_edge.cpp
+  case_evidence_capacity.cpp
+  case_self_dependency_prefix_collision.cpp
+  case_cycle_long.cpp
+  case_name_boundaries.cpp
+  case_name_internal_nul.cpp
+  case_name_first_char.cpp
+  正在生成代码...
+  IDFixtureLegalCases.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\IDFixtureLegalCases.dir\Debug\IDFixtureLegalCases.lib
+  IDPluginStub.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\out\shared\lib\Debug\IDPluginStub.lib
+  Building Custom Rule F:/IDGameEngine/Benchmark/validation/prototype/CMakeLists.txt
+  CaseControlMain.cpp
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseControlMain.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\FixtureCaseControls.vcxproj]
+  FixtureCaseControls.vcxproj -> F:\IDGameEngine\cmake-build-msvc-protofix2\Benchmark\validation\prototype\out\bin\Debug\FixtureCaseControls.exe
+  复制 ID 内核 DLL 到原型可执行文件旁边（来源 F:/IDGameEngine/cmake-build-msvc-protofix2/out/shared/bin/Debug/ID.dll，目标 F:/IDGameEngine/cmake-build-msvc-protofix2/Benchmark/validation/prototype/out/bin/Debug）

@@ -1,0 +1,480 @@
+P2 单一 JSON 清单与自动组装 —— 本轮真实验证记录（执行者自测，不是独立 review，也不是 Benchmark 用例）
+生成时间基线：本文件由 IDKernel 执行者在 F:\IDGameEngine 本地实测后写入；所有数字都来自下面的真实命令。
+
+0. 环境
+   shell        : Windows PowerShell 5.1（zh-CN，代码页 65001）
+   CMake        : 4.4.4（D:\Code\Environment\CMake\bin\cmake.exe，命令名 cmake）
+   generator    : MinGW Makefiles
+   C++          : GCC 16.2.0（D:\Code\Environment\MinGW\mingw64\bin\g++.exe）
+   构建类型     : Release（CMAKE_BUILD_TYPE=Release）
+   Benchmark    : 各构建目录统一 -DID_BUILD_BENCHMARK=OFF，本轮不构建、不运行 Benchmark
+
+1. 内核告警与 ID 目标
+   CWD=F:\IDGameEngine
+   cmake -S . -B build-p2-shared -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF   -> exit 0
+   cmake --build build-p2-shared --target ID --clean-first --parallel                                          -> exit 0
+   输出无 warning/error 行（grep 'warning' 无命中）；PluginRuntime.cpp 参与该次干净重建
+
+2. 四个构建目录与真实退出码（含消费端冒烟运行）
+   注意（既有 K6 行为，非本轮新增）：四个目录共用 F:\IDGameEngine\bin，交替模式时另一模式的归档会变陈旧。
+   注意（第二轮整改）：本节 2.1~2.4 的三行 PASS 是改造前的冒烟文案；分配桩那条断言已改为内核统计核验，
+   新文案与新证据见 §13.6，本文件不把改造前的输出当成当前输出。
+   下面的结果都是“该目录先 --target clean 再构建”的有效结果；不 clean 就直接在另一模式构建之后增量链接，
+   实测会报 undefined reference to `__imp_ID_AlignedAlloc'（Error 2）。最终有效顺序：shared -> zero-shared
+   -> static -> zero-static（最后一个模式留在 bin 里）。
+   2.1 SHARED + profile=default
+       cmake -S . -B build-p2-shared -DID_ASSEMBLY_PROFILE=default                     -> exit 0
+       cmake --build build-p2-shared --parallel                                        -> exit 0
+       build-p2-shared/Assemble/out/bin/IDAssemblySmoke.exe                            -> exit 0
+         [PASS] start state=Ready
+         [PASS] host new/delete routed through IDPluginStub
+         [PASS] shutdown state=Idle (code=None)
+   2.2 SHARED + profile=zero
+       cmake -S . -B build-p2-zero-shared -DID_ASSEMBLY_PROFILE=zero                   -> exit 0
+       cmake --build build-p2-zero-shared --parallel                                   -> exit 0
+       build-p2-zero-shared/Assemble/out/bin/IDAssemblySmoke.exe                       -> exit 0（同上三行 PASS）
+   2.3 STATIC(monolithic) + profile=default
+       cmake -S . -B build-p2-static -DID_MONOLITHIC_BUILD=ON -DID_ASSEMBLY_PROFILE=default -> exit 0
+       cmake --build build-p2-static --parallel                                        -> exit 0
+       build-p2-static/Assemble/out/bin/IDAssemblySmoke.exe                            -> exit 0（同上三行 PASS）
+   2.4 STATIC(monolithic) + profile=zero
+       cmake -S . -B build-p2-zero-static -DID_MONOLITHIC_BUILD=ON -DID_ASSEMBLY_PROFILE=zero -> exit 0
+       cmake --build build-p2-zero-static --parallel                                   -> exit 0
+       build-p2-zero-static/Assemble/out/bin/IDAssemblySmoke.exe                       -> exit 0（同上三行 PASS）
+
+3. 默认不启用 profile（legacy 行为）
+   cmake -S . -B build-p2-legacy -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF -> exit 0
+   cmake --build build-p2-legacy --target help -> exit 0，只有 all/clean/depend/edit_cache/rebuild_cache/ID/IDPluginStub/Sandbox
+   cmake --build build-p2-legacy --target clean; cmake --build build-p2-legacy --parallel -> exit 0（ID + IDPluginStub + Sandbox，无 warning）
+   grep 'IDAssembly|Assemble|IDFixture|IDGameEngine' 在 target help 输出中命中 0 次
+
+4. 生成物（<build>/Assemble/generated/<assembly-id>/，全部由 templates + configure_file 产出）
+   IDAssembly.generated.hpp            catalog + 选中身份 + 构建证据 + kPlan
+   IDAssemblyValidate.generated.cpp    编译期校验 TU（static_assert）
+   IDAssemblyBinding.generated.cpp     运行期绑定 TU（只含选中模块回调）
+   IDAssemblyRuntime.generated.hpp     计划视图访问器声明
+   IDAssemblyEvidence.txt              CMake 派生的构建证据
+   IDFixtureApiExport.generated.hpp / IDFixtureCoreExport.generated.hpp / IDFixtureMathExport.generated.hpp
+   例：build-p2-static/Assemble/generated/default-fixture/ 共 8 个文件
+
+5. 编译期计划（default profile，来自构建目录内临时探针 probe-topo.cpp 的真实运行输出）
+   plan.code=None phase=None
+   active=3 catalog=3 edges=2 provisions=3 fingerprint=0xa75adbe422d2161a
+   canonical active order: ID.Fixture.Api  ID.Fixture.Core  ID.Fixture.Math
+   topo order            : [0]=ID.Fixture.Api [1]=ID.Fixture.Core [2]=ID.Fixture.Math
+   provider              : ID.Fixture.Math[req 0] -> ID.Fixture.Core
+                           ID.Fixture.Math[req 1] -> ID.Fixture.Api
+   slot owner            : [60]=ID.Fixture.Core
+   （探针在构建目录内，不属于仓库源码；编译命令 g++ -std=c++20 -O2 -fno-rtti -fno-exceptions
+     -DID_STATIC_PLUGIN_LINK=1 -I<generated> -IF:\IDGameEngine\ID\include，exit 0）
+
+6. CMake 侧构建证据（build-p2-static/.../IDAssemblyEvidence.txt 片段）
+   assembly_name : default-fixture      mode : STATIC      compiler : GNU 16.2.0
+   selected=3 bindings=2 edges=2 slots=1 provisions=3
+   provider  ID.Fixture.Math -> ID.Fixture.Core（需求组 0，能力 ID.Fixture.Core，修订 2）
+   edge      ID.Fixture.Core -> ID.Fixture.Math（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_IDFIXTURECORE）
+   provider  ID.Fixture.Math -> ID.Fixture.Api（需求组 1，能力 ID.Fixture.Api，修订 1）
+   edge      ID.Fixture.Api -> ID.Fixture.Math（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_IDFIXTUREAPI）
+   selected  ID.Fixture.Api  target=IDFixtureApi  macro=ID_USE_PLUGIN_IDFIXTUREAPI  id=0x417557752be36759ull
+   slot      ID.Fixture.Core.ID.Fixture.Core -> 60
+   两个 plugin_id 与 Python 独立计算的 FNV-1a64 一致：
+     ID.Fixture.Api  0x417557752be36759
+     ID.Fixture.Core 0x36272307f73a9320
+     ID.Fixture.Math 0x848799fb00d520dd
+
+7. 身份宏只按真实上游传播（build-p2-static 的 flags.make 实测）
+   IDFixtureCore: -DID_STATIC_PLUGIN_LINK=1 -DID_USE_PLUGIN_IDFIXTURECORE=1
+   IDFixtureMath: -DID_STATIC_PLUGIN_LINK=1 -DID_USE_PLUGIN_IDFIXTUREAPI=1 -DID_USE_PLUGIN_IDFIXTURECORE=1 -DID_USE_PLUGIN_IDFIXTUREMATH=1
+   IDAssembly   : 三个身份宏（组装目标允许观察全部选中身份，计划书 8.3）
+   即：没有“向每个插件注入全部身份”的行为；上游宏与上游 include 只经 PUBLIC usage requirement 传播。
+   fixture_math 源码里有 #if !defined(ID_USE_PLUGIN_IDFIXTURECORE/IDFIXTUREAPI) 的 #error 与两条
+   static_assert 修订断言，缺边或修订不符会直接编译失败。
+
+8. 分配桩（计划书 9.4）
+   SHARED：libIDFixtureCore.dll 内 operator new(unsigned long long)/operator delete(void*) 各 1 个定义（nm 实测），
+           IDAssemblySmoke.exe 内也各 1 个；whole-archive/WHOLEARCHIVE 只作用于 IDPluginStub，没有任何插件库被全量保留。
+   STATIC：IDAssemblySmoke.exe 中 operator new/delete 的每个重载只有 1 个定义（nm --demangled 全表核对），
+           最终程序只有一组替换符号，无重复定义。
+
+9. 零插件产品（计划书 12.3 + 本轮 A2 修复的运行期证据）
+   build-p2-zero-static/.../IDAssemblyBinding.generated.cpp 的计划视图：
+     .plugin_count = 0, .provision_count = 0
+     .records = kSelectedCount > 0 ? ... : nullptr      （零插件时 4 个数组指针全为 nullptr）
+   该产品 start -> Ready、shutdown -> Idle 且 exit 0；修复前同一路径会在 shutdown 断言 abort。
+
+10. 增量行为（计划书 8.4）
+    touch Assemble/profiles/default.json 后 cmake --build ... --target IDAssemblyValidate
+      -> 自动触发 "Configuring done" 并重算生成物，exit 0
+    touch Assemble/tests/fixtures/fixture_core/plugin.json 后同样自动重配，exit 0
+    生成器使用 configure_file：内容不变时不刷新时间戳。
+    实测：touch profile -> 自动重配 -> IDAssembly.generated.hpp 的 LastWriteTime 前后都是 2026-10-19 22:24:35（未刷新）
+    编辑 templates/*.in 同样会触发重配（configure_file 的输入自动成为 configure 依赖），实测新 include 行已进入生成头。
+
+11. CMake 侧反向用例（本轮临时 profile，验证后已删除，不在仓库留文件）
+    profile 只启用 Api+Math（缺 Core）-> 配置期 FATAL：MissingProvider …（不自动启用缺失依赖）
+    profile schema_version=2            -> 配置期 FATAL：不支持的 profile schema_version=2（只接受 1）
+    AmbiguousProvider / SlotConflict / DuplicateCapability / RevisionMismatch 在第一轮没有专门的
+    第二提供者 fixture，故未实测触发；第二轮已补齐负向 profile 并真实跑出四个类别，见 §13.3。
+
+12. 已知限制与未验证项（不要据此声称通过）
+    - 只在 MinGW GCC 16.2.0 + Release 上实测；MSVC / clang / 多配置生成器未构建。
+      本机实际存在 MSVC 19.52（VS 2026 Insiders）与 Visual Studio 生成器，但本轮没有用它构建。
+    - 未运行 Benchmark.exe，未做任何性能测量与评级；IDAssemblyValidate/Smoke 只验证正确性。
+    - “JSON 与 C++ 双校验”的真实一致性只在 CMake 侧解析 + C++ 侧重算上验证：
+      第一轮没有逐个构造被改坏的证据反向用例；第二轮用构建目录副本改坏一条 selected 身份，
+      实测 C++ 侧报 ID_ASSEMBLY_ERROR:EvidenceIdentityMismatch（见 §13.5）。按计划书 16.1，
+      系统性的反向编译用例仍归 Benchmark/validation/，本轮没有在那里新增用例。
+    - 现有业务插件目录（IDPlugin）还没有任何 plugin.json；catalog 只登记了 Assemble/tests/fixtures
+      下的四个集成用最小 fixture（不是业务插件；第四个 fixture_optional 见 §13.1）。
+    - 本次没有把 legacy PluginManager 的运行期接口迁到 PluginRuntime（P4 范围），也没有改 Benchmark/Sandbox。
+    - OFF/ON 共用 F:\IDGameEngine\bin：交替构建 SHARED 与 STATIC 会让另一模式的归档变陈旧。
+      本轮的 STATIC 验证在 legacy(SHARED) 构建之后需要 --target clean 才能重新链接（实测 Error 2 后修正）。
+      这是既有的 K6 行为，不是本轮新增。
+    - build-p2-* 构建目录：第一轮未被 .gitignore 覆盖；第二轮已按本机约定追加 /build-p2-*/ 一条规则
+      （只加构建目录模式，未动其它条目），git status 里已不再出现这些目录，见 §13.9。
+    - 第一轮最终一次有效复核（按此顺序，每步先 --target clean）：
+        build-p2-shared          configure 0 / build 0 / run 0
+        build-p2-zero-shared     configure 0 / build 0 / run 0
+        build-p2-static          configure 0 / build 0 / run 0
+        build-p2-zero-static     configure 0 / build 0 / run 0
+        build-p2-legacy(无 profile) clean build 0，target help 无 Assemble 目标
+
+===============================================================================
+13. 第二轮：P2 独立审查提出的定向整改（本轮真实命令与退出码）
+===============================================================================
+
+13.0 环境与命令口径
+   CWD 一律 F:\IDGameEngine；生成器 MinGW Makefiles；CMAKE_BUILD_TYPE=Release；ID_BUILD_BENCHMARK=OFF。
+   构建目录都是仓库内、已被 /build-p2-*/ 忽略的独立目录（一个 profile 一个目录）。
+   本机实测的退出码陷阱：直接调用 `cmake --build` 时上层 wrapper 报告的 exitCode 恒为 0，
+   所以所有 configure/build 都写成
+     cmd /c "<命令> || exit /b 1"
+   下面的 exit 全部是这个形式返回的真实值（负向用例返回 1，合法用例返回 0）。
+
+13.1 本轮改动
+   - 新增第 4 个 catalog fixture：Assemble/tests/fixtures/fixture_optional/**
+     （ID.Fixture.Optional，target=IDFixtureNotSelected，独立能力 ID.Fixture.Optional rev1，无运行期槽位）。
+     它只进 catalog、不进 default profile；目标名刻意等于 fixture_math 里那条 #error 检查的宏名。
+   - 新增合法 profile：Assemble/profiles/optional.json（Api+Core+Math+Optional）。
+   - 新增 5 个负向用例清单：Assemble/tests/rejections/{core_alt,ambiguous,duplicate_capability,slot_conflict,revision}/plugin.json
+     （只有 manifest，没有 CMakeLists/include：configure 在 add_subdirectory 之前就失败）。
+   - 新增 4 个负向 profile：invalid-ambiguous / invalid-duplicate-capability / invalid-slot-conflict / invalid-revision。
+   - Assemble/catalog.cmake：登记第 4 个 fixture；负向清单只在 profile 名以 invalid- 开头时并入 catalog。
+   - Assemble/templates/AssemblyValidate.generated.cpp.in：改为按 PluginError 类别分派断言。
+   - Assemble/tests/consumer/AssemblySmoke.cpp：分配桩证据改为内核大对象统计核验。
+   - .gitignore：新增一条 /build-p2-*/。
+   - 未改 ID/IDPlugin/Sandbox/Benchmark/工作台；未运行 Benchmark.exe；未提交。
+
+13.2 合法 profile 对照（configure 成功 + build + 运行冒烟）
+   13.2.1 SHARED + default     目录 build-p2-shared
+     configure: ... -DID_ASSEMBLY_PROFILE=default                     -> exit 0
+        catalog: 4 manifests (Api;Core;Math;Optional)
+        selected targets: IDFixtureApi;IDFixtureCore;IDFixtureMath      （未选中 Optional）
+     build    : cmake --build build-p2-shared --clean-first --parallel   -> exit 0
+     run      : build-p2-shared\Assemble\out\bin\IDAssemblySmoke.exe     -> exit 0（四行输出见 §13.6）
+   13.2.2 SHARED + optional    目录 build-p2-shared-optional
+     configure: ... -DID_ASSEMBLY_PROFILE=optional                    -> exit 0
+        selected targets: IDFixtureApi;IDFixtureCore;IDFixtureMath;IDFixtureNotSelected
+     build    : cmake --build build-p2-shared-optional --parallel        -> exit 0
+     run      : build-p2-shared-optional\Assemble\out\bin\IDAssemblySmoke.exe -> exit 0
+   13.2.3 SHARED + zero        目录 build-p2-zero-shared
+     configure: ... -DID_ASSEMBLY_PROFILE=zero                        -> exit 0（selected targets 为空）
+     build    : cmake --build build-p2-zero-shared --clean-first --parallel -> exit 0
+     run      : build-p2-zero-shared\Assemble\out\bin\IDAssemblySmoke.exe -> exit 0
+   13.2.4 STATIC(monolithic) + default  目录 build-p2-static
+     configure: ... -DID_MONOLITHIC_BUILD=ON -DID_ASSEMBLY_PROFILE=default -> exit 0
+     build    : cmake --build build-p2-static --clean-first --parallel  -> exit 0
+                （ar 的 "plugin needed to handle lto object" 是既有 LTO 提示，链接与产物正常）
+     run      : build-p2-static\Assemble\out\bin\IDAssemblySmoke.exe    -> exit 0
+   13.2.5 STATIC(monolithic) + optional 目录 build-p2-static-optional
+     configure: ... -DID_MONOLITHIC_BUILD=ON -DID_ASSEMBLY_PROFILE=optional -> exit 0
+     build    : cmake --build build-p2-static-optional --parallel       -> exit 0
+     run      : build-p2-static-optional\Assemble\out\bin\IDAssemblySmoke.exe -> exit 0
+   13.2.6 STATIC(monolithic) + zero     目录 build-p2-zero-static
+     configure: ... -DID_MONOLITHIC_BUILD=ON -DID_ASSEMBLY_PROFILE=zero -> exit 0
+     build    : cmake --build build-p2-zero-static --clean-first --parallel -> exit 0
+     run      : build-p2-zero-static\Assemble\out\bin\IDAssemblySmoke.exe -> exit 0
+   结论：default / zero 的选择集合、逐需求 provider、边、槽位与产物目标都没有变化；
+   新增 catalog 条目只让 catalog 计数从 3 变 4（kCatalogCount 由生成器派生，static_assert 自动跟随）。
+
+13.3 负向 profile（configure 必须失败，错误文本必须含对应类别）
+   四个目录都是新目录，命令形式：
+     cmd /c "set CMAKE_GENERATOR=MinGW Makefiles&& cmake -S F:\IDGameEngine -B <dir> -DCMAKE_BUILD_TYPE=Release \
+            -DID_BUILD_BENCHMARK=OFF -DID_ASSEMBLY_PROFILE=<profile> || exit /b 1"
+   负向 profile 的 catalog 是 9 manifests（4 个 fixture + 5 个 rejections 清单）。
+
+   13.3.1 invalid-ambiguous     目录 build-p2-invalid-ambiguous   exit 1
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:230 (message):
+       AmbiguousProvider：ID.Reject.Ambiguous 的需求组 0（能力
+       ID.Fixture.Core）命中 2
+       个候选：ID.Fixture.Core;ID.Reject.CoreAlt；不挑第一个，也不挑新版本
+   13.3.2 invalid-duplicate-capability 目录 build-p2-invalid-duplicate  exit 1
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:184 (message):
+       DuplicateCapability：能力 ID.Fixture.Core
+       在选中集合内有两个提供者
+   13.3.3 invalid-slot-conflict 目录 build-p2-invalid-slot        exit 1
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:196 (message):
+       SlotConflict：槽位 60 被 ID.Reject.SlotConflict
+       与其它选中插件同时占用
+   13.3.4 invalid-revision      目录 build-p2-invalid-revision    exit 1
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:271 (message):
+       RevisionMismatch：ID.Fixture.Core 提供 ID.Fixture.Core 的接口修订 2
+       不在 ID.Reject.Revision 要求的 [1, 1] 内；不改选其它候选
+   说明：解析器没有为这些 profile 放宽任何检查；四类错误都来自既有分支，只是补了能触发它们的清单。
+   注意（既有顺序语义，不是本轮新增）：同一个选中集合里若同时存在“同能力双提供者”，
+   id_resolve_selection 先按 profile 顺序处理插件，先遇到哪个违约就报哪个类别；
+   invalid-ambiguous 因此把下游需求方排在第二提供者之前，确保报的是 AmbiguousProvider。
+
+13.4 未选中身份不进宏 / 链接 / 绑定 TU（grep + 产物证据）
+   13.4.1 default profile（build-p2-shared，SHARED）
+     IDFixtureMath\CMakeFiles\IDFixtureMath.dir\flags.make:
+       -DID_IDFIXTUREMATH_BUILD_DLL=1 -DID_USE_PLUGIN_IDFIXTUREAPI=1 -DID_USE_PLUGIN_IDFIXTURECORE=1 -DID_USE_PLUGIN_IDFIXTUREMATH=1
+       （没有 ID_USE_PLUGIN_IDFIXTURENOTSELECTED）
+     IDAssembly(dir)\flags.make：Api/Core/Math 三个身份宏，无 NOTSELECTED
+     IDAssemblySmoke(dir)\flags.make：同上，无 NOTSELECTED
+     generated/default-fixture/IDAssemblyBinding.generated.cpp：只 include
+       IDFixtureCoreLifecycle.hpp / IDFixtureMathLifecycle.hpp，没有 NotSelected 的 include 与回调
+     链接：link.txt 与 linkLibs.rsp 中都没有 IDFixtureNotSelected / libIDFixtureNotSelected
+     全目录检索（*.rsp,*.txt,*.make,*.cpp,*.hpp,*.json）里 "IDFixtureNotSelected" 只有 1 处命中：
+       generated/default-fixture/IDAssembly.generated.hpp:100  .target = "IDFixtureNotSelected"
+     这是 catalog 元数据（catalog 要列全部条目），不是编译宏、链接边或绑定记录。
+   13.4.2 STATIC default（build-p2-static）同一结论：
+     IDFixtureMath flags.make = -DID_STATIC_PLUGIN_LINK=1 + Api/Core/Math，无 NOTSELECTED
+   13.4.3 optional profile（build-p2-shared-optional）
+     IDFixtureNotSelected flags.make = -DID_IDFIXTURENOTSELECTED_BUILD_DLL=1 -DID_USE_PLUGIN_IDFIXTURENOTSELECTED=1
+       （只有自己的身份宏：它没有任何依赖，同一产品里的 Api/Core/Math 身份都没有进来）
+     IDFixtureMath flags.make 仍是 Api/Core/Math，**没有** NOTSELECTED：
+       即“未声明依赖的已选中插件身份不会注入到别的插件 TU”这件事，在宏真实存在的产品里得到验证。
+     IDAssemblyBinding.generated.cpp 只 include 四个选中模块的 Lifecycle.hpp，回调表逐项对应。
+   13.4.4 让 fixture_math 那条 #error 具备可触发路径（探针，构建目录内）
+     目录 build-p2-probe-globalmacro：profile=optional + -DCMAKE_CXX_FLAGS=-DID_USE_PLUGIN_IDFIXTURENOTSELECTED=1
+       configure -> exit 0（这是故意的错误注入，不是产品配置）
+       cmake --build ... --target IDFixtureMath -> exit 1
+         F:\IDGameEngine\Assemble\tests\fixtures\fixture_math\src\FixtureMathModule.cpp:19:6:
+         error: #error "unrelated plugin identity macro must not be injected into IDFixtureMath"
+     说明：第一轮那条 #error 因为宏永不出现而恒假；现在它既能保持默认构建通过，
+     又能在“错误地全局注入身份宏”时真实触发，是可用探针复核的断言，而不是虚假保证。
+
+13.5 校验 TU 按类别分派断言
+   generated/<assembly>/IDAssemblyValidate.generated.cpp 用一份 X-macro 类别清单同时生成
+   “覆盖清单 + 逐类别 static_assert”，消息形如
+     ID_ASSEMBLY_ERROR:<Category> - assembly plan rejected; see IDAssemblyEvidence.txt ...
+   13.5.1 预处理计数（build-p2-static，GCC 16.2.0）
+     g++ -std=c++20 -E -I. -IF:\IDGameEngine\ID\include IDAssemblyValidate.generated.cpp -o preprocessed-validate.i  -> exit 0
+     [regex]::Matches(ReadAllText(...), 'ID_ASSEMBLY_ERROR:').Count = 52
+       = 43 条类别断言 + 9 条结构断言（含 DiagnosticCategoryListOutOfDate 覆盖守卫）
+   13.5.2 类别名可定位（构建目录副本改坏一条 selected 身份）
+     generated/probe-evidence-mismatch（default-fixture 的副本，.plugin_id 改成 0x1111111111111111ull）
+     g++ -std=c++20 -fsyntax-only -DID_STATIC_PLUGIN_LINK=1 -I. -IF:\IDGameEngine\ID\include \
+         IDAssemblyValidate.generated.cpp -> exit 1
+       error: static assertion failed: ID_ASSEMBLY_ERROR:EvidenceIdentityMismatch - assembly plan rejected; ...
+   探针副本验证后已删除；仓库内模板未改坏，合法构建仍 exit 0。
+   说明：上面的 52 与探针报错都在**最终版模板**上重跑过（模板最后一次改动只是把命名空间内的
+   #define/#undef 按作用域缩进，预处理结果与断言集合不变：52 与 EvidenceIdentityMismatch 均复现）。
+   六个合法构建（default/optional/zero × SHARED/STATIC）也都用最终版模板重新构建并运行冒烟，exit 0。
+
+13.6 冒烟里的分配桩证据（替换第一轮“能分配就算路由”的断言）
+   新输出（default/optional/zero × SHARED/STATIC 六个构建都相同，exit 0）：
+     [PASS] start state=Ready
+     [PASS] host small new/delete completed (alloc and free succeeded)
+     [PASS] host large new/delete accounted by kernel stats (grew=1114112 bytes, released=1)
+     [PASS] shutdown state=Idle (code=None)
+   证据口径：测试里 new 1MiB（> kMaxSmallBlockSize 8KB，只能走 ID::Memory 的大对象路径），
+   用 ID::GetMemoryStats 对比分配前后的 large_allocation_bytes：
+     grew = 1114112 字节（1MiB + 64KiB 头页）= 内核记账了这次宿主 new；
+     delete 后 large_allocation_bytes 与 total_reserved_bytes 都回到分配前的值。
+   如果宿主 new 被 CRT 接管，这两个计数不会变化，断言就会失败。
+   小对象那条如实写成“分配释放成功”，不再声称路由到某个桩。
+   （“每个模块自己链接了替换符号”仍由第一轮 §8 的 nm 证据覆盖，本轮没有重复做符号核对。）
+
+13.7 决定：集成 fixture 与负向用例留在 Assemble/tests 的理由（方案偏离记录）
+   方案 §15 P2 写的是“使用 Benchmark 内的最小 fixture 模块进行集成”，§16.1 又要求反向编译用例归
+   Benchmark/validation/。本轮（含第一轮）实际把集成 fixture 放在 Assemble/tests/fixtures、
+   把负向 profile 与 rejections 清单放在 Assemble/tests/rejections，理由：
+   1. 这些 fixture 是**构建期装配输入**（catalog 条目 + 真实 target + 身份宏传播），不是运行期测试；
+      放进 Benchmark 会让 Benchmark 反过来成为 Assemble 的构建输入，破坏五层平级的单向依赖。
+   2. Benchmark 现有 prototype/plugin.json 的 schema 与本轮的 schema_version=1 清单不一致
+      （字段集合不同），直接搬过去要么改 Benchmark 的 schema，要么在 Assemble 里写第二套解析；
+      两者都超出本轮授权（Benchmark 由另一 owner 维护，本轮不得改 Benchmark）。
+   3. 负向 profile 考的是 **CMake 解析器**的拒绝路径，只能靠 configure 失败来证明，与 §16.1 讲的是
+      “C++ 编译期反向用例”不是同一层；C++ 侧的反向用例仍应归 Benchmark/validation/（本轮未新增）。
+   结论：这是与方案 §15/§16.1 的显式偏离，理由如上；未修改方案文档本身，等主 Agent/用户裁决是否
+   在 P4/P5 把 fixture 迁到 Benchmark 或给 Assemble 明确的 fixture 归属说明。
+
+13.8 未处理项：ID/include/Kernel/PluginRuntime.hpp 的 kNoPluginIndex 注释（超出本轮可写范围）
+   审查第 7 条要求修 ID/include/Kernel/PluginRuntime.hpp 里 kNoPluginIndex 的注释或改成真正别名，
+   但本轮授权只说可写 Assemble/** 与 .gitignore，并明确“不得改 ID/**”，因此本轮没有改该文件。
+   事实（ID/include/Kernel/PluginRuntime.hpp:48-51）：
+     注释写“本名只是 P4 迁移前保留的别名”，实际是 `inline constexpr uint16_t kNoPluginIndex = kNoIndex;`
+     ——一个用 kNoIndex 初始化的独立常量，不是别名（C++ 变量没有别名语法）。
+   该名字被 Benchmark/validation 引用（不能直接删）：
+     Benchmark/validation/runtime/src/RuntimeFixture.hpp:166,176
+     Benchmark/validation/runtime/src/RuntimeFixture.cpp:555,577
+     Benchmark/validation/runtime/src/runtime_provision_cases.cpp:88
+   候选方案（等授权后由有权限的执行者做，任选其一）：
+     a) 保留常量，只把注释改成“同一值的独立常量，P4 迁移前保留，删除必须与 Benchmark 迁移同批”；
+     b) 改成真别名：`inline constexpr uint16_t const& kNoPluginIndex = kNoIndex;`
+        （case/比较/常量表达式仍可用；会改变 decltype 与取址语义，需要重新编译 Benchmark/validation 验证）。
+
+13.9 .gitignore
+   在“构建输出与产物目录”一节追加一条：/build-p2-*/
+   （只加这一条构建目录模式，其它条目未动）。实测 git status 已不再列出
+   build-p2-shared / -zero-shared / -static / -zero-static / -legacy / -shared-optional / -static-optional /
+   -invalid-* / -probe-globalmacro。
+
+13.10 本轮未验证 / 风险（不要据此声称通过）
+   - 仍只在 MinGW GCC 16.2.0 + Release 上实测；MSVC（本机 VS 2026 Insiders）与 clang 未构建，
+     本轮新增的 X-macro 断言与 std::size 用法在 MSVC 上未验证。
+   - 未运行 Benchmark.exe，未做任何性能测量或评级。
+   - 负向用例只证明 CMake 解析器的拒绝路径；同一类别的 C++ 侧诊断由 §13.5 的单个探针演示，
+     没有为四个类别各做一次 C++ 侧反向编译用例。
+   - Assemble/tests/rejections 的清单是“合法的声明、非法组合”，它们只在 invalid- profile 下进 catalog；
+     如果有人把它们加进合法 profile 的 catalog，C++ 侧仍应按选中集合拒绝，但本轮没有做这个实验。
+   - 本机 bin/ 与第一轮一样被多个构建目录共用；本轮按 SHARED -> STATIC 顺序构建并 clean-first，
+     结束时 bin 里是 STATIC(default) 的产物。
+   - 观察（不是本轮改动）：本轮工作期间 Benchmark/src/kernel/kernel_performance.cpp（22:50）与
+     kernel_security.cpp（22:51）被外部修改，本执行者没有打开或写入这两个文件，也未运行 Benchmark。
+
+===============================================================================
+14. 第三轮：终审提出的测试资产归属、路径事实与证据缺口（2026-10-20 00:2x 实测）
+===============================================================================
+
+14.0 本轮范围与不变项
+   目的：补齐终审对 DoD#10（"Sandbox 仅游戏职责，全部测试归 Benchmark"）指出的事实缺口——
+   ①测试资产归属没有任何 skill 登记；②build-p2-invalid-* 目录已删、只剩叙述性结论；③skill 里写死了别的机器盘符。
+   本轮的改动只有：本文件追加本节、工作台 skill 的归属登记与路径事实、删除一个空壳目录。
+   没有改动任何构建输入（无源码、无 CMake、无 profile、无清单）：Assemble/ 下全部 *.cmake 与 *.json 的
+   LastWriteTime 仍早于本轮开始时间（最新的是 cmake/IDGenerateAssembly.cmake 00:07:59、p5-evidence.txt 00:10:53，
+   本轮时间为 00:28:31），即解析器、catalog、profile、fixture 清单、模板一个字节都没动。
+   也因此没有重新构建 dev / ship / dev-mono；未运行 Benchmark.exe，未做任何性能测量或评级。
+
+14.1 测试资产归属登记（与 skills/id-kernel/SKILL.md 第 4.1 节一致）
+   登记结论：下列资产**留在生产层**（主 Agent 明确不移动文件；移动属方案变更）。它们不是 Benchmark 用例，
+   但也不是"漏迁的测试"：
+   (1) Assemble/tests/fixtures/{fixture_api,fixture_core,fixture_math,fixture_optional}/**
+       = **构建期装配输入**。每份 plugin.json 是 catalog 条目；CMakeLists.txt 用 id_assembly_add_module() 建真实
+       target；src/*.cpp 参与真实链接、并靠 PUBLIC 身份宏 ID_USE_PLUGIN_* 做编译期适配（fixture_math 里还有
+       #error 与 static_assert 修订断言）。catalog 必须指向**真实清单与真实 target**，把它们放进 Benchmark/
+       会让 Assemble 反过来成为 Benchmark 的消费者：Assemble/CMakeLists.txt:67 的 add_subdirectory 依赖
+       "清单所在目录就是插件源目录"（IDReadCatalog.cmake:125 用 get_filename_component 推出 _DIR），
+       fixture 的 CMakeLists.txt 又依赖本层的 id_assembly_add_module()。这正是五层单向依赖被反转的地方。
+   (2) Assemble/tests/consumer/AssemblySmoke.cpp = **装配层冒烟**（目标 IDAssemblySmoke，受 ID_BUILD_ASSEMBLY_SMOKE
+       控制、ship 关闭，见 Assemble/CMakeLists.txt:171-181）。只验证消费 target 链接、ID::Engine::start/shutdown、
+       宿主 new/delete 被内核记账。它不写 report.txt、不做测量、不参与评级，因此与 Benchmark 用例不同层。
+   (3) Assemble/profiles/invalid-*.json + Assemble/tests/rejections/** = **配置期负向用例**。
+       catalog.cmake:44-46 只在 profile 名以 invalid- 开头时并入 5 份拒绝清单；这些清单是"合法声明、非法组合"，
+       永远不可能进入合法产品（configure 在 add_subdirectory 之前就失败，所以没有 CMakeLists/include）。
+       它们证明的是 **CMake 解析器**的拒绝路径；Benchmark/validation/** 里的是 **C++ 编译期**反向用例
+       （PluginError 类别 static_assert）。两层分别存在、互不替代，也不冲突。
+   (4) 附带登记：IDAssemblyValidate（OBJECT，默认构建的编译期门控）与 IDAssemblySmoke 都属装配层验证资产，
+       不是 Benchmark 用例。
+   若后续真要迁移（仍属方案变更，需另批授权），必须**同时**改：
+     - Assemble/catalog.cmake:24-42：4 条 fixture 清单 + 5 条拒绝清单路径，以及 invalid- 前缀的合并逻辑；
+     - Assemble/CMakeLists.txt:172：IDAssemblySmoke 的源文件路径；
+     - 每个 fixture 的 CMakeLists.txt：它们只用 id_assembly_add_module()，迁出后需要 Benchmark 侧提供等价入口；
+     - Assemble/CMakeLists.txt:67 的 add_subdirectory 约定（插件源目录 = 清单所在目录）以及
+       Assemble/CMakeLists.txt:83-87、安装层按 _DIR/include 复制公开头的规则（同样是路径派生）。
+   只搬文件不改上述解析与生成逻辑，configure 会直接失败或目标凭空消失；本条就是"若迁移需同时改解析器"的记录。
+
+14.2 负向 profile 原始日志（本轮重新配置，不复用上一轮结论）
+   为什么重跑：13.3 的四个目录 build-p2-invalid-* 已被删除，终审无法复核，只剩叙述。本轮用**新目录**重跑，
+   目录保留在仓库内（被 .gitignore 的 /build*/ 覆盖），命令、CWD、退出码与完整 CMake 错误文本如下。
+   公共口径：CWD=F:\IDGameEngine；生成器 MinGW Makefiles；-DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF；
+   采集方式 = PowerShell 直接调 cmake 并单独打印 $LASTEXITCODE（输出里的 EXITCODE= 行就是真实退出码，
+   不依赖 wrapper 的退出码）。输出中夹杂的 System.Management.Automation.RemoteException 是 PowerShell 对
+   空 stderr 记录的渲染，不是 CMake 文本的一部分。
+
+   14.2.1 invalid-ambiguous   目录 build-p2-inv-ambiguous   EXITCODE=1
+     cmake -S F:\IDGameEngine -B F:\IDGameEngine\build-p2-inv-ambiguous -G "MinGW Makefiles" ^
+           -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF -DID_ASSEMBLY_PROFILE=invalid-ambiguous
+     -- assembly[invalid-ambiguous] catalog: 9 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional;ID.Reject.CoreAlt;ID.Reject.Ambiguous;ID.Reject.Duplicate;ID.Reject.SlotConflict;ID.Reject.Revision)
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:230 (message):
+       AmbiguousProvider：ID.Reject.Ambiguous 的需求组 0（能力
+       ID.Fixture.Core）命中 2
+       个候选：ID.Fixture.Core;ID.Reject.CoreAlt；不挑第一个，也不挑新版本
+     Call Stack (most recent call first):
+       Assemble/CMakeLists.txt:44 (id_resolve_selection)
+     -- Configuring incomplete, errors occurred!
+     错误类别：AmbiguousProvider（Selection 阶段）
+
+   14.2.2 invalid-duplicate-capability  目录 build-p2-inv-duplicate   EXITCODE=1
+     cmake -S F:\IDGameEngine -B F:\IDGameEngine\build-p2-inv-duplicate -G "MinGW Makefiles" ^
+           -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF -DID_ASSEMBLY_PROFILE=invalid-duplicate-capability
+     -- assembly[invalid-duplicate-capability] catalog: 9 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional;ID.Reject.CoreAlt;ID.Reject.Ambiguous;ID.Reject.Duplicate;ID.Reject.SlotConflict;ID.Reject.Revision)
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:184 (message):
+       DuplicateCapability：能力 ID.Fixture.Core
+       在选中集合内有两个提供者
+     Call Stack (most recent call first):
+       Assemble/CMakeLists.txt:44 (id_resolve_selection)
+     -- Configuring incomplete, errors occurred!
+     错误类别：DuplicateCapability（Ownership 阶段）
+
+   14.2.3 invalid-slot-conflict  目录 build-p2-inv-slot   EXITCODE=1
+     cmake -S F:\IDGameEngine -B F:\IDGameEngine\build-p2-inv-slot -G "MinGW Makefiles" ^
+           -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF -DID_ASSEMBLY_PROFILE=invalid-slot-conflict
+     -- assembly[invalid-slot-conflict] catalog: 9 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional;ID.Reject.CoreAlt;ID.Reject.Ambiguous;ID.Reject.Duplicate;ID.Reject.SlotConflict;ID.Reject.Revision)
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:196 (message):
+       SlotConflict：槽位 60 被 ID.Reject.SlotConflict
+       与其它选中插件同时占用
+     Call Stack (most recent call first):
+       Assemble/CMakeLists.txt:44 (id_resolve_selection)
+     -- Configuring incomplete, errors occurred!
+     错误类别：SlotConflict（Ownership 阶段）
+
+   14.2.4 invalid-revision  目录 build-p2-inv-revision   EXITCODE=1
+     cmake -S F:\IDGameEngine -B F:\IDGameEngine\build-p2-inv-revision -G "MinGW Makefiles" ^
+           -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF -DID_ASSEMBLY_PROFILE=invalid-revision
+     -- assembly[invalid-revision] catalog: 9 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional;ID.Reject.CoreAlt;ID.Reject.Ambiguous;ID.Reject.Duplicate;ID.Reject.SlotConflict;ID.Reject.Revision)
+     CMake Error at Assemble/cmake/IDResolveSelection.cmake:271 (message):
+       RevisionMismatch：ID.Fixture.Core 提供 ID.Fixture.Core 的接口修订 2
+       不在 ID.Reject.Revision 要求的 [1, 1] 内；不改选其它候选
+     Call Stack (most recent call first):
+       Assemble/CMakeLists.txt:44 (id_resolve_selection)
+     -- Configuring incomplete, errors occurred!
+     错误类别：RevisionMismatch（Selection 阶段）
+
+   14.2.5 合法对照（同环境、同一条命令口径，只换 profile）  目录 build-p2-inv-legal   EXITCODE=0
+     cmake -S F:\IDGameEngine -B F:\IDGameEngine\build-p2-inv-legal -G "MinGW Makefiles" ^
+           -DCMAKE_BUILD_TYPE=Release -DID_BUILD_BENCHMARK=OFF -DID_ASSEMBLY_PROFILE=default
+     -- assembly[default] catalog: 4 manifests (ID.Fixture.Api;ID.Fixture.Core;ID.Fixture.Math;ID.Fixture.Optional)
+     -- assembly[default-fixture] provider  ID.Fixture.Math -> ID.Fixture.Core（需求组 0，能力 ID.Fixture.Core，修订 2）
+     -- assembly[default-fixture] edge      ID.Fixture.Core -> ID.Fixture.Math（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_IDFIXTURECORE）
+     -- assembly[default-fixture] provider  ID.Fixture.Math -> ID.Fixture.Api（需求组 1，能力 ID.Fixture.Api，修订 1）
+     -- assembly[default-fixture] edge      ID.Fixture.Api -> ID.Fixture.Math（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_IDFIXTUREAPI）
+     -- assembly[default-fixture] slot      ID.Fixture.Core.ID.Fixture.Core -> 60
+     -- assembly[default-fixture] selected targets: IDFixtureApi;IDFixtureCore;IDFixtureMath
+     -- Configuring done (0.6s)
+     -- Generating done (0.1s)
+     -- Build files have been written to: F:/IDGameEngine/build-p2-inv-legal
+     说明：合法 profile 的 catalog 只有 4 条（没有拒绝清单），证明"负向清单只在 invalid- 前缀下并入"这条
+     合并逻辑没有被放宽；四个负向失败的类别与 13.3 记录一致，说明本轮没有为让用例"通过"而修改解析器。
+     本轮只做 configure（负向本来就在 add_subdirectory 之前失败），没有构建或运行这四个目录。
+
+14.3 空壳目录 IDPlugin/IDMath（已删除）
+   事实：IDPlugin/IDMath 下只有两个空目录 include、src，没有任何文件；全仓库 grep "IDMath" 命中 0 次
+   （CMake、catalog、profile、源码、文档都没有引用）；git ls-files IDPlugin 只有 CMakeLists.txt 与
+   Stub/IDPluginStub.cpp，即该目录从未被版本控制跟踪，删除不产生任何仓库差异（git status 前后一致）。
+   处理：删除 IDPlugin/IDMath/include、IDPlugin/IDMath/src 及空出的父目录 IDPlugin/IDMath，
+   使 IDPlugin/ 恢复为 AGENTS.md 描述的 "只有 Stub/" 状态。
+   复核：删除后重新 configure（目录 build-p2-post-idmath，profile=default，同 14.2 命令口径）EXITCODE=0，
+   selected targets 与 14.2.5 相同；configure 输出里所有目标与路径都与删除前一致，说明该目录不是构建输入。
+
+14.4 工作台 skill 的同步改动（不属本工程源码）
+   - skills/id-kernel/SKILL.md：新增第 4.1 节"测试资产归属"（即 14.1 的表格与迁移前提），
+     第 2/4/9 节的写死盘符改为"从工作台根 workbench_config_local.json 的 Paths 解析（本机 F:）"，
+     第 9 节补一句"配置期负向用例必须配同环境合法对照，真实日志见本文件 §14.2"。
+   - skills/id-kernel/references/plugins.md 第 10 节、references/foundation.md 第 7 节：各加一条归属指引，
+     指向 SKILL.md 第 4.1 节，避免被读成"测试已全部归 Benchmark"。
+   - skills/cpp-style/SKILL.md：只改盘符事实（D:\IDGameEngine / D:\IDWorkbench → 按配置解析、本机 F:），
+     规范条文未动。
+   - 改动后已跑 python tools/sync_workspace.py sync 与 check（工作台根为 CWD），两次退出码都是 0。
+
+14.5 本轮未验证 / 风险（不要据此声称通过）
+   - 未做任何构建（除 14.3 的 configure 复核）：没有重编 dev / dev-mono / ship，也没有重跑 IDAssemblySmoke，
+     因为本轮没有改任何构建输入；如需"改文档后产物不变"的完整证据，仍应由 Benchmark 或构建 owner 复跑 presets。
+   - 未运行 Benchmark.exe，未做性能测量或评级；本文件所有结论都是配置期/构建期退出码与文本证据。
+   - 仍只有 MinGW GCC 16.2.0 + Release 的实测；MSVC / clang / 多配置生成器的负向 profile 行为未重跑。
+   - 四个负向目录保留在仓库内以便复核（被 /build*/ 忽略）；若需要清理构建目录，应由用户在确认后再删，
+     删除后本节的命令与错误文本仍可原样复现。
+   - Assemble/tests/rejections/** 的清单"合法声明、非法组合"这一点仍只有静态论证；
+     把它们放进合法 profile 的 catalog 会怎样，仍属未做的实验（与 13.10 相同）。

@@ -1,0 +1,13 @@
+MODE: r2-default
+BUILD_DIR: F:\IDGameEngine\cmake-build-p1production
+CWD: F:\IDWorkbench
+TARGET: production_scale_32x32x1
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-p1production --target production_scale_32x32x1
+EXIT: 0
+SECONDS: 2.23
+
+[ 25%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginManager.cpp.obj
+[ 25%] Linking CXX shared library F:\IDGameEngine\bin\bin\libID.dll
+[ 75%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_scale_32x32x1.dir/src/scale/scale_32x32x1.cpp.obj
+[100%] Built target production_scale_32x32x1

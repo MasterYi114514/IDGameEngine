@@ -1,0 +1,22 @@
+MODE: protofix2-gcc
+BUILD_DIR: F:/IDGameEngine/cmake-build-protofix2-gcc
+CWD: F:/IDGameEngine/cmake-build-protofix2-gcc/Benchmark/validation/prototype
+TARGET: fixture_expect_evidence_duplicate_selection
+EXPECTED_MARKER: EvidenceSelectionMismatch
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protofix2-gcc/Benchmark/validation/prototype --target fixture_expect_evidence_duplicate_selection
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_duplicate_selection.dir/src/cases/case_evidence_duplicate_selection.cpp.obj
+
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_evidence_duplicate_selection.cpp:49:46: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:EvidenceSelectionMismatch
+   49 |     static_assert(check_duplicate_evidence() != ErrorCode::EvidenceSelectionMismatch,
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_evidence_duplicate_selection.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_duplicate_selection.dir/src/cases/case_evidence_duplicate_selection.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1144: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_duplicate_selection.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1151: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_duplicate_selection.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:457: Benchmark/validation/prototype/CMakeFiles/fixture_expect_evidence_duplicate_selection.dir/rule] Error 2
+

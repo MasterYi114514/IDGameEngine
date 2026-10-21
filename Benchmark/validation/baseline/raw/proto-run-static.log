@@ -1,0 +1,8 @@
+COMMAND: F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\bin\FixturePrototype.exe
+CWD: F:\IDGameEngine\cmake-build-protostatic\Benchmark\validation\prototype\out\bin
+EXE_SHA256: 27403EDD4CB88A8A2447734BE8C026E66D3E8A02B33B534871D47D317F42111E
+EXIT: 0
+SECONDS: 0.083
+
+kernel-instance: host=00007ff6a3901080 alpha=00007ff6a3901080 beta=00007ff6a3901080 shared=yes (legacy ID::PluginManager singleton, PluginRuntime not implemented in P0)
+fixture-prototype: PASS

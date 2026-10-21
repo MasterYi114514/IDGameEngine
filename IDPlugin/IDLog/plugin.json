@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Log",
+    "target": "IDLog",
+    "namespace": "ID::Log",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Log", "api_revision": 2, "slot": 0}
+    ],
+    "lifecycle": "standard"
+}

@@ -1,0 +1,18 @@
+IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+
+# 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+# 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+
+assembly        : @ID_INFO_ASSEMBLY@
+profile         : @ID_ASSEMBLY_PROFILE@
+mode            : @ID_BUILD_MODE@
+monolithic      : @ID_MONOLITHIC_BUILD@
+ipo             : @ID_IPO_SUPPORTED@
+avx2            : @ID_ENABLE_AVX2@
+configuration   : @CMAKE_BUILD_TYPE@
+compiler        : @CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@
+compiler_path   : @CMAKE_CXX_COMPILER@
+generator       : @CMAKE_GENERATOR@
+source_dir      : @CMAKE_SOURCE_DIR@
+binary_dir      : @CMAKE_BINARY_DIR@
+output_root     : @ID_BUILD_OUTPUT_ROOT@

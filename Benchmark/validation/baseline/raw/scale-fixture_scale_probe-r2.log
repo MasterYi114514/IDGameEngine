@@ -1,0 +1,9 @@
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-protoshared --target fixture_scale_probe
+CWD: F:\IDGameEngine
+SOURCE_TOUCHED: F:\IDGameEngine\Benchmark\validation\prototype\src\scale\scale_probe.cpp
+EXIT: 0
+SECONDS: 2.42
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_scale_probe.dir/src/scale/scale_probe.cpp.obj
+[100%] Built target fixture_scale_probe

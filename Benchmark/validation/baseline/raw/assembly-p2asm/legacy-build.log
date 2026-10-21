@@ -1,0 +1,19 @@
+﻿-- Configuring done (0.0s)
+-- Generating done (0.1s)
+-- Build files have been written to: F:/IDGameEngine/cmake-build-release
+[  7%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/BootstrapLog.cpp.obj
+[ 15%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/Memory.cpp.obj
+[ 23%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/Memory/SlabSpan.cpp.obj
+[ 30%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginManager.cpp.obj
+[ 38%] Building CXX object ID/CMakeFiles/ID.dir/src/Kernel/PluginRuntime.cpp.obj
+[ 46%] Linking CXX shared library F:\IDGameEngine\bin\bin\libID.dll
+[ 46%] Built target ID
+[ 53%] Building CXX object IDPlugin/CMakeFiles/IDPluginStub.dir/Stub/IDPluginStub.cpp.obj
+[ 61%] Linking CXX static library F:\IDGameEngine\bin\lib\libIDPluginStub.a
+[ 61%] Built target IDPluginStub
+[ 69%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/kernel/kernel_performance.cpp.obj
+[ 76%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/kernel/kernel_security.cpp.obj
+[ 84%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/main.cpp.obj
+[ 92%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/support/benchmark_support.cpp.obj
+[100%] Linking CXX executable F:\IDGameEngine\bin\bin\Benchmark.exe
+[100%] Built target Benchmark

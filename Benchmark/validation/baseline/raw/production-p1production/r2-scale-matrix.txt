@@ -1,0 +1,51 @@
+P1 规模矩阵本轮实测（GCC 16.2.0 / MinGW-w64 / Release / MONOLITHIC=OFF）
+被测头：ID/include/Kernel/PluginCompileTime.hpp SHA256 44416C713DC383E069EC0F9853521F28BE0BE5206653CFBA83E19781406B9527
+        ID/include/Kernel/Plugin.hpp             SHA256 75DFBCB3FC0345F3D846A88FEFF3C994FE85B5F08D83D99587E95C71F617CC06
+git HEAD：ada3b40daae2d2e9b5765290ac4c9e8563e211ed
+构建目录：F:\IDGameEngine\cmake-build-p1production（ID_BUILD_VALIDATION_PRODUCTION=ON / PROTOTYPE=OFF）
+CWD（cmake --build 调用）：F:\IDWorkbench
+墙钟：单进程 Stopwatch，含 make 调度与诊断输出；只用于"是否可接受（<300 s）"，不作成本或提速结论。
+
+一、默认预算 33554432（官方 target，无任何额外常量求值参数）
+target                                      exit 秒数   结果与失败位置
+production_scale_active_128                 0    2.00   通过
+production_scale_32x32x1                    0    2.23   通过
+production_scale_128x32x1（带完整证据）      0    5.90   通过（默认预算可过 1 候选满 active/catalog）
+production_scale_plan_only_128x32x1         2    6.77   超限 @ PluginCompileTime.hpp:2326（bind_entry 按下标取修订，阶段 3 绑定）
+production_scale_128x32x2                   2    7.71   超限 @ char_traits.h:367（match_group_revisions 的候选名比较）
+production_scale_128x32x4                   2    8.45   超限 @ PluginCompileTime.hpp:1445/1596（validate_group_declaration/候选视图）
+production_scale_128x32x8                   2   12.30   超限 @ PluginCompileTime.hpp:781（candidate_view）；夹具三份输入均已构造成立
+production_scale_limit_128x32x16            2    6.32   超限 @ ProductionStress.hpp:63（夹具构造 catalog 就超限，未进入被测头）
+production_scale_plan_only_128x32x16        2    6.29   同上：超限 @ ProductionStress.hpp:63（夹具构造）
+
+二、有限预算档（只在压力 target 上，命令行/Target 编译同一 TU）
+2 候选（scale_128x32x2）@134217728：exit 0，5.89 s
+4 候选（scale_128x32x4）@134217728：exit 0，8.78 s
+8 候选（scale_128x32x8）@134217728：exit 0，20.22 s
+16 候选（scale_target_128x32x16）二分（每步一次真实编译，含 16 候选夹具 + 完整校验）：
+    134217728  exit 2  36.80 s  PluginCompileTime.hpp:2055（validate_group_declaration 逐候选读取）
+    167772160  exit 2  39.28 s  PluginCompileTime.hpp:2250
+    176160768  exit 2  39.48 s  PluginCompileTime.hpp:2246
+    180355072  exit 2  40.13 s  PluginCompileTime.hpp:2249
+    182452224  exit 2  40.52 s  string_view:298（名字比较）
+    183500800  exit 2  40.74 s  char_traits.h:381（名字比较）
+    184549376  exit 0  40.60 s  通过  <== 实测最小可通过档
+    201326592  exit 0  42.91 s  通过（仅用于确认上界方向）
+  官方 target 落地后复验：production_scale_target_128x32x16 @184549376 exit 0，40.98 s。
+  该 target 的静态断言全部真实求值：diagnostic==None、active_count==128、edge_count==127、
+  active_requirement_count[127]==32、provider[127*32+15]==find_active("ID.Case.N0")、provision_count==128、fingerprint!=0。
+
+三、plan_only 1 候选的最小预算（命令行同 TU 追加单一参数）
+    35651584  exit 2  6.39 s  PluginCompileTime.hpp:2316
+    36700160  exit 2  6.63 s  PluginCompileTime.hpp:2693
+    37748736  exit 0  5.22 s  通过  <== 实测最小可通过档（默认 33554432 约差 7%–12%）
+
+四、2 候选的最小预算（命令行同 TU 追加单一参数，未继续收紧）
+    50331648  exit 2  9.35 s  PluginCompileTime.hpp:670
+    100663296 exit 0  5.97 s  通过
+
+说明：
+1. 命令行探针与官方 target 的差别只有"由谁调用编译器"与追加的单一 -fconstexpr-ops-limit 值；
+   同源文件、同 include、同 -O3 -DNDEBUG -std=c++20。参数不写入普通 target，也不进 CMAKE_CXX_FLAGS
+   （见 r2-flags-check.log：90 个 flags.make 中只有压力 target 带该参数）。
+2. 行号指当前被测头版本（SHA256 见上）；超限的行号会随 limit 值变化，因为触发点取决于求值推进到哪一步。

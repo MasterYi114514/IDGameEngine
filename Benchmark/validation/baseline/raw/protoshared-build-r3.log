@@ -1,0 +1,16 @@
+﻿[ 29%] Built target ID
+[ 41%] Built target IDPluginStub
+[ 52%] Built target IDFixtureAlpha
+[ 64%] Built target IDFixtureBeta
+[ 88%] Built target IDFixtureAssembly
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[100%] Built target FixtureZeroPrototype
+[ 17%] Built target ID
+[ 25%] Built target IDPluginStub
+[ 28%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_candidates.cpp.obj
+[ 92%] Built target IDFixtureLegalCases
+[ 96%] Linking CXX executable out\bin\FixtureCaseControls.exe
+澶嶅埗 ID 鍐呮牳 DLL 鍒板師鍨嬭緭鍑虹洰褰曪紙鏉ユ簮 F:/IDGameEngine/bin/bin/libID.dll锛?
+[100%] Built target FixtureCaseControls

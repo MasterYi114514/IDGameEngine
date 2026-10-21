@@ -1,0 +1,11 @@
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-release --target Benchmark
+CWD: F:\IDGameEngine
+EXIT: 0
+WALL_SECONDS: 2.8
+
+[ 41%] Built target ID
+[ 58%] Built target IDPluginStub
+[ 66%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/kernel/kernel_performance.cpp.obj
+[ 75%] Building CXX object Benchmark/CMakeFiles/Benchmark.dir/src/kernel/kernel_security.cpp.obj
+[ 83%] Linking CXX executable F:\IDGameEngine\bin\bin\Benchmark.exe
+[100%] Built target Benchmark

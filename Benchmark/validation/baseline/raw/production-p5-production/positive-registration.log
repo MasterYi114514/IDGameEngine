@@ -1,0 +1,6 @@
+MODE: production-p5-production
+BUILD_DIR: F:/IDGameEngine/cmake-build-p5-production
+REGISTERED: positive_basics;positive_graph;positive_ownership;positive_permutation;positive_storage;positive_uneven
+SOURCE_DIR: F:/IDGameEngine/Benchmark/validation/production/src/positive
+RESULT: TRUE
+REASON: 

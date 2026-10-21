@@ -1,0 +1,18 @@
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protoshared/Benchmark/validation/prototype --target fixture_expect_unknown_candidate
+EXIT: 2
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/src/cases/case_unknown_candidate.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_candidate.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:140:100: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:UnknownCandidate
+  140 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<::ID::Bench::Fixture::ErrorCode::code>(plan),            \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_unknown_candidate.cpp:37:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   37 |     ID_FIXTURE_EXPECT_ERROR(kPlan, UnknownCandidate);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_unknown_candidate.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/src/cases/case_unknown_candidate.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:815: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:822: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:289: Benchmark/validation/prototype/CMakeFiles/fixture_expect_unknown_candidate.dir/rule] Error 2
+

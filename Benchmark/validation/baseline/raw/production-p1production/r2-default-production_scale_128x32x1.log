@@ -1,0 +1,11 @@
+MODE: r2-default
+BUILD_DIR: F:\IDGameEngine\cmake-build-p1production
+CWD: F:\IDWorkbench
+TARGET: production_scale_128x32x1
+COMMAND: cmake --build F:\IDGameEngine\cmake-build-p1production --target production_scale_128x32x1
+EXIT: 0
+SECONDS: 5.9
+
+[100%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_scale_128x32x1.dir/src/scale/scale_128x32x1.cpp.obj
+[100%] Built target production_scale_128x32x1

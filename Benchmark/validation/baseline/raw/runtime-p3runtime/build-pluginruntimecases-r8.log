@@ -1,0 +1,10 @@
+[ 40%] Built target ID
+[ 53%] Built target IDPluginStub
+[ 60%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_main.cpp.obj
+[ 66%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/RuntimeFixture.cpp.obj
+[ 73%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_lifecycle_cases.cpp.obj
+[ 80%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_service_cases.cpp.obj
+[ 86%] Building CXX object Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCases.dir/src/runtime_plan_cases.cpp.obj
+[ 93%] Linking CXX executable out\bin\PluginRuntimeCases.exe
+copy kernel DLL into runtime validation out/bin
+[100%] Built target PluginRuntimeCases

@@ -1,0 +1,18 @@
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-protoshared/Benchmark/validation/prototype --target fixture_expect_name_first_char
+EXIT: 2
+
+[ 83%] Built target ID
+[100%] Building CXX object Benchmark/validation/prototype/CMakeFiles/fixture_expect_name_first_char.dir/src/cases/case_name_first_char.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp:1:
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\CaseCommon.hpp:140:100: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:InvalidName
+  140 |     static_assert(::ID::Bench::Fixture::Cases::error_differs<::ID::Bench::Fixture::ErrorCode::code>(plan),            \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\prototype\src\cases\case_name_first_char.cpp:46:5: note: in expansion of macro 'ID_FIXTURE_EXPECT_ERROR'
+   46 |     ID_FIXTURE_EXPECT_ERROR(kPlan, InvalidName);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\prototype\CMakeFiles\fixture_expect_name_first_char.dir\build.make:79: Benchmark/validation/prototype/CMakeFiles/fixture_expect_name_first_char.dir/src/cases/case_name_first_char.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:1455: Benchmark/validation/prototype/CMakeFiles/fixture_expect_name_first_char.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:1462: Benchmark/validation/prototype/CMakeFiles/fixture_expect_name_first_char.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:569: Benchmark/validation/prototype/CMakeFiles/fixture_expect_name_first_char.dir/rule] Error 2
+

@@ -1,0 +1,43 @@
+﻿[ 29%] Built target ID
+[ 41%] Built target IDPluginStub
+[ 52%] Built target IDFixtureAlpha
+[ 64%] Built target IDFixtureBeta
+[ 70%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixturePlan.cpp.obj
+[ 76%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureAssembly.dir/src/assembly/FixtureDeterminism.cpp.obj
+[ 82%] Linking CXX static library out\lib\libIDFixtureAssembly.a
+[ 88%] Built target IDFixtureAssembly
+[ 94%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixturePrototype.dir/src/apps/PrototypeMain.cpp.obj
+[100%] Linking CXX executable out\bin\FixturePrototype.exe
+澶嶅埗 ID 鍐呮牳 DLL 鍒板師鍨嬭緭鍑虹洰褰曪紙鏉ユ簮 F:/IDGameEngine/bin/bin/libID.dll锛?
+[100%] Built target FixturePrototype
+[ 55%] Built target ID
+[ 77%] Built target IDPluginStub
+[ 88%] Building CXX object Benchmark/validation/prototype/CMakeFiles/FixtureZeroPrototype.dir/src/apps/ZeroPluginMain.cpp.obj
+[100%] Linking CXX executable out\bin\FixtureZeroPrototype.exe
+澶嶅埗 ID 鍐呮牳 DLL 鍒板師鍨嬭緭鍑虹洰褰曪紙鏉ユ簮 F:/IDGameEngine/bin/bin/libID.dll锛?
+[100%] Built target FixtureZeroPrototype
+[ 17%] Built target ID
+[ 21%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_self_dependency.cpp.obj
+[ 25%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_ambiguous_provider.cpp.obj
+[ 28%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_missing_provider.cpp.obj
+[ 32%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_cycle.cpp.obj
+[ 35%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_hash_collision.cpp.obj
+[ 39%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_candidate.cpp.obj
+[ 42%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_empty_inner_group.cpp.obj
+[ 46%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_candidate.cpp.obj
+[ 50%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_active_overflow.cpp.obj
+[ 53%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_mismatch.cpp.obj
+[ 57%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_invalid_name.cpp.obj
+[ 60%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_plugin.cpp.obj
+[ 64%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_requirements.cpp.obj
+[ 67%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_candidates.cpp.obj
+[ 71%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_too_many_catalog.cpp.obj
+[ 75%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_unknown_active.cpp.obj
+[ 78%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_duplicate_active.cpp.obj
+[ 82%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_selection_mismatch.cpp.obj
+[ 85%] Building CXX object Benchmark/validation/prototype/CMakeFiles/IDFixtureLegalCases.dir/src/cases/case_evidence_edge_mismatch.cpp.obj
+[ 85%] Built target IDFixtureLegalCases
+[ 92%] Built target IDPluginStub
+[ 96%] Linking CXX executable out\bin\FixtureCaseControls.exe
+澶嶅埗 ID 鍐呮牳 DLL 鍒板師鍨嬭緭鍑虹洰褰曪紙鏉ユ簮 F:/IDGameEngine/bin/bin/libID.dll锛?
+[100%] Built target FixtureCaseControls

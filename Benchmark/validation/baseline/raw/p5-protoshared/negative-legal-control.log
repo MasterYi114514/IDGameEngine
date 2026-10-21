@@ -1,0 +1,11 @@
+MODE: p5-protoshared
+BUILD_DIR: F:/IDGameEngine/cmake-build-p5-protoshared
+CWD: F:/IDGameEngine/cmake-build-p5-protoshared/Benchmark/validation/prototype
+TARGET: IDFixtureLegalCases
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/cmake-build-p5-protoshared/Benchmark/validation/prototype --target IDFixtureLegalCases
+EXIT: 0
+
+[ 15%] Built target ID
+[100%] Built target IDFixtureLegalCases
+
+

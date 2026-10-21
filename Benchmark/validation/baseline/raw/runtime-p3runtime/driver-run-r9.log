@@ -1,0 +1,30 @@
+[ 37%] Built target ID
+[ 50%] Built target IDPluginStub
+[ 93%] Built target PluginRuntimeCases
+[100%] runtime cases: run PluginRuntimeCases + verify exit/console/report + official report isolation
+-- runtime 批次问题：
+缺陷 D-P3-1 复现：零插件全空视图 shutdown 未按头文件契约返回 Idle（探针 exit=Illegal instruction）
+  stderr：[FATAL][ID.Assert] ASSERT FAILED: (m_active_plan != nullptr && m_active_plan->records != nullptr) | PluginRuntime::shutdown() reached Ready without an installed plan! [F:\IDGameEngine\ID\src\Kernel\PluginRuntime.cpp:376]
+  被测位置：ID/src/Kernel/PluginRuntime.cpp:376（shutdown 内部断言要求 records != nullptr）
+  契约位置：ID/include/Kernel/PluginRuntime.hpp:202-203（零插件允许 records/topo_order/slot_owner 为空）
+  断言口径未放宽：期望仍是 start -> Ready、shutdown -> Idle
+
+-- 主矩阵摘要：passed=239 failed=0 skipped=0 groups=lifecycle=7 zero=7 initfail=33 register=41 state=18 slot=31 upstream=12 plan=86 
+cmake.exe : CMake Error at F:/IDGameEngine/Benchmark/validation/runtime/cmake/RunRuntimeCases.cmake:361 (message):
+所在位置 C:\Users\Administrator\AppData\Local\Temp\genie-ps-1792419074412-tj68ri.ps1:960 字符: 9
++ $out2 = & cmake --build F:\IDGameEngine\cmake-build-p3runtime --targe ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CMake Error at ...:361 (message)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  runtime 校验批次未通过（详见
+  F:/IDGameEngine/Benchmark/validation/runtime/../baseline/raw/runtime-p3runtime）
+
+
+mingw32-make[3]: *** [Benchmark\validation\runtime\CMakeFiles\PluginRuntimeCasesRun.dir\build.make:70: Benchmark/valida
+tion/runtime/CMakeFiles/PluginRuntimeCasesRun] Error 1
+mingw32-make[2]: *** [CMakeFiles\Makefile2:360: Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCasesRun.dir/all] 
+Error 2
+mingw32-make[1]: *** [CMakeFiles\Makefile2:367: Benchmark/validation/runtime/CMakeFiles/PluginRuntimeCasesRun.dir/rule]
+ Error 2
+mingw32-make: *** [Makefile:189: PluginRuntimeCasesRun] Error 2
