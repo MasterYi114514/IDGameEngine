@@ -20,7 +20,8 @@ set(ID_ASSEMBLY_CATALOG_MANIFESTS
     "${CMAKE_CURRENT_LIST_DIR}/tests/fixtures/fixture_optional/plugin.json"
     "${CMAKE_CURRENT_LIST_DIR}/../IDPlugin/IDLog/plugin.json"
     "${CMAKE_CURRENT_LIST_DIR}/../IDPlugin/IDMathScalar/plugin.json"
-    "${CMAKE_CURRENT_LIST_DIR}/../IDPlugin/IDMathSIMD/plugin.json")
+    "${CMAKE_CURRENT_LIST_DIR}/../IDPlugin/IDMathSIMD/plugin.json"
+    "${CMAKE_CURRENT_LIST_DIR}/../IDPlugin/IDWindow/plugin.json")
 
 # 解析器负向用例清单（tests/rejections/**）：
 #   这些条目本身是**合法的声明**，但它们的组合必然在 id_resolve_selection 阶段被拒绝

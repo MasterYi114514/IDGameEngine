@@ -1,0 +1,23 @@
+{
+    "schema_version": 1,
+    "name": "ID.Window",
+    "target": "IDWindow",
+    "namespace": "ID::Window",
+    "kind": "module",
+    "version": 1,
+    "dependencies": [
+        ["ID.Log"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "ID.Log",
+            "api_revisions": {
+                "ID.Log": {"min": 2, "max": 2}
+            }
+        }
+    ],
+    "provides": [
+        {"capability": "ID.Window", "api_revision": 1, "slot": 9}
+    ],
+    "lifecycle": "standard"
+}

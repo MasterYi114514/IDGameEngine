@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <concepts>
+#include <type_traits>
 
 namespace ID
 {
