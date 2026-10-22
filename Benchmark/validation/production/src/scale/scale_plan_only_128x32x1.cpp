@@ -2,10 +2,11 @@
 
 /**
  *  根因隔离探针：128/256/32/1 只做计划推导、不给证据。
- *  实测（GCC 16.2.0）：默认 33554432 下本目标超限，失败位置在 bind_entry 的
- *  "revision_in_order 快路径按下标取修订"处（PluginCompileTime.hpp 的 metadata.revisions 读取），
- *  即计划推导（阶段 3 绑定），不是 verify_evidence 的逐记录查找；实测最小可通过档为
- *  37748736（36700160 仍失败）。
+ *  本目标保持不加预算参数，继续记录"默认限制档"的失败；A03（kSchemaRevision = 2）之后仍在
+ *  默认 33554432 下超限。本次实测的超限点在 bind_active 的候选前缀读取
+ *  （PluginCompileTime.hpp 的 declaration.candidate_prefix0[candidate]），即计划推导的阶段 3
+ *  匹配绑定，不是 verify_evidence 的逐记录查找。A03 之前记录的超限位置与"最小可通过档
+ *  37748736"是在旧 provider[] 扁平表布局下测的，A03 之后未重新二分，不再作为当前结论引用。
  *  与带证据档的差异还有一处夹具结构事实：本目标把输入写成 sort_and_validate(make_input(...))
  *  的一次性实参，输入构造与计划求值落在同一常量表达式里；scale_128x32x1 则先命名一个
  *  constexpr 输入再做计划，二者是两个独立求值。带证据档在默认预算下通过（见 scale_128x32x1）。

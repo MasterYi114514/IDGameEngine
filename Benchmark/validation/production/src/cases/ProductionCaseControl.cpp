@@ -75,8 +75,9 @@ int main()
         }
     }
 
-    // 结构修订是公共契约的一部分；运行期确认控制程序与生产头链接一致
-    const bool schema_ok = ID::PluginCompileTime::kSchemaRevision == 1;
+    // 结构修订是公共契约的一部分；运行期确认控制程序与生产头链接一致。
+    // schema2 = matched 计划表布局（D0-10）：这里断言字面值 2，而不是拿符号与自身比较。
+    const bool schema_ok = ID::PluginCompileTime::kSchemaRevision == 2;
     ++checks;
     if (!schema_ok)
     {

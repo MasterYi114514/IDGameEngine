@@ -24,6 +24,10 @@ namespace
     static_assert(kPlan.active_count == 32, "scale_32x32x1: active 必须为 32");
     static_assert(kPlan.edge_count == 31, "scale_32x32x1: 31 个下游各有一条去重边");
     static_assert(kPlan.active_requirement_count[31] == 32, "scale_32x32x1: 最后一个 active 必须有 32 条需求");
-    static_assert(kPlan.provider[31 * 32] == kPlan.find_active("ID.Case.N0"),
-                  "scale_32x32x1: 最后一个 active 的首个需求必须绑定 P0");
+    static_assert(matched_exactly(kPlan, 31, 0, kPlan.find_active("ID.Case.N0")),
+                  "scale_32x32x1: 最后一个 active 的首个需求必须恰好命中 P0");
+    static_assert(matched_count_of(kPlan, kPlan.find_active("ID.Case.N0"), 0) == 0,
+                  "scale_32x32x1: 无需求插件 P0 的组槽位必须是空区间（命中 0 条）");
+    static_assert(kPlan.matched_total() == 31 * kMaxRequirements,
+                  "scale_32x32x1: 命中记录总数必须等于 31 个下游 × 32 需求");
 } // namespace

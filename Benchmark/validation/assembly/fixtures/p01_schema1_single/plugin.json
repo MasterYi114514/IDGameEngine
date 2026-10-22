@@ -1,0 +1,21 @@
+{
+    "schema_version": 1,
+    "name": "FX.Consumer.Single",
+    "target": "IDFxConsumerSingle",
+    "namespace": "ID::Fx::Consumer::Single",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [
+        ["FX.Core"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "FX.Core",
+            "api_revisions": {
+                "FX.Core": {"min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "none"
+}

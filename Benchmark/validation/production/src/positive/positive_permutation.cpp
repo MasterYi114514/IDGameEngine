@@ -3,7 +3,7 @@
 
 /**
  *  正向对照：打乱 catalog 顺序、selected 顺序、候选顺序、provides 顺序后，
- *  canonical active 表、逐需求 provider、拓扑序、扁平 provision 与指纹必须完全相同。
+ *  canonical active 表、逐需求命中集合（schema2 matched 表）、拓扑序、扁平 provision 与指纹必须完全相同。
  *  编译期断言 + 运行期探针：TU 必须进入 ProductionCaseControls 的链接行并能被调用。
  */
 
@@ -47,9 +47,11 @@ namespace
     static_assert(kPlanA.active_identity[0].view() == "ID.Case.Alpha" &&
                       kPlanB.active_identity[0].view() == "ID.Case.Alpha",
                   "positive_permutation: canonical 首项必须都是 Alpha");
-    static_assert(kPlanA.provider[0] == kPlanA.find_active("ID.Case.Beta") &&
-                      kPlanB.provider[0] == kPlanB.find_active("ID.Case.Beta"),
-                  "positive_permutation: 逐需求 provider 必须相同");
+    static_assert(matched_exactly(kPlanA, kPlanA.find_active("ID.Case.Alpha"), 0,
+                                  kPlanA.find_active("ID.Case.Beta")) &&
+                      matched_exactly(kPlanB, kPlanB.find_active("ID.Case.Alpha"), 0,
+                                      kPlanB.find_active("ID.Case.Beta")),
+                  "positive_permutation: 逐需求命中集合必须相同（两侧都恰好命中 Beta 一项）");
     static_assert(kPlanA.topo_order[0] == kPlanA.find_active("ID.Case.Beta") &&
                       kPlanB.topo_order[0] == kPlanB.find_active("ID.Case.Beta"),
                   "positive_permutation: 拓扑序必须相同");

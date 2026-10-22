@@ -1,0 +1,74 @@
+=== 数学两域叉积判据说明（判据依据，不是变更流水） ===
+
+本文件回答三个问题：旧断言为什么违反冻结口径、新断言对应容差表的哪一行、失败样本的实际残差量级。
+它不产生评级、不是校验资产、不写官方 report.txt（属于 Benchmark/validation/math 下的说明性证据）。
+
+[1] 判据对象与落点
+  ID.Math.Scalar : Benchmark/src/math_scalar/math_scalar_security.cpp
+                   用例 vec3.cross_self_zero / vec3.cross_orthogonal（文件头文档块第 3.1 条指向本文件）
+  ID.Math.SIMD   : Benchmark/src/math_simd/math_simd_security.cpp
+                   同名用例（文件头文档块第 3.1 条指向本文件）
+  被测入口       : ID::Math::{Scalar,SIMD}::cross(vec3, vec3)，输入为固定种子的 float 三分量数据
+  related 用例   : vec2.cross2_antisymmetric 同属容差判定（同一口径，未另立判据）
+
+[2] 旧断言（保留的证据文本）
+  旧形态是一条合并用例 vec3.cross_orthogonal，detail 形如
+      cross(a,a)=0:是；|dot(cross(a,b),a)|=3.73e-09
+  判定语义：
+    - cross(a,a) 的三个分量必须**逐位等于 0**（输出布尔"是/否"）；
+    - 正交性 |dot(cross(a,b),a)| 与零比较（同一行输出残差）。
+  保留的旧证据（**未删除**）：
+    - Benchmark/build/math-both-msvc-release/math-both-msvc-release-run1.txt
+        [FAIL] vec3.cross_orthogonal   cross(a,a)=0:否；|dot(cross(a,b),a)|=3.73e-09
+    - Benchmark/build/math-scalar-mingw-debug/math-scalar-mingw-debug-run1.txt
+      Benchmark/build/math-simd-mingw-release/math-simd-mingw-release-run1.txt
+        [PASS] vec3.cross_orthogonal   cross(a,a)=0:是；|dot(cross(a,b),a)|=3.73e-09
+    - Benchmark/build/math-both-mingw-debug/math-both-mingw-debug-run1.txt（同上形态）
+  旧证据的可读结论：同一份代码在同一机器的严格浮点配置（Debug）下"是"，在 /fp:fast 的 MSVC Release
+  下"否"。也就是说，旧断言实际测的是"编译器有没有做 FMA 收缩"，不是实现的数学正确性。
+
+[3] 旧断言为何违反 D0-05（G3）
+  docs/idlog-math-d0-freeze.md 的 D0-05 冻结：
+    - "精度按 double oracle + 容差表判定，**不按 bitwise 等价**"；
+    - "不得把位模式前检的结果当作精度或容差结论"（位模式前检只解决非有限值分类）；
+    - checked 入口以 finite input 为契约前置，不承诺"静默给出脏结果"，也不承诺 bitwise 等价；
+    - 修改进程浮点全局状态属禁止项（旧断言等于隐含要求"关掉 FMA 收缩"，那要走 float 全局状态/
+      strict TU 的路，而 D0-05 明确不引入独立 strict TU）。
+  机理：cross(a,a) 的分量是 a1*a2 - a2*a1 形式。允许 FMA 收缩时，编译器可把它合成一条 FMA
+  （第二个乘积被舍入后再相减），残差 = 被乘数乘积的一次舍入误差，量级 1e-9；这不是缺陷，而是
+  "/fp:fast / -ffast-math 允许收缩"的直接后果。因此"逐位为 0"在允许收缩的构建里对**任何**正确实现
+  都不可满足——它把编译器优化选项当成了被测行为，与 D0-05 的"不按 bitwise 等价"直接冲突。
+
+[4] 新断言与对应容差表行（数值未改，只是改用冻结容差表判定）
+  容差表位置：两个 backend 各自的 security.cpp 内 kTol* 常量（本轮**未修改任何容差数值**）
+  判定式    ：|actual - expected| <= abs + rel * max(|actual|, |expected|)（与 backend near_equal 一致）
+  vec3.cross_self_zero        -> 容差表 "一次乘法/加法/减法/Hadamard/叉积" 行 kTolArithmetic
+                                 abs = rel = 2 * FLT_EPSILON = 2.38e-07
+                                 （expected 恒为 0，故相对项为 0，实际上限 = 2.38e-07）
+  vec3.cross_orthogonal       -> 容差表 "dot / squared_length" 行 kTolDot.abs_tolerance = 4e-06
+                                 （detail 里打印的上限即 kTolDot.abs_tolerance）
+  vec2.cross2_antisymmetric   -> 容差表 kTolArithmetic.abs_tolerance（同上，本轮未改）
+
+[5] 失败样本的实际残差量级（本机实测，2026-10-21 本轮回跑）
+  cross(a,a) 分量残差（判据 vec3.cross_self_zero）：
+    - MSVC Release（/fp:fast，允许 FMA 收缩）：max|分量| = 3.37e-09，占允许上限 2.38e-07 的 1.4%
+    - MSVC Debug / MinGW Release / MinGW Debug（无收缩）：max|分量| = 0（逐位为 0）
+      -> 与 [2] 的"只在 /fp:fast 下为否"完全一致，证实旧失败来自收缩而不是实现
+  正交性残差（判据 vec3.cross_orthogonal）：四配置均为 |dot(cross(a,b),a)| = 3.73e-09
+    （占允许上限 4e-06 的 0.09%；该值与旧报告里同一行的残差逐字相同，说明数据与实现都没变）
+  说明：旧报告只打印布尔"是/否"，没有记录分量残差；上表的 3.37e-09 是本轮为判据留痕而新增的输出
+  （vec3.cross_self_zero 的 detail 现在直接打印 max|分量| 与允许上限），不是事后补造的历史数字。
+
+[6] 边界（这条整改没有做什么）
+  - 没有放宽容差表：kTolArithmetic / kTolDot 的数值本轮一字未改，改的只是"用容差表判定"替代"逐位为 0"；
+  - 没有改评级带宽（skills/benchmark/references/grading.md §5 未改），没有改任何 reference_ns；
+  - 没有把失败判据挪走：超容差仍然 FAIL，且 detail 直接给出残差与上限，便于复核；
+  - 没有删除任何旧证据文件（[2] 列出的 run1 报告全部保留）。
+
+[7] 复现
+  # 任一数学组合的构建目录（此处为 primary）：
+  & F:\IDGameEngine\Benchmark\build\math-both-mingw-release\out\shared\bin\Benchmark.exe
+  # 报告里查看两行：
+  #   [PASS] vec3.cross_self_zero    max|cross(a,a) 分量|=X（允许 2.38e-07，容差表 kTolArithmetic）
+  #   [PASS] vec3.cross_orthogonal   |dot(cross(a,b),a)|=3.73e-09（允许 4e-06，容差表 kTolDot）
+  # MSVC Release 需用 --config Release 的产物（/fp:fast）才能看到非零的分量残差。

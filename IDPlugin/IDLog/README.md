@@ -16,7 +16,12 @@ ID.Log 是 IDGameEngine 的日志插件：它以服务槽 `ID::ServiceSlot::Log`
 
 ### 1.1 能力与访问方式
 
-产品启动（`ID::Engine::start()` 返回 Ready）之后，服务槽 0 上发布一张 `ID::Log::LogApiTable`：
+**Ready 区间**（本文统一术语）：前端（本插件）的 `on_init` 已成功返回，且调用方处于自己的 `on_init` 序内时即成立，
+窗口延续到本插件 `on_shutdown` 复位槽位之前。下游插件在自己的 `on_init` 序内就可以 `acquire_logger`；
+此时内核的运行期状态仍是 `Initializing`——「产品已 Ready」不是前置条件；宿主在 `ID::Engine::start()` 成功返回后
+同样落在这个区间内。插件不提供 engineReady 状态位、运行期就绪检查，也没有 `awaitEngineReady` 一类等待接口。
+
+在 Ready 区间内，服务槽 0 上有一张 `ID::Log::LogApiTable`：
 
 ```cpp
 const ID::Log::LogApiTable* table =
@@ -24,7 +29,7 @@ const ID::Log::LogApiTable* table =
 ```
 
 `get_service` 本身是一次固定下标 + 一次指针 load，不校验状态、类型与所有权；
-它是否为空完全由「产品是否选中 `ID.Log`」和「当前是否在 Ready 区间」决定。
+它是否为空完全由「产品是否选中 `ID.Log`」和「调用是否落在 Ready 区间内」决定。
 
 ### 1.2 常量与硬上限
 
@@ -33,8 +38,8 @@ const ID::Log::LogApiTable* table =
 | `kLogApiRevision` | 2 | 接口修订；表里的 `revision` 必须等于它 |
 | `kLogSlot` | 0 | 服务槽号，等于 `ID::ServiceSlot::Log` |
 | `kMaxLoggerHandles` | 64 | 句柄槽位总数（插件自己在初始化时占 1 个，宿主可申请 63 个） |
-| `kStackFormatCapacity` | 512 | 单条消息文本上限（字节）；超出按 UTF-8 边界截断并补 `...` |
-| `kLineCapacity` | 1024 | 最终日志行上限（含 `[category] ` 前缀）；超出再截断并补 `...` |
+| `kStackFormatCapacity` | 512 | 单条消息文本上限（字节，最多写 511 字节真实内容）；超出时在合法 UTF-8 边界截断并补 `...`（见 3.8） |
+| `kLineCapacity` | 1024 | 最终日志行上限（含 `[category] ` 前缀）；超出再截断并补 `...`（见 3.8） |
 | `kMaxFilePathBytes` | 260 | `LogConfig::file_path` 容量（含末尾 NUL，超长按容量截断） |
 
 所有级别都编入产物：`ID_LOG_MIN_LEVEL` 在公开头里固定为 `0`，任何 `-D` 或构建定义覆盖都会在编译期报错。
@@ -52,6 +57,8 @@ const ID::Log::LogApiTable* table =
 | Clang、非 Windows 平台 | **未验证** |
 | 安装后用 `find_package(IDGameEngine)` 消费 | 最小消费程序（start/shutdown）已验证（MinGW 与 MSVC）；带文件日志的安装后消费未单独验证 |
 | 热重载插件、跨模块 STL/ABI 混用 | 未验证，且当前不支持 |
+
+行为层面还有三项**只写了契约、没有实测证据**，见 1.5。
 
 ### 1.4 构建与包含前提
 
@@ -71,6 +78,18 @@ const ID::Log::LogApiTable* table =
    未选中时既没有公开头也没有身份宏。
 4. 想拿到「有哪些级别、哪些字段」只读公开头：`#include "IDLogLogger.hpp"` 就够了（它包含 `IDLogApi.hpp`）。
    内核头、其它插件、宿主的 TU 都不需要、也不应该包含日志后端自身的任何实现头。
+
+### 1.5 未取证的行为项
+
+下面三项在公开头里有明确的**契约表述**，但**没有任何实测证据**：四配置矩阵、终止语义校验，以及覆盖
+「启动回滚 / 重复 init / `configure` 与 `reconfigure` 失败路径 / 关闭后写入 / 槽位复用」的行为驱动都不覆盖它们。
+它们既不是"已验证"，也不是"已排除"——采用相关语义时按**未验证**对待，不要把它们写成保证。
+
+| 项 | 契约在哪 | 为什么没有证据 | 要取证还缺什么 |
+|---|---|---|---|
+| 内核日志桥的**重入 `Fatal`**：当内核日志回调已经占着日志后端时再报一条 `Fatal`，本插件不再转交内核自举日志，而是把这一行直接写 stderr 后终止 | 第 3.1 节 `write` 行（`Level::Fatal` 无条件终止）与第 4.6 节 | 正常调用构造不出来：驱动里所有 `Fatal` 用例都是**首次**进入桥，重入分支一次都没被执行；要命中它必须先在后端内部再触发一次 Fatal 报告 | 需要**注入**：临时 sink（或替身后端）里回调内核自举日志的 `Fatal`。这是测试注入，不是消费者能构造的场景 |
+| **卸载期的静态析构时序**：本插件的资源只由关闭流程释放，`on_unload` 之后不再依赖任何静态析构（DLL 卸载晚于内核分配器销毁） | 第 2.2 / 4.7 节的关闭顺序（"插件 `on_shutdown` 会复位槽位"）与第 8 节"不能宣称"清单 | 差值发生在 `FreeLibrary` / 进程退出阶段：驱动进程内无法在"内核分配器已销毁、DLL 仍在执行代码"的窗口里跑断言，强杀进程也观察不到"静态析构是否访问了已释放内存" | 需要**进程外观测**：注入卸载后再分配/释放的探针，或用加载器锁 + 分配器日志做卸载期审计 |
+| **`category` 悬垂**：`acquire_logger` 只保存指针、不复制内容，调用方提前释放或就地改写后，句柄读到的是悬空/脏数据 | 第 3.7 节与 `acquire_logger` 的模板注记（"提前释放或就地改写会让句柄指向悬空/脏数据"） | 它是调用方违约后的后果，写入的字节取决于堆复用，既不稳定也不可断言；驱动无法把"读到脏数据"变成可复现的 PASS/FAIL 判据 | 只能做**非确定性**观测（记录读到的字节后人工判读），或改用页保护 / 影子分配器把悬垂读变成必现故障 |
 
 ---
 
@@ -128,7 +147,7 @@ bool game_start(const char* log_file) noexcept
         }
     }
 
-    // 4) 句柄：每个子系统只在这里申请一次并缓存，别在每帧、每实体里申请
+    // 4) 句柄：每个子系统只在这里申请一次并缓存（全产品共 63 个可用槽位），别在每帧、每实体里申请
     g_logger = ID::Log::acquire_logger(*g_log_table, kCategory);
     if (g_logger == nullptr)
     {
@@ -149,13 +168,15 @@ bool game_start(const char* log_file) noexcept
 void game_stop() noexcept
 {
     // 1) 先停掉所有会写日志的线程 / 任务 / 作业队列（本产品不替调用方收敛生产者）
-    // 2) 冷路径 flush：把已提交的消息推给输出，不保证落盘，也不等待异步队列排空
+    // 2) 冷路径 flush：异步形态只投递一条控制屏障，不等待、不排空队列、不是 fsync；
+    //    队列满时屏障自身也可能被覆盖，因此它之前已提交的消息同样不保证落地
     if (g_log_table != nullptr)
     {
         g_log_table->flush();
     }
 
-    // 3) 关闭产品：插件的 on_shutdown 会把 64 个句柄槽全部复位
+    // 3) 关闭产品：插件的 on_shutdown 会把 64 个句柄槽全部复位。
+    //    关闭只保证"未被丢弃的 FIFO 消息被处理"，输出失败不构成"全部持久化"
     static_cast<void>(ID::Engine::shutdown());
 
     // 4) 句柄一律置空：shutdown 之后旧句柄的 table 变成 nullptr，再调用普通方法就是空指针崩溃
@@ -176,10 +197,10 @@ void game_stop() noexcept
 |---|---|---|---|
 | `write` | `void(*)(uint32_t level, const char* category, uint32_t category_len, const char* message, uint32_t message_len) noexcept` | **可由多线程并发调用** | 提交已格式化好的消息；`category`/`message` 允许 `nullptr`、不要求 NUL、不接管所有权；越界 `level` 收敛为 `Error`；`Level::Fatal` 无条件终止 |
 | `configure` | `bool(*)(const LogConfig&) noexcept` | 不得与 `write`/`flush`/`reconfigure`/`get_stats`/shutdown 并发 | 只接受 `min_level` 与 `flush_interval_ms`；拓扑字段有任何差异返回 `false` 且不改状态 |
-| `flush` | `void(*)() noexcept` | 不得与 shutdown 并发 | 异步形态只投递 flush 屏障、**不等待完成**；不代表队列已排空，也不是 `fsync` |
-| `acquire_logger` | `Logger*(*)(const char* category, uint32_t category_len) noexcept` | 冷路径，只在 Ready 区间调用 | 无锁、无分配、不做字符串查重；`category == nullptr`、表项为空或槽位耗尽返回 `nullptr` |
+| `flush` | `void(*)() noexcept` | 不得与 shutdown 并发 | 异步形态只投递一条控制屏障、**不等待**：不代表排空、不是 `fsync`；屏障自身也可能被覆盖（见 3.9） |
+| `acquire_logger` | `Logger*(*)(const char* category, uint32_t category_len) noexcept` | 冷路径，只在 Ready 区间调用 | 无锁、无分配、不做字符串查重；`category == nullptr`、表项为空或槽位耗尽返回 `nullptr`（见 3.7） |
 | `reconfigure` | `bool(*)(const LogConfig&) noexcept` | 不得与 `write`/`flush`/`configure`/`get_stats`/shutdown 并发 | 全部字段都可改（重建后端）；失败时旧后端与旧状态完全不变；成功时可能阻塞到旧队列排空 |
-| `get_stats` | `void(*)(LogStats*) noexcept` | 不得与 `reconfigure`/shutdown 并发 | `nullptr` 时什么都不做；无后端时清零只留 `ready=false` 与 `last_config_error` |
+| `get_stats` | `void(*)(LogStats*) noexcept` | 不得与 `reconfigure`/shutdown 并发（`write` 可并发） | `nullptr` 时什么都不做；无后端时清零只留 `ready=false` 与 `last_config_error`；读队列计数会取一次队列锁 |
 | `active_level` | `const std::atomic<uint32_t>*` | 只读，任何时刻安全 | 级别过滤的唯一真源；调用方预检读的就是它（relaxed） |
 | `revision` | `uint32_t` | 常量 | 必须等于 `kLogApiRevision`（当前 2） |
 
@@ -197,6 +218,15 @@ void game_stop() noexcept
 | `write_at(Level, fmt, args...)` | 方法 | 只做格式化 + 提交，**不做级别预检**；确知该级别已打开时才用 |
 | `trace` / `debug` / `info` / `warn` / `error` | 方法 | 内部先做 `is_enabled` 再格式化；**实参在调用前必然已求值** |
 | `fatal` | `[[noreturn]]` 方法 | 不受过滤；`table` 为空时走自举日志回退后终止；只在不可恢复时用 |
+
+句柄的生命周期只有一条规则：**只在 Ready 区间内有效**。
+
+- `category` 只保存指针、不复制内容：必须是字面量，或调用方自己持有到句柄失效为止的稳定存储；
+  提前释放或就地改写会让句柄读到悬空/脏数据。
+- 插件 `on_shutdown` 会复位全部 64 个槽并把游标归零，复位后的旧句柄 `table == nullptr`：普通方法解引用即空指针崩溃
+  （契约内后果），`fatal` 与 `ID_LOG_FATAL` 走回退后终止。调用方必须在下游 `on_shutdown` 里置空自己的句柄。
+- 下一轮 `start` **复用同一批槽位**，所以跨 `shutdown` 保留的旧句柄还可能别名到别的模块的槽（指向别人的 category）：
+  旧句柄在 shutdown 之后一律不安全，任何跨轮复用都不在契约内。
 
 行形态（console 写 stderr，无颜色）：`[日期 时间] [级别] [线程 id] [category] 消息`，
 例如 `[2026-10-21 16:10:24.123] [info] [1676] [Game] game start: revision=2`。
@@ -225,7 +255,7 @@ void game_stop() noexcept
 | `enable_console` | `bool` | `true` | 输出到 stderr |
 | `enable_file` | `bool` | `false` | 需要 `file_path`；与 `enable_console` 同时为 false 时返回 `NoSink` |
 | `async` | `bool` | `true` | 异步提交（调用线程只入队） |
-| `overrun_drop_oldest` | `bool` | `true` | `true`：队列满覆盖最旧一条（不等待空位，但仍会短暂取队列自身锁）；`false`：队列满时生产者等待空位 |
+| `overrun_drop_oldest` | `bool` | `true` | `true`：队列满覆盖最旧一条（不等待队列空位，但入队仍取队列互斥量，**不是 wait-free**）；`false`：队列满时生产者**等待**空位（无超时、无返回值、不计丢弃） |
 | `flush_on_warn` | `bool` | `true` | `warn` 及以上触发一次 flush；高频 warn 场景可评估关闭 |
 | `file_path` | `char[260]` | 全 0 | 必须以 NUL 结尾；插件不信任调用方，会把末字节强制写成 `'\0'`（等价于按容量截断） |
 | `struct_size` | `uint32_t` | `sizeof(LogConfig)` | 0 或与本构建精确相等，否则 `InvalidEnvelope` |
@@ -236,7 +266,16 @@ void game_stop() noexcept
 - `configure`：只改 `min_level` / `flush_interval_ms`。其余字段（含与当前不同的 `file_path`）任何差异都返回 `false`，
   并记 `TopologyRequiresReconfigure`；被拒请求里的 `min_level` 也不会被顺手应用，不会创建/探测文件。
 - `reconfigure`：全部字段，等价于重建后端。先完整校验（含文件可写探测）再建新后端，成功后才切换；
-  任一步失败返回 `false` 且旧后端与旧状态不变。只改 `min_level` / `flush_interval_ms` 时它等价于 `configure`，不重建后端。
+  任一步失败返回 `false` 且旧后端与旧运行期状态不变。只改 `min_level` / `flush_interval_ms` 时它等价于 `configure`，不重建后端。
+
+**返回 `false` 不等于"文件系统零副作用"**：
+
+- 校验阶段的探写是 `fopen(path, "ab")`，它本身就会**创建**目标文件；探写发生在拓扑判定之前，所以
+  "只改 `min_level`、但配置里带着可写的 `enable_file` 路径"这类请求也会真的打开/创建文件，然后才决定不重建后端。
+- 若失败发生在探写之后（例如随后构造新后端时内存不足），已创建的文件会留在磁盘上。
+- 探写是 **TOCTOU**：它只证明"此刻能打开"，不保证随后真正构造文件 sink 时仍可写（配额、权限、路径都可能在两步之间变化）。
+- 已知缺口：`max_files` **没有上界校验**，超过 200000 会在建后端时进入后端自身的终止点（进程结束），而不是返回 `false`；
+  `LogConfigError` 目前没有对应类别，新增失败码属于 rev3 提案。
 
 ### 3.5 `LogStats`（调用方分配，插件写入）
 
@@ -253,7 +292,9 @@ void game_stop() noexcept
 | `async` / `console` / `file` | `bool` | 当前拓扑 |
 
 读 `overrun_dropped` 会取一次队列锁，因此 `get_stats` 是冷路径，必须与 `reconfigure` / shutdown 串行。
-后端销毁后 `overrun_dropped` / `discarded` 归零（它们是当前后端的计数），两个进程级丢弃计数不受影响。
+后端销毁后 `overrun_dropped` / `discarded` 归零（它们是当前后端的计数），两个进程级丢弃计数不受影响——
+但**没有后端时整个结构被清零**，所以 `dropped_before_ready` / `dropped_after_shutdown` 在关闭之后读不到，
+只能等下一轮 Ready 区间再观测（实测：关闭后写入使计数 +1，下一轮 `start` 后才可见）。
 
 ### 3.6 `LogConfigError`
 
@@ -283,12 +324,75 @@ ID::Log::Logger* acquire_logger(const ID::Log::Logger& owner, const char (&categ
 category 必须是编译期长度已知的字符数组（字符串字面量或静态存储期常量）；模板按数组长度算出字节数，不调用 `strlen`；第二个模板只借用 `owner.table`。
 两者都是冷路径：无锁、无分配、不做 category 查重——**同一 category 申请两次会占两个槽位**。
 
+槽位容量是硬上限：`kMaxLoggerHandles = 64` 个，插件在自己的初始化里已占 1 个，**产品侧最多再申请 63 个**。
+申请游标只增不回退，所以耗尽之后同一轮里的申请也一律返回 `nullptr`，直到 `shutdown` 复位槽位才重新可用；
+没有扩容入口、没有等待重试。**每次申请都必须检查返回值**，把 `nullptr` 当成"本模块没有日志能力"的显式分支处理，不要静默继续。
+
+### 3.8 截断、行拼装与格式化边界
+
+- 单条消息文本上限 `kStackFormatCapacity = 512` 字节（最多写 511 字节真实内容）；最终日志行上限 `kLineCapacity = 1024` 字节（含 `[category] ` 前缀）。
+- 截断**只**保证"**合法 UTF-8 输入**的前缀 + `...`"：插件最多向前回退 3 字节丢掉被切断的多字节序列，不留下半个码点，也绝不越界写缓冲。
+  它**不修复**调用方已经传入的非法 UTF-8 字节——非法输入原样留在行里，这也是消息文本应保持为合法 UTF-8 的原因。
+- `write` 里 `category` 或 `message` 为 `nullptr` 时该段不写入、不计长度：行的长度永远是**真实写入**的字节数，
+  不会把缓冲尾部未初始化的内容当成消息（`write(lv, nullptr, 2000, "x", 1)` 只产生 `[] x`）。
+- 格式化边界如实披露：`std::format_to_n` 对自定义 formatter **可能分配、可能抛异常**，而 `Logger` 的方法与 `write_at` 都标 `noexcept`，
+  异常穿过这条边界即 `std::terminate`——那是进程终止，不是可捕获、可恢复的日志失败。
+  唯一可承诺的是"插件内不做第二次格式化"；不要读成"零分配""不抛异常"或"失败可恢复"。
+
+### 3.9 `flush()` 的含义（不是完成语义）
+
+- 同步形态：在调用线程上直接 flush sink，返回时内容已交给 OS（`fflush` 语义），仍然**不是** `fsync`。
+- 异步形态：只向主队列投递一条**控制屏障**，本调用**不等待**；返回时不代表队列已排空，也不代表之前提交的消息已被处理。
+- `overrun_drop_oldest = true`（默认）时屏障本身也是一条队列消息，**可能被后续消息覆盖**：屏障之前已提交但未被处理的消息
+  **不保证落地**，屏障之后的因果顺序同样不保证。`overrun_drop_oldest = false` 时屏障按阻塞策略入队、不会自身被覆盖，
+  但本调用仍不等待，返回时队列可能远未排空。
+- 五个状态互不等价：
+
+  | 状态 | 含义 | v1 |
+  |---|---|---|
+  | `submitted` | 已提交给前端（异步时已入队） | 提供 |
+  | `processed` | 已交给 sink（异步由 worker 完成，同步由调用线程完成） | 提供（异步不等待） |
+  | `discarded` | 被覆盖（overrun）或显式丢弃 | 提供，计入 `LogStats` |
+  | `sink_flushed` | sink 内容已交给 OS（`fflush`） | 提供（`flush()` / `flush_on_warn` / 周期 flush） |
+  | `durable` | 已写入物理介质（`fsync` 级） | **非目标** |
+
+- 需要"排空后确认"的场合：本版本**没有** `drain` 入口，`flush()` 也不能代替它。
+  `drain(quiescent)` 与 `barrier + ack` 属 **rev3 提案**（v1 不实现、不改变 `flush()` 行为）：
+  提案要求**控制消息不可丢弃**，并给出"等待超时 / 返回失败"的语义；调用方在这些情况下**不得**销毁仍在使用中的资源
+  （前端、线程池、sink、句柄）。持久化需求请用自己的写入与同步逻辑。
+- 关闭（`shutdown`）只保证"**未被丢弃**的 FIFO 消息被处理"（交给 sink）：后端销毁时会按 FIFO 处理已入队且未被丢弃的消息
+  后才返回，但**输出失败时不得把结果称作"全部持久化"**——任意 I/O 失败都可能丢行。
+- 本插件**不安装**后端错误回调（error handler），因此不存在"错误回调里再写日志"的重入/死锁面：
+  后端失败点直接走"披露的终止路径"（见第 5 节最后一行与 3.4 的已知缺口），不会回调进日志入口。
+  物理 `fsync` 也不是默认动作：`flush()` 只到 `fflush`，`durable` 属非目标。
+
+### 3.10 计数闭合（仅冷路径 / 原始验证）
+
+`overrun_drop_oldest = true` 时队列满会覆盖最旧一条，计数按下列边界闭合：
+
+```
+accepted = delivered + dropped + inflight
+dropped  = overrun_dropped + discarded      // 单调不减
+0 <= dropped <= accepted
+inflight <= queue_capacity + 1              // 队列容量 + worker 手上最多 1 条（由后端结构决定）
+```
+
+- `LogStats` 只提供 `overrun_dropped` 与 `discarded`；`accepted` / `delivered` / `inflight` **没有字段**，
+  只能由调用方自己的提交计数与 sink 侧观测配对反解。把这三项加进 `LogStats` 属于 rev3 ABI 提案，rev2 头不加字段。
+- 闭合核对只允许发生在**冷路径**（`get_stats`）或**原始验证**（专门的对账用例）里：
+  **禁止**为了闭合而在 `write` 热路径新增无条件累加或原子操作。
+- 两种丢弃策略的代价不同：
+  - `overrun_drop_oldest = true`（`overrun_oldest`）：入队**仍要取队列互斥量**，**不是 wait-free**；
+    它只保证"不等待队列空位"，短时锁竞争仍然存在。
+  - `overrun_drop_oldest = false`（`block`）：队列满时**生产者等待空位**（无超时、无返回值、也不计丢弃），
+    生产者饱和时压力直接变成调用线程的阻塞时间。
+
 ---
 
 ## 4. 用法示例
 
 以下示例共用第 2 节的包含与前置状态：`#include "IDGameEngine.hpp"` / `#include "IDLogLogger.hpp"` / `<cstdio>`，
-产品已进入 Ready。示例里的 `table` / `logger` 指第 2 节的 `g_log_table` / `g_logger`（非空）；
+产品已启动、调用点落在 Ready 区间内（见 1.1）。示例里的 `table` / `logger` 指第 2 节的 `g_log_table` / `g_logger`（非空）；
 `build_snapshot_text()` 代表任意昂贵函数，只用来表现求值时机。
 
 ### 4.1 console + async（启动默认形态，零配置）
@@ -407,7 +511,7 @@ if (render_device == nullptr)
 
 ```cpp
 // 1) 停掉所有会写日志的生产者（工作线程、作业队列、网络回调）
-// 2) flush：只是把已提交内容推到输出，不等待异步队列排空，也不是落盘保证
+// 2) flush：异步形态只投递控制屏障——不等待、不排空，屏障自身也可能被覆盖，不是落盘保证
 g_log_table->flush();
 // 3) 关闭产品（逆拓扑序 shutdown/unload；本插件会复位 64 个句柄槽）
 static_cast<void>(ID::Engine::shutdown());
@@ -478,15 +582,17 @@ void report_log_stats(const ID::Log::LogApiTable& table) noexcept
 | 热循环里打 `Debug`/`Trace` | 即使级别关闭，方法形态仍会求值实参；打开时更慢 | 用 `ID_LOG_DEBUG` 等宏，或先 `is_enabled` 再算参数 |
 | 长 payload（数十 KB 的 JSON/dump）每帧输出 | 超过约 250 字节可能多一次堆分配；超 512 字节还会被截断并补 `...`，信息本身也丢 | 短消息 + 需要时输出文件/单独通道；大对象按需 dump |
 | 昂贵格式化参数未先判级别 | `logger->debug("{}", serialize_scene())` 会先执行 `serialize_scene()` | 宏或 `is_enabled` 保护 |
-| 把 `flush()` 当落盘保证、每帧调用 | 异步形态下 `flush` 只投递屏障、不等待、不排空队列；`fflush` 不是 `fsync` | 关闭/崩溃边界调用；持久化需求用文件写入 + 自己的同步逻辑 |
+| 把 `flush()` 当落盘保证、每帧调用 | 异步形态下 `flush` 只投递屏障、不等待、不排空队列；`overrun_drop_oldest` 下屏障自身也可能被覆盖，故它之前已提交的消息同样不保证落地；`fflush` 不是 `fsync` | 关闭/崩溃边界调用；持久化需求用文件写入 + 自己的同步逻辑 |
 | `get_stats` / `configure` / `reconfigure` 与写线程并发 | 契约要求宿主串行；并发时行为不在保证范围内 | 停写者、放启动期或场景切换点 |
 | `reconfigure` 时仍有大量写者 | 重建后端会销毁旧队列，且可能阻塞到旧队列排空 | 切配置前暂停生产者 |
 | `Fatal` 报可恢复错误、把日志当审计/安全记录 | `Fatal` 直接终止进程；日志后端没有防篡改、没有事务、异步形态允许丢最旧 | 可恢复用 `error`/`warn` + 返回值；审计走独立可靠通道 |
 | 依赖队列满时「一条不丢」 | 默认 `overrun_drop_oldest` 覆盖最旧；即使改成阻塞策略也只是把压力转移给生产者 | 接受丢弃并用 `overrun_dropped` 观测，或降低产出速率 |
-| 跨 `shutdown` 保留并使用旧句柄 | 插件 `on_shutdown` 复位全部槽位，旧句柄 `table == nullptr`；普通方法解引用即崩溃 | 把句柄置空，下一轮 `start` 后重新申请 |
+| 跨 `shutdown` 保留并使用旧句柄 | 插件 `on_shutdown` 复位全部槽位，旧句柄 `table == nullptr`；普通方法解引用即崩溃。下一轮 `start` 还会复用同一批槽位，旧句柄可能别名到别的模块的槽 | 把句柄置空，下一轮 `start` 后重新申请 |
 | 用临时 category 指针申请句柄 | 插件只保存指针不复制内容 | 用字面量或静态存储期常量 |
 | 超过 64 个句柄 | 初始化已占 1 个，可申请 63 个，耗尽后返回 `nullptr` | 每个子系统一个句柄，长期复用 |
-| 日志目录不可写 / 磁盘满 | 建后端前有探写，但运行期写失败在无异常构建里没有异常可抛，极端情况会终止进程 | 部署时保证目录可写与磁盘余量，失败路径不要依赖日志 |
+| 日志目录不可写 / 磁盘满 | 建后端前有探写（权限/目录不存在返回 `FileNotWritable`），但探写是 TOCTOU；运行期 console 写失败被忽略（丢行、无计数），文件 sink 的写 / `fflush` / 轮转重命名失败会**终止进程**（无异常构建），不会降级成计数 | 部署时保证目录可写与磁盘余量；失败路径不要依赖日志，需要可观测的写失败请另建通道 |
+| 依赖"`reconfigure` 返回 `false` 说明什么都没发生" | 返回 `false` 只保证旧后端与旧运行期状态不变；探写会创建目标文件，失败发生在探写之后时该文件仍会留下 | 把探写副作用当已知代价；需要"零副作用探测"时先私下核对路径，再调 `reconfigure` |
+| 把 `max_files` 设成任意大值 | 该字段没有上界校验，超过 200000 会在建后端时进入后端自身的终止点，而不是返回 `false` | 保持在 200000 以内；需要更强的配置校验属于 rev3 提案 |
 
 **关于「一条不丢」**：本插件的定位是**诊断日志**。它不提供投递保证、不做持久化同步、不做审计级顺序保证；
 需要这些语义时必须另建通道，日志只作为旁路观测。

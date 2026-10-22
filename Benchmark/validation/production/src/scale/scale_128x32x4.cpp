@@ -21,7 +21,11 @@ namespace
     static_assert(kPlan.diagnostic.code == PluginError::None, "scale_128x32x4: 必须合法");
     static_assert(kPlan.active_count == 128, "scale_128x32x4: active 必须为 128");
     static_assert(kPlan.edge_count == 127, "scale_128x32x4: 去重边只能有 127 条");
-    static_assert(kPlan.provider[127 * 32 + 31] == kPlan.find_active("ID.Case.N0"),
-                  "scale_128x32x4: 最后一个 active 的最后一组必须绑定 P0");
+    static_assert(matched_exactly(kPlan, 127, 31, kPlan.find_active("ID.Case.N0")),
+                  "scale_128x32x4: 最后一个 active 的最后一组必须恰好命中 P0（4 候选里只有 P0 被选中）");
+    static_assert(matched_count_of(kPlan, kPlan.find_active("ID.Case.N0"), 0) == 0,
+                  "scale_128x32x4: 无需求插件 P0 的组槽位必须是空区间（命中 0 条）");
+    static_assert(kPlan.matched_total() == 127 * kMaxRequirements,
+                  "scale_128x32x4: 命中记录总数必须等于 127 个下游 × 32 需求");
     static_assert(kPlan.fingerprint != 0, "scale_128x32x4: 必须输出确定性指纹");
 } // namespace

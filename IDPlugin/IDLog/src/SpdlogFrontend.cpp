@@ -280,9 +280,13 @@ namespace ID::Log
         std::atomic<bool>                               flusher_stop{ false };
 
         /**
-         *  @brief 排空当前所有 sink
-         *  @note 主 logger 是异步时只会入队一个 flush 屏障；随后同步 logger 的 flush 才真正把
-         *        已经写进 sink 的内容刷到 OS。两者合起来给 `flush()` 一个可见的即时效果。
+         *  @brief 把两个 logger 已经进 sink 的内容刷给 OS（**不排空队列、不是 `fsync`**）
+         *  @note 主 logger 是异步时，它这一侧只入队一条控制屏障：本调用不等待、不排空队列；
+         *        `overrun_oldest` 下这条屏障自身也可能被覆盖，因此屏障之前已提交但未被 worker 处理的
+         *        消息不保证落地，屏障之后的因果顺序同样不保证。
+         *        随后同步 logger 的 flush 只覆盖"已经写进 sink"的那部分内容（`fflush` 语义）。
+         *        因此本函数给 `flush()` 的效果只是"已进 sink 的字节交给 OS"：既不构成排空语义，
+         *        也不构成完成语义，更不保证数据落到物理介质。
          */
         void flush_all() noexcept
         {
@@ -672,7 +676,8 @@ namespace ID::Log
 
         if (level == static_cast<uint32_t>(Level::Fatal))
         {
-            // Fatal 不走异步队列：同步 logger 写完立刻 flush 再 abort，保证崩溃前最后一行一定落地
+            // Fatal 不走异步队列：同步 logger 写完立刻 flush 再 abort。它不排空主队列、与在途异步消息
+            // 也没有全局顺序保证，任意 I/O 失败都不保证这一行输出成功——契约只是"尽力输出后终止"
             impl->fatal_logger->log(spd_level, payload);
             impl->fatal_logger->flush();
             std::abort();

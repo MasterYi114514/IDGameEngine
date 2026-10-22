@@ -26,6 +26,12 @@ option(ID_BUILD_VALIDATION_LOG "构建 Benchmark/validation/log 下的 ID.Log �
 # 本构建目录本身不需要设置 ID_ASSEMBLY_PROFILE，也不会因为开启它而改变任何产品目标。
 option(ID_BUILD_VALIDATION_ASSEMBLY "构建 Benchmark/validation/assembly 下的组装层校验驱动器" OFF)
 
+# 数学域编译失败负例入口：默认关闭。开启后只注册一个驱动器目标（IDMathNegativeCompileRun），
+# 它在自己的 build 目录里用本工程同一个编译器逐个编译"期望失败"的负例 TU，并断言诊断里恰好
+# 一条静态断言 + 含 EXPECTED:<类别> + 不含 MISMATCH；同时先编译一份同环境的合法对照。
+# 该目标不写官方 report.txt、不参与评级，也不会被 src/*.cpp 的 glob 捡进官方 exe。
+option(ID_BUILD_VALIDATION_MATH "构建 Benchmark/validation/math 下的数学域编译失败负例驱动器" OFF)
+
 # ID.Log 参考值测量阶段开关：ON 时把该域 6 条指标的 reference 强制为 0（报告按 ungraded 输出），
 # 用于重新标定分配置参考值。默认 OFF；任何回归/验收构建必须保持 OFF，否则指标全部 ungraded。
 option(ID_BENCH_LOG_REFERENCE_UNSET "ID.Log 指标强制未标定（reference=0/ungraded），仅用于参考值测量阶段" OFF)
@@ -37,14 +43,16 @@ add_executable(Benchmark ${BENCH_SRC})
 target_include_directories(Benchmark PRIVATE ${BENCH_DIR}/include)
 
 # 链接口径分两种，判定条件只有"同一构建目录里目标是否已经存在"，不看 profile 名字：
-#   1. 默认口径（空 profile、或选中的插件集合里没有 IDLog）：只链内核与分配桩，
+#   1. 默认口径（空 profile、或选中的插件集合里既没有 IDLog 也没有数学 backend）：只链内核与分配桩，
 #      测试内容不随 ID_ASSEMBLY_PROFILE 的插件选择变化；
-#   2. ID.Log 专用口径：仅当 Assemble 已创建 IDGameEngine（ID_ASSEMBLY_PROFILE 非空）**且** catalog/profile
-#      真的选中了 IDLog 时才改链产品消费目标。理由：ID.Log 域必须拿到 `ID_USE_PLUGIN_IDLOG` 身份宏与
-#      IDLog 公开头，而这两项只能由 IDLog target 的 PUBLIC usage requirement 经 IDAssembly 传播，
-#      不允许在这里全局注入宏或 include 路径。因此该口径下的 report.txt 会随产品 profile 变化，
-#      未选 IDLog 的构建仍然走口径 1，行为与测试内容不变。
-if(TARGET IDGameEngine AND TARGET IDLog)
+#   2. 需要产品能力头的口径：仅当 Assemble 已创建 IDGameEngine（ID_ASSEMBLY_PROFILE 非空）**且**
+#      catalog/profile 真的选中了至少一个"只在 product 侧可见"的插件 target 时才改链产品消费目标。
+#      理由：ID.Log 域的 `ID_USE_PLUGIN_IDLOG` + IDLog 公开头，以及两个数学域的
+#      `ID_USE_PLUGIN_IDMATHSCALAR` / `ID_USE_PLUGIN_IDMATHSIMD` + 各自公开头，都只能由对应插件
+#      target 的 PUBLIC usage requirement 经 IDAssembly 传播；不允许在这里全局注入宏或 include 路径
+#      （所以下面只判目标是否存在，不写任何插件名特判，也不新增 backend 开关）。
+#      IDMathScalar / IDMathSIMD 是 interface 插件，两条链任意命中其一都说明本 profile 选了数学 backend。
+if(TARGET IDGameEngine AND (TARGET IDLog OR TARGET IDMathScalar OR TARGET IDMathSIMD))
     target_link_libraries(Benchmark PRIVATE IDGameEngine)
 else()
     target_link_libraries(Benchmark PRIVATE ID IDPluginStub)
@@ -95,4 +103,9 @@ endif()
 # ID.Log 终止语义校验资产（默认关闭；需要 profile 选中 ID.Log）
 if(ID_BUILD_VALIDATION_LOG)
     add_subdirectory(${BENCH_DIR}/validation/log)
+endif()
+
+# 数学域编译失败负例（默认关闭；需要 profile 选中至少一个数学 backend）
+if(ID_BUILD_VALIDATION_MATH)
+    add_subdirectory(${BENCH_DIR}/validation/math)
 endif()

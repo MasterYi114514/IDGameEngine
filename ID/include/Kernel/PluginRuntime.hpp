@@ -159,7 +159,8 @@ namespace ID
     /**
      *  @brief 一个选中插件的四个生命周期回调地址（计划书 10.5 的固定形状）
      *  @note 四个函数指针都必须 `noexcept`；未提供某个阶段时写 nullptr，runtime 跳过该阶段。
-     *        纯头文件插件（lifecycle=none）四项全为 nullptr 是合法记录。
+     *        纯头文件插件（kind = interface + lifecycle = none）四项全为 nullptr 是合法记录：
+     *        它即使被某个需求组命中，也只保留身份与编译期 usage，不创建回调槽、不占任何回调阶段。
      */
     struct PluginRuntimeCallbacks
     {
@@ -208,7 +209,9 @@ namespace ID
      *        四个回调地址由组装层的运行期绑定 TU 提供）、plugin_count <- active_count、
      *        topo_order <- topo_order、slot_owner <- slot_owner、provisions <- provision_owner /
      *        provision_slot / provision_api_revision / provision_capability、provision_count <- provision_count。
-     *        视图不带逐需求 provider 绑定：唯一上游已在编译期定向到下游的适配分支，运行期不再查询；
+     *        视图不带逐需求 provider / matched 绑定：本产品的全部 matched 上游（同一需求组可以命中多个候选）
+     *        已在编译期折进去重边与 topo_order，运行期只按 topo_order 执行四阶段生命周期，
+     *        不做候选搜索、依赖重解或 fallback，也不为任何一条需求再查询上游；
      *        也不含任何指向常量求值局部对象的指针。
      */
     struct PluginRuntimePlanView

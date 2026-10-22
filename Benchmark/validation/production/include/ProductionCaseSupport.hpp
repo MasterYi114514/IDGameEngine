@@ -43,6 +43,7 @@ namespace ID::Bench::Production
     using ID::PluginCompileTime::SelectedEvidence;
     using ID::PluginCompileTime::SlotEvidence;
     using ID::PluginCompileTime::kMaxNameBytes;
+    using ID::PluginCompileTime::kMaxRequirements;
     using ID::PluginCompileTime::kMaxSlots;
     using ID::PluginCompileTime::kMacroCapacity;
     using ID::PluginCompileTime::kNoIndex;
@@ -610,6 +611,53 @@ namespace ID::Bench::Production
         return {};
     }
 
+    // ---- matched 计划表读取（schema2：每需求是一个命中集合，schema1 语义下恒为 1 条） ----
+    /**
+     *  @brief (canonical active, 需求组) -> matched 组槽位下标
+     *  @param active canonical active 下标
+     *  @param group  需求组下标（外层 AND 的第几组）
+     *  @return `active * kMaxRequirements + group`
+     *  @note 组槽位编址是生产头的公共契约（kGroupSlots = kMaxActive × kMaxRequirements）；
+     *        本函数只做下标换算，不复制任何匹配/诊断逻辑。
+     */
+    constexpr size_t group_slot_of(size_t active, size_t group) noexcept
+    {
+        return active * kMaxRequirements + group;
+    }
+
+    /**
+     *  @brief 某需求组的命中条数（0 / 1 / N）
+     *  @return 该组槽位的区间长度 `match_begin[slot + 1] - match_begin[slot]`
+     *  @note 未使用的组槽位返回 0；schema1 的合法计划恒为 1（0 与 >=2 都不是合法计划）。
+     */
+    template <typename Plan>
+    constexpr size_t matched_count_of(const Plan& plan, size_t active, size_t group) noexcept
+    {
+        return static_cast<size_t>(plan.matched_count(group_slot_of(active, group)));
+    }
+
+    /**
+     *  @brief 某需求组第 ordinal 条命中对应的 canonical active 下标
+     *  @param ordinal 组内序号（0 起），必须小于 matched_count_of(...)
+     *  @note 组内按 canonical active 下标升序排列，因此序号与候选书写顺序无关。
+     */
+    template <typename Plan>
+    constexpr uint16_t matched_active_at(const Plan& plan, size_t active, size_t group, size_t ordinal) noexcept
+    {
+        const size_t slot = group_slot_of(active, group);
+        return plan.match_active[static_cast<size_t>(plan.match_begin[slot]) + ordinal];
+    }
+
+    /**
+     *  @brief 某需求组"恰好命中 expected 一个 active"
+     *  @return 命中条数为 1 且唯一命中项等于 expected；0 条或 >=2 条都判 false
+     */
+    template <typename Plan>
+    constexpr bool matched_exactly(const Plan& plan, size_t active, size_t group, uint16_t expected) noexcept
+    {
+        return matched_count_of(plan, active, group) == 1 && matched_active_at(plan, active, group, 0) == expected;
+    }
+
     // ---- 身份宏拥有存储：证据里的 macro 是 string_view，必须指向静态存储 ----
     struct MacroName
     {
@@ -727,11 +775,15 @@ namespace ID::Bench::Production
         {
             for (uint16_t group = 0; group < plan.active_requirement_count[active]; ++group)
             {
-                const uint16_t provider = plan.provider[static_cast<size_t>(active) * 32 + group];
+                // schema2：每需求的命中由 match_begin / match_active 描述成一个集合（0 / 1 / N）。
+                // 证据记录的是逐需求 provider，因此取组内首条命中；合法计划按 schema1 语义恒为 1 条。
+                // 0 条命中时填空 view，让证据校验按具体类别拒绝，而不是静默取到无关 active。
+                const size_t   hit_count = matched_count_of(plan, active, group);
+                const uint16_t provider  = hit_count > 0 ? matched_active_at(plan, active, group, 0) : kNoIndex;
                 evidence.bindings[evidence.binding_count].dependent =
                     static_name(names, plan.active_identity[active].view());
                 evidence.bindings[evidence.binding_count].provider =
-                    static_name(names, plan.active_identity[provider].view());
+                    provider == kNoIndex ? std::string_view{} : static_name(names, plan.active_identity[provider].view());
                 evidence.bindings[evidence.binding_count].requirement = group;
                 ++evidence.binding_count;
             }

@@ -1,0 +1,48 @@
+#pragma once
+
+/**
+ *  @file
+ *  @brief 本 consumer（@ID_ASM_MATCHED_CONSUMER_NAME@）逐需求组的 matched 集合（产品 @ID_ASM_ASSEMBLY_NAME@）
+ *
+ *  由 Assemble/cmake/IDGenerateAssembly.cmake 依据 plugin.json + profile 的解析结果生成，勿手改。
+ *
+ *  1. **语义**：本头只回答"在本次产品里，本 consumer 的第 g 个需求组实际命中了哪些 provider"。
+ *     它不是 preferred、不是唯一 choice、也不是全局能力声明：同一 capability 在别的 consumer 的
+ *     别的组里可以命中另一组 provider。
+ *  2. **与 `ID_USE_PLUGIN_<TOKEN>` 的区别（false positive 防护）**：
+ *     `ID_USE_PLUGIN_<TOKEN>` 只证明"该 target 在本 TU 的真实 PUBLIC 链上可见"。它会沿
+ *     `A -> B -> consumer` 传递，因此 consumer 能看到自己**并不直接依赖**的 A 的身份宏。
+ *     判断"某候选是不是本 consumer 第 g 组的 matched 成员"必须用本头的
+ *     `ID_MATCHED_MEMBER_<CONSUMER_TOKEN>_G<g>_<PROVIDER_TOKEN>`，不得用 `ID_USE_PLUGIN_*` 代替。
+ *     两族宏的前缀不同、键也不同（本头按 consumer 与组下标分键），所以两者不会互相冒充。
+ *  3. **不污染全局、不产生 ODR 冲突**：这些宏不做 `-D` 全局注入，只定义在本头里；本头随本插件自己的
+ *     PUBLIC include 一起传播，同一产品内所有 TU（consumer 自己与它的下游）读到**同一份文件、同一组值**，
+ *     因此 consumer 公开头里基于本头的 `#if` 判定在每个 TU 都一致。跨 TU 判定一致是 ODR 安全的前提：
+ *     不允许在某个只有部分 TU 可见的位置定义"成员资格"。
+ *  4. **随产品变化**：换 profile 就换一组宏值，consumer 源码不动；未命中的 provider 没有任何宏。
+ *     `ID_MATCHED_GROUP_COUNT_*` 是该 consumer 的需求组总数，零需求组的插件同样有本头（只有这一个宏）。
+ *
+ *  用法（consumer 公开头内）：
+ *  @code
+ *  #include "IDMyConsumerMatched.generated.hpp"       // 文件名 = <本插件 target>Matched.generated.hpp
+ *  #if ID_MATCHED_COUNT_IDMYCONSUMER_G0 == 0
+ *  #    error "需求组 0 在本次产品里没有任何 matched 成员"
+ *  #endif
+ *  #if defined(ID_MATCHED_MEMBER_IDMYCONSUMER_G0_IDBACKENDA)
+ *      ... 走候选 A 的实现 ...
+ *  #elif defined(ID_MATCHED_MEMBER_IDMYCONSUMER_G0_IDBACKENDB)
+ *      ... 走候选 B 的实现 ...
+ *  #endif
+ *  @endcode
+ *
+ *  @note 选择只发生在预处理期：运行期没有 provider 搜索、没有能力探测、没有 fallback。
+ */
+
+// 本 consumer 的需求组总数（外层 AND 的组数；与 plugin.json 的 dependencies 条数一致）
+#define ID_MATCHED_GROUP_COUNT_@ID_ASM_MATCHED_CONSUMER_TOKEN@ @ID_ASM_MATCHED_GROUP_COUNT@
+
+// 本 consumer 的 matched 记录总数（= 各组命中条数之和；等于编译期计划的 matched_total()）
+#define ID_MATCHED_TOTAL_@ID_ASM_MATCHED_CONSUMER_TOKEN@ @ID_ASM_MATCHED_TOTAL@
+
+// 逐组命中条数与逐成员宏：ID_MATCHED_COUNT_<CONSUMER>_G<组> / ID_MATCHED_MEMBER_<CONSUMER>_G<组>_<PROVIDER>
+@ID_ASM_MATCHED_DEFINES@

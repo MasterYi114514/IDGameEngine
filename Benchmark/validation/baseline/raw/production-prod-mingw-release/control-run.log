@@ -1,0 +1,15 @@
+MODE: production-prod-mingw-release
+CWD: F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production
+COMMAND: F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production/out/bin/ProductionCaseControls.exe
+EXIT: 0
+
+  [PASS] positive_basics          active=3 edge=0 provision=3 error=0
+  [PASS] positive_graph           active=2 edge=1 provision=2 error=0
+  [PASS] positive_ownership       active=1 edge=0 provision=5 error=0
+  [PASS] positive_permutation     active=2 edge=1 provision=3 error=0
+  [PASS] positive_storage         active=2 edge=1 provision=2 error=0
+  [PASS] positive_uneven          active=4 edge=2 provision=4 error=0
+  [PASS] production_schema        schema_revision=2
+production-case-controls: 7 passed / 0 failed
+
+

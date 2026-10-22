@@ -135,10 +135,11 @@ namespace ID::Log
                    const char* message, uint32_t message_len) noexcept;
 
         /**
-         *  @brief 冷路径：排空 sink
-         *  @note 同步模式直接 flush 所有 sink；异步模式投递 flush 屏障，
-         *        保证屏障之前入队的消息最终会被处理，但本函数不等待屏障完成，
-         *        也不保证队列排空或数据物理持久化。
+         *  @brief 冷路径：把已进 sink 的内容刷给 OS（**不排空、不等待、不是 `fsync`**）
+         *  @note 同步模式直接 flush 所有 sink（`fflush` 语义）；异步模式只向主 logger 投递一条控制屏障，
+         *        本函数不等待屏障完成、不排空队列、不触碰物理介质。`overrun_drop_oldest` 下屏障自身也是
+         *        一条队列消息、可能被后续消息覆盖，因此**连**"屏障之前已入队的消息最终会被处理"都不成立；
+         *        屏障之后的因果顺序同样不保证。该语义是本插件的 v1 契约，独立的排空入口属 rev3 提案。
          */
         void flush() noexcept;
 

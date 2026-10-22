@@ -13,11 +13,41 @@ provisions    : @ID_ASM_PROVISION_COUNT@
 fingerprint   : 编译期常量 kProductFingerprint（见 generated/@ID_ASM_ASSEMBLY_NAME@/IDAssembly.generated.hpp）
 
 @ID_ASM_EVIDENCE_LINES@
+@ID_ASM_GROUP_MATCH_TEXT@
 
+# 记录口径（schema2 multi-match）：
+#   provider 行 = 一条 matched 记录（下游, 需求组, 命中 provider）。
+#     同一需求组命中 N 个候选就是 N 行；不同需求组命中同一个 provider 也是多行，不合并。
+#   edge 行 = 一条真实 PUBLIC 链接边，按 (上游, 下游) 去重：多组指向同一 provider 只连一次。
+#     因此 provider 行数（= 上面的 bindings）>= edge 行数（= 上面的 edges）恒成立。
+#   matched 行 = 一个 (consumer, 需求组) 的命中集合与命中条数：它是编译期 availability 的唯一输入。
+#   group 行 = 一个 (consumer, 需求组) 的多命中许可与本次命中条数：
+#     allows_multi=1 表示该组允许同时命中 >= 2 个候选（schema2 的数组项 / OR 组）；
+#     allows_multi=0 表示命中数只能是 0 或 1（schema1 的组、schema2 的字符串项，
+#     以及只有 1 个候选的组——那类组不可能命中 2 个）。
+#     它只由组的声明决定，不看本次 profile 的实际命中数：同一份清单换 profile，
+#     命中数会变而 allows_multi 不变。
+#   schema1 清单仍要求组内恰好命中 1 个（AmbiguousProvider），所以那里的 provider 行数 = 需求组数。
+#
+# 编译期 availability / matched-set（防止把传递可见的身份宏当成组成员）：
+#   每个选中插件生成一份 <Target>Matched.generated.hpp（本目录，随该插件的 PUBLIC include 传播）：
+#   - ID_MATCHED_GROUP_COUNT_<CONSUMER>：该 consumer 的需求组总数
+#   - ID_MATCHED_TOTAL_<CONSUMER>：该 consumer 的 matched 记录总数
+#   - ID_MATCHED_COUNT_<CONSUMER>_G<组>：该需求组的命中条数
+#   - ID_MATCHED_MEMBER_<CONSUMER>_G<组>_<PROVIDER>：该 provider 是本需求组的 matched 成员
+#   ID_USE_PLUGIN_<TOKEN> 只证明该 target 在真实 PUBLIC 链上可见（会沿上游链传递），
+#   不能用来判断"某候选是不是某 consumer 某需求组的成员"；两族宏前缀与键都不同，不会互相冒充。
+#   这些宏不做全局 -D 注入：定义只在本目录的 <Target>Matched.generated.hpp 里，同一产品内所有 TU
+#   读到同一份文件与同一组值，因此 consumer 公开头里的 #if 判定跨 TU 一致，不产生 ODR 冲突。
+#
 # 确定性序列：产品指纹的输入（计划书 13.3）
 #   排序口径：名字与能力名按 ASCII 字节序，槽位按编号；本段不含 catalog 枚举顺序、
 #   profile 书写顺序、候选顺序、运行期地址或源文件绝对路径。
 #   因此打乱上述任何一种输入，本段与指纹数值都不变。
+#   指纹输入 = schema 修订 + canonical 名字 + 逐 provision 修订/槽位 + topo_order +
+#   逐需求组 matched 集合（条数 + 升序 active 下标）+ slot_owner + edge_count + provision_count；
+#   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+#   edge_count 与 provision_count 见上方头部字段，topo_order 由 C++ 侧 canonical 推导。
 #   指纹数值本身由 C++ consteval 计算（ID::Assembly::Generated::kProductFingerprint），
 #   CMake 不重算它：在这里再实现一遍算法等于维护第二份真相源，反而会掩盖两侧漂移。
 @ID_ASM_CANONICAL_TEXT@

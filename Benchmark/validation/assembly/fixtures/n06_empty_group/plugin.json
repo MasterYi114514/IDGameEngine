@@ -1,0 +1,19 @@
+{
+    "schema_version": 1,
+    "name": "FX.Consumer.Empty",
+    "target": "IDFxConsumerEmpty",
+    "namespace": "ID::Fx::Consumer::Empty",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [
+        []
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "FX.Core",
+            "api_revisions": {}
+        }
+    ],
+    "provides": [],
+    "lifecycle": "none"
+}

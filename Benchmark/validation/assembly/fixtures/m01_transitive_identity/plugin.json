@@ -1,0 +1,21 @@
+{
+    "schema_version": 1,
+    "name": "FX.Consumer.Fp",
+    "target": "IDFxConsumerFp",
+    "namespace": "ID::Fx::Consumer::Fp",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [
+        ["FX.Via"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "FX.Via",
+            "api_revisions": {
+                "FX.Via": {"min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "none"
+}

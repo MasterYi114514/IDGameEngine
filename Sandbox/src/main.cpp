@@ -8,7 +8,11 @@
  *  1. 唯一启动方式是通过产品入口 `ID::Engine::start()`：本层不登记插件描述符、不手工安装插件、
  *     也没有静态构造自动启动；插件集合完全由构建期的产品 profile 决定；
  *  2. start/shutdown 的返回值必须检查：失败时 runtime 已经回滚到 Idle，宿主打印结构化诊断后退出；
- *  3. 本文件不承担任何正确性或性能验证职责，那些全部归 Benchmark。
+ *  3. 本文件不承担任何正确性或性能验证职责，那些全部归 Benchmark；
+ *  4. 启动期日志配置当前没有可用注入点：`ID::Engine::start()` 在一次调用内先跑完全部 `on_register`
+ *     再跑完全部 `on_init`，`ID.Log` 在自身 `on_init` 用默认配置建后端，而 `configure`/`reconfigure`
+ *     在那就绪之前返回 NotReady。因此本文件不配置日志，也**不得**用 start 之后 reconfigure
+ *     冒充启动期配置（那会丢掉下游在 `on_init` 写的启动期文件日志）；注入点落地后再接线。
  */
 
 namespace

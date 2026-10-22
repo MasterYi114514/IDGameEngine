@@ -1,0 +1,6 @@
+MODE: production-prod-mingw-release
+BUILD_DIR: F:/IDGameEngine/Benchmark/build/prod-mingw-release
+REGISTERED: positive_basics;positive_graph;positive_ownership;positive_permutation;positive_storage;positive_uneven
+SOURCE_DIR: F:/IDGameEngine/Benchmark/validation/production/src/positive
+RESULT: TRUE
+REASON: 

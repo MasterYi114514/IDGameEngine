@@ -1,0 +1,29 @@
+{
+    "schema_version": 2,
+    "name": "FX.Consumer.Cross",
+    "target": "IDFxConsumerCross",
+    "namespace": "ID::Fx::Consumer::Cross",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [
+        ["FX.Core"],
+        ["FX.Core", "FX.Alt"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "FX.Core",
+            "api_revisions": {
+                "FX.Core": {"capability": "FX.Core", "min": 1, "max": 1}
+            }
+        },
+        {
+            "capability": "FX.Math",
+            "api_revisions": {
+                "FX.Core": {"capability": "FX.Core", "min": 1, "max": 1},
+                "FX.Alt":  {"capability": "FX.Alt",  "min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "none"
+}

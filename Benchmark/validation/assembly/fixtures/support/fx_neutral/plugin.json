@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "FX.Neutral",
+    "target": "IDFxNeutral",
+    "namespace": "ID::Fx::Neutral",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "FX.Neutral", "api_revision": 1}
+    ],
+    "lifecycle": "none"
+}

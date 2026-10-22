@@ -37,9 +37,9 @@ namespace
     static_assert(kTuplePlan.active_requirement_count[kTuplePlan.find_active("ID.Case.Theta")] == 0,
                   "positive_uneven: 空外层必须表示没有上游");
     static_assert(kTuplePlan.edge_count == 2, "positive_uneven: 两条需求各绑定一个不同上游");
-    static_assert(kTuplePlan.provider[kTuplePlan.find_active("ID.Case.Alpha") * 32 + 1] ==
-                      kTuplePlan.find_active("ID.Case.Gamma"),
-                  "positive_uneven: 第二组必须绑定 Gamma");
+    static_assert(matched_exactly(kTuplePlan, kTuplePlan.find_active("ID.Case.Alpha"), 1,
+                                  kTuplePlan.find_active("ID.Case.Gamma")),
+                  "positive_uneven: 第二组必须恰好命中 Gamma（三候选里只有 Gamma 被选中）");
 
     // ---- 矩形重载：2 组 × 2 候选 ----
     constexpr std::array<std::array<std::string_view, 2>, 2> kRectGroups{
@@ -69,9 +69,11 @@ namespace
     static_assert(kRectPlan.active_requirement_count[kRectPlan.find_active("ID.Case.Alpha")] == 2,
                   "positive_uneven: 矩形重载必须产生两组需求");
     static_assert(kRectPlan.edge_count == 1, "positive_uneven: 同一上游满足两条需求时边只计一次");
-    static_assert(kRectPlan.provider[0] == kRectPlan.find_active("ID.Case.Beta") &&
-                      kRectPlan.provider[1] == kRectPlan.find_active("ID.Case.Beta"),
-                  "positive_uneven: 两条需求都必须绑定 Beta");
+    static_assert(matched_exactly(kRectPlan, kRectPlan.find_active("ID.Case.Alpha"), 0,
+                                  kRectPlan.find_active("ID.Case.Beta")) &&
+                      matched_exactly(kRectPlan, kRectPlan.find_active("ID.Case.Alpha"), 1,
+                                      kRectPlan.find_active("ID.Case.Beta")),
+                  "positive_uneven: 两条需求都必须恰好命中 Beta（2 组 × 2 候选，只有 Beta 被选中）");
 } // namespace
 
 namespace ID::Bench::Production::Positive

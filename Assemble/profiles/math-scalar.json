@@ -1,0 +1,7 @@
+{
+    "schema_version": 1,
+    "assembly_name": "math-scalar",
+    "enabled_plugins": [
+        "ID.Math.Scalar"
+    ]
+}

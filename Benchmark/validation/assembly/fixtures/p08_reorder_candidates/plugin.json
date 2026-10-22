@@ -1,0 +1,22 @@
+{
+    "schema_version": 2,
+    "name": "FX.Consumer.Or",
+    "target": "IDFxConsumerOr",
+    "namespace": "ID::Fx::Consumer::Or",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [
+        ["FX.Alt", "FX.Core"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "FX.Math",
+            "api_revisions": {
+                "FX.Alt":  {"capability": "FX.Alt",  "min": 1, "max": 1},
+                "FX.Core": {"capability": "FX.Core", "min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "none"
+}

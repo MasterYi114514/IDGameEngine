@@ -1,0 +1,26 @@
+MODE: production-prod-mingw-release
+BUILD_DIR: F:/IDGameEngine/Benchmark/build/prod-mingw-release
+CWD: F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production
+TARGET: production_expect_too_many_candidates
+EXPECTED_MARKER: TooManyCandidates
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production --target production_expect_too_many_candidates
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[100%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_too_many_candidates.dir/src/cases/case_too_many_candidates.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_too_many_candidates.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:997:101: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:TooManyCandidates
+  997 |     static_assert(::ID::Bench::Production::error_differs<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_too_many_candidates.cpp:49:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   49 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, TooManyCandidates);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_too_many_candidates.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_too_many_candidates.dir/src/cases/case_too_many_candidates.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:2539: Benchmark/validation/production/CMakeFiles/production_expect_too_many_candidates.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:2546: Benchmark/validation/production/CMakeFiles/production_expect_too_many_candidates.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:1073: Benchmark/validation/production/CMakeFiles/production_expect_too_many_candidates.dir/rule] Error 2
+

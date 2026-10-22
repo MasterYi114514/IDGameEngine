@@ -62,7 +62,9 @@
     X(EvidenceProviderMismatch)              \
     X(EvidenceEdgeMismatch)                  \
     X(EvidenceSlotMismatch)                  \
-    X(RuntimeBindingMismatch)
+    X(RuntimeBindingMismatch)                \
+    X(TooManyMatchedRecords)                 \
+    X(TooManyEdges)
 
 namespace
 {
@@ -121,6 +123,10 @@ namespace
                   "ID_ASSEMBLY_ERROR:CatalogCountMismatch - C++ catalog size must equal the catalog listed by Assemble/catalog.cmake");
     static_assert(kPlan.active_count == kSelectedCount,
                   "ID_ASSEMBLY_ERROR:ActiveCountMismatch - C++ active count must equal the plugin count enabled by the profile");
+    // kBindingCount 是 matched 记录数（每下游 × 每需求组 × 每命中 provider 一条），不是需求组数：
+    // schema2 的组内多命中会让同一组折进多条记录，因此这里与 kPlan.matched_total() 逐条对齐。
+    static_assert(kBindingCount == kPlan.matched_total(),
+                  "ID_ASSEMBLY_ERROR:EvidenceProviderMismatch - kBindingCount must equal the matched record total of the compile-time plan");
     static_assert(kPlan.edge_count == kEdgeCount,
                   "ID_ASSEMBLY_ERROR:EdgeCountMismatch - deduplicated dependency edges must equal the PUBLIC link edges derived by CMake");
     static_assert(kPlan.provision_count == kProvisionCount,

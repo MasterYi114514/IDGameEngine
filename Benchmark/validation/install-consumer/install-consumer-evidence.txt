@@ -1,0 +1,920 @@
+IDGameEngine 安装消费矩阵证据（Benchmark/validation/install-consumer）
+本文件由 RunInstallConsumerMatrix.ps1 生成，勿手改；每次运行整份覆盖。
+
+generated    : 2026-10-21 22:21:12
+engine_root  : F:\IDGameEngine
+consumer_src : F:\IDGameEngine\Benchmark\validation\install-consumer
+work_root    : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer
+host_os      : Microsoft Windows NT 10.0.26200.0
+powershell   : 5.1.26100.9711
+cmake        : cmake version 4.4.4
+g++          : g++.exe (x86_64-posix-seh-rev1, Built by MinGW-Builds project) 16.2.0
+vs_instance  : D:/Software/VS2026/Insiders (Visual Studio 18 2026)
+
+口径：每格产品独立构建目录 + 独立安装前缀；消费工程只经 find_package(IDGameEngine) 消费；
+     运行期把 <prefix>\bin 前置到 PATH（Windows DLL 查找），不改产品、不改安装前缀内容。
+     profile=ship 为交付 profile（显式列出 ID.Log 与 ID.Math.Scalar）；三组合格用 math-scalar / math-simd / math-both。
+
+### cell: mingw-debug-shared
+  toolchain=mingw  config=Debug  mode=shared  profile=ship  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (1s)
+  product build: exit=0 (0x00000000)  (10.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : Debug
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-debug-shared/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-debug-shared/product/out/shared
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : SHARED
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: libID.dll, libIDLog.dll
+  lib/: libID.dll.a, libIDAssembly.a, libIDLog.dll.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_IDLOG=1 -DID_CONSUMER_EXPECT_MATH_SCALAR=1 -DID_USE_PLUGIN_IDLOG=1 -DID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: libID.dll
+  consumer import: DLL Name: libIDLog.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer import: DLL Name: libwinpthread-1.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=718202  last_write=2026-10-21 22:21:26
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:21:27.324] [info] [32008] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:21:27.324] [info] [32008] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:21:27.324] [info] [32008] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-shared\consumer\install_consumer.exe
+
+### cell: mingw-release-shared
+  toolchain=mingw  config=Release  mode=shared  profile=ship  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (1s)
+  product build: exit=0 (0x00000000)  (11.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : Release
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared/product/out/shared
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : SHARED
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: libID.dll, libIDLog.dll
+  lib/: libID.dll.a, libIDAssembly.a, libIDLog.dll.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (1.1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_IDLOG=1 -DID_CONSUMER_EXPECT_MATH_SCALAR=1 -DID_USE_PLUGIN_IDLOG=1 -DID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: libID.dll
+  consumer import: DLL Name: libIDLog.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=281653  last_write=2026-10-21 22:21:43
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:21:43.762] [info] [46616] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:21:43.762] [info] [46616] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:21:43.762] [info] [46616] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared\consumer\install_consumer.exe
+
+### cell: mingw-debug-static
+  toolchain=mingw  config=Debug  mode=static  profile=ship  monolithic=ON
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (2s)
+  product build: exit=0 (0x00000000)  (10.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : static
+    monolithic      : ON
+    ipo             : YES
+    avx2            : ON
+    configuration   : Debug
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-debug-static/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-debug-static/product/out/static
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : STATIC
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: <missing>
+  lib/: libID.a, libIDAssembly.a, libIDLog.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_IDLOG=1 -DID_CONSUMER_EXPECT_MATH_SCALAR=1 -DID_STATIC_PLUGIN_LINK=1 -DID_USE_PLUGIN_IDLOG=1 -DID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-time-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-utility-l1-1-0.dll
+  consumer import: DLL Name: libwinpthread-1.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=12160144  last_write=2026-10-21 22:21:59
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:22:02.251] [info] [42612] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:22:02.251] [info] [42612] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:22:02.251] [info] [42612] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\product\out\static  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-debug-static\consumer\install_consumer.exe
+
+### cell: mingw-release-static
+  toolchain=mingw  config=Release  mode=static  profile=ship  monolithic=ON
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (2s)
+  product build: exit=0 (0x00000000)  (7.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : static
+    monolithic      : ON
+    ipo             : YES
+    avx2            : ON
+    configuration   : Release
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-static/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-static/product/out/static
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : STATIC
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: <missing>
+  lib/: libID.a, libIDAssembly.a, libIDLog.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (6.1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_IDLOG=1 -DID_CONSUMER_EXPECT_MATH_SCALAR=1 -DID_STATIC_PLUGIN_LINK=1 -DID_USE_PLUGIN_IDLOG=1 -DID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-time-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-utility-l1-1-0.dll
+  consumer import: DLL Name: libwinpthread-1.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=3087755  last_write=2026-10-21 22:22:20
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:22:21.034] [info] [48248] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:22:21.034] [info] [48248] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:22:21.034] [info] [48248] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\product\out\static  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-static\consumer\install_consumer.exe
+
+### cell: msvc-debug-shared
+  toolchain=msvc  config=Debug  mode=shared  profile=ship  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (2s)
+  product build: exit=0 (0x00000000)  (8.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : 
+    compiler        : MSVC 19.52.37025.0
+    compiler_path   : D:/Software/VS2026/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
+    generator       : Visual Studio 18 2026
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-debug-shared/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-debug-shared/product/out/shared
+  注意：多配置生成器下 IDBuildInfo.txt 的 configuration 字段为空（CMAKE_BUILD_TYPE 未参与），真实配置由 --config 指定，本格 = Debug
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : SHARED
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: ID.dll, IDLog.dll
+  lib/: ID.lib, IDAssembly.lib, IDLog.lib, IDPluginStub.lib
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+    -- IDGameEngine: 插件/桩以静态 CRT 构建，已为消费方设置 CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>；find_package 必须在创建 target 之前调用，消费方可自行覆盖
+    -- install-consumer: MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+  consumer build: exit=0 (0x00000000)  (2s)
+  consumer defines: vcxproj[Debug] ID_* defines: ID_CONSUMER_EXPECT_IDLOG=1 ID_CONSUMER_EXPECT_MATH_SCALAR=1 ID_USE_PLUGIN_IDLOG=1 ID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: vcxproj[Debug] RuntimeLibrary=MultiThreadedDebug
+  consumer import: DLL Name: IDLog.dll
+  consumer import: DLL Name: ID.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer link: /WHOLEARCHIVE 出现在链接选项=True
+  consumer exe: size=1466368  last_write=2026-10-21 22:22:36
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:22:37.661] [info] [3592] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:22:37.662] [info] [3592] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:22:37.662] [info] [3592] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-shared\consumer\Debug\install_consumer.exe
+
+### cell: msvc-release-shared
+  toolchain=msvc  config=Release  mode=shared  profile=ship  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (2s)
+  product build: exit=0 (0x00000000)  (9.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : 
+    compiler        : MSVC 19.52.37025.0
+    compiler_path   : D:/Software/VS2026/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
+    generator       : Visual Studio 18 2026
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-release-shared/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-release-shared/product/out/shared
+  注意：多配置生成器下 IDBuildInfo.txt 的 configuration 字段为空（CMAKE_BUILD_TYPE 未参与），真实配置由 --config 指定，本格 = Release
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : SHARED
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: ID.dll, IDLog.dll
+  lib/: ID.lib, IDAssembly.lib, IDLog.lib, IDPluginStub.lib
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+    -- IDGameEngine: 插件/桩以静态 CRT 构建，已为消费方设置 CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>；find_package 必须在创建 target 之前调用，消费方可自行覆盖
+    -- install-consumer: MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+  consumer build: exit=0 (0x00000000)  (2s)
+  consumer defines: vcxproj[Release] ID_* defines: ID_CONSUMER_EXPECT_IDLOG=1 ID_CONSUMER_EXPECT_MATH_SCALAR=1 ID_USE_PLUGIN_IDLOG=1 ID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: vcxproj[Release] RuntimeLibrary=MultiThreaded
+  consumer import: DLL Name: IDLog.dll
+  consumer import: DLL Name: ID.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer link: /WHOLEARCHIVE 出现在链接选项=True
+  consumer exe: size=326656  last_write=2026-10-21 22:22:53
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:22:55.166] [info] [32692] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:22:55.166] [info] [32692] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:22:55.166] [info] [32692] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-shared\consumer\Release\install_consumer.exe
+
+### cell: msvc-debug-static
+  toolchain=msvc  config=Debug  mode=static  profile=ship  monolithic=ON
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (3s)
+  product build: exit=0 (0x00000000)  (7.1s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : static
+    monolithic      : ON
+    ipo             : YES
+    avx2            : ON
+    configuration   : 
+    compiler        : MSVC 19.52.37025.0
+    compiler_path   : D:/Software/VS2026/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
+    generator       : Visual Studio 18 2026
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-debug-static/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-debug-static/product/out/static
+  注意：多配置生成器下 IDBuildInfo.txt 的 configuration 字段为空（CMAKE_BUILD_TYPE 未参与），真实配置由 --config 指定，本格 = Debug
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : STATIC
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: <missing>
+  lib/: ID.lib, IDAssembly.lib, IDLog.lib, IDPluginStub.lib
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+    -- IDGameEngine: 插件/桩以静态 CRT 构建，已为消费方设置 CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>；find_package 必须在创建 target 之前调用，消费方可自行覆盖
+    -- install-consumer: MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+  consumer build: exit=0 (0x00000000)  (2s)
+  consumer defines: vcxproj[Debug] ID_* defines: ID_CONSUMER_EXPECT_IDLOG=1 ID_CONSUMER_EXPECT_MATH_SCALAR=1 ID_STATIC_PLUGIN_LINK=1 ID_USE_PLUGIN_IDLOG=1 ID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: vcxproj[Debug] RuntimeLibrary=MultiThreadedDebug
+  consumer import: DLL Name: KERNEL32.dll
+  consumer link: /WHOLEARCHIVE 出现在链接选项=True
+  consumer exe: size=4240384  last_write=2026-10-21 22:23:10
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:23:11.973] [info] [47092] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:23:11.973] [info] [47092] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:23:11.973] [info] [47092] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\product\out\static  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-debug-static\consumer\Debug\install_consumer.exe
+
+### cell: msvc-release-static
+  toolchain=msvc  config=Release  mode=static  profile=ship  monolithic=ON
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\consumer
+  profile enabled_plugins: ID.Log, ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\ship.json)
+  product configure: exit=0 (0x00000000)  (3.1s)
+  product build: exit=0 (0x00000000)  (7s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : ship
+    profile         : ship
+    mode            : static
+    monolithic      : ON
+    ipo             : YES
+    avx2            : ON
+    configuration   : 
+    compiler        : MSVC 19.52.37025.0
+    compiler_path   : D:/Software/VS2026/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
+    generator       : Visual Studio 18 2026
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-release-static/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/msvc-release-static/product/out/static
+  注意：多配置生成器下 IDBuildInfo.txt 的 configuration 字段为空（CMAKE_BUILD_TYPE 未参与），真实配置由 --config 指定，本格 = Release
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\share\IDGameEngine\assemblies\ship\ProductManifest.txt  exists=True
+    assembly_name : ship
+    mode          : STATIC
+    selected      : 2
+    selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    slot      ID.Log.ID.Log -> 0
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Log target=IDLog macro=ID_USE_PLUGIN_IDLOG id=0x72097d8db784da00ull
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    canonical-slot      00 ID.Log.ID.Log
+  bin/: <missing>
+  lib/: ID.lib, IDAssembly.lib, IDLog.lib, IDPluginStub.lib
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\include\IDGameEngine\generated\ship\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\include\IDGameEngine\plugins\IDLog\IDLogApi.hpp
+  consumer configure: exit=0 (0x00000000)
+    -- IDGameEngine: 插件/桩以静态 CRT 构建，已为消费方设置 CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>；find_package 必须在创建 target 之前调用，消费方可自行覆盖
+    -- install-consumer: MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>
+  consumer build: exit=0 (0x00000000)  (4.1s)
+  consumer defines: vcxproj[Release] ID_* defines: ID_CONSUMER_EXPECT_IDLOG=1 ID_CONSUMER_EXPECT_MATH_SCALAR=1 ID_STATIC_PLUGIN_LINK=1 ID_USE_PLUGIN_IDLOG=1 ID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: vcxproj[Release] RuntimeLibrary=MultiThreaded
+  consumer import: DLL Name: KERNEL32.dll
+  consumer link: /WHOLEARCHIVE 出现在链接选项=True
+  consumer exe: size=839680  last_write=2026-10-21 22:23:29
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Log service table published at ServiceSlot::Log
+  | [PASS] ID.Log service table revision matches installed public header
+  | [PASS] ID.Log service table entries are all non-null
+  | [PASS] ID.Log active_level is readable and in range
+  | [PASS] ID.Log runtime stats report ready=true
+  | [PASS] ID.Log acquire_logger returns a handle inside the Ready window
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  | stderr: [2026-10-21 22:23:30.582] [info] [17208] [ID.Kernel] ID.Log attached: kernel log now flows through the spdlog frontend
+  | stderr: [2026-10-21 22:23:30.582] [info] [17208] [ID.Log] ID.Log ready: revision=2, mode=async, queue_size=8192, handle_capacity=64
+  | stderr: [2026-10-21 22:23:30.582] [info] [17208] [install-consumer] installed product log probe
+  | stderr: [INFO ][ID.Kernel] ID.Log detached: overrun=0 discarded=0 pre_ready=0 post_shutdown=0 active_level=2 queue_capacity=8192
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\product\out\static  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\msvc-release-static\consumer\Release\install_consumer.exe
+
+### cell: mingw-release-shared-math-scalar
+  toolchain=mingw  config=Release  mode=shared  profile=math-scalar  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\consumer
+  profile enabled_plugins: ID.Math.Scalar  (F:\IDGameEngine\Assemble\profiles\math-scalar.json)
+  product configure: exit=0 (0x00000000)  (2s)
+  product build: exit=0 (0x00000000)  (3s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : math-scalar
+    profile         : math-scalar
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : Release
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared-math-scalar/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared-math-scalar/product/out/shared
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\share\IDGameEngine\assemblies\math-scalar\ProductManifest.txt  exists=True
+    assembly_name : math-scalar
+    mode          : SHARED
+    selected      : 1
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+  bin/: libID.dll
+  lib/: libID.dll.a, libIDAssembly.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\include\IDGameEngine\generated\math-scalar\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_MATH_SCALAR=1 -DID_USE_PLUGIN_IDMATHSCALAR=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: libID.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=280315  last_write=2026-10-21 22:23:39
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+  | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-scalar\consumer\install_consumer.exe
+
+### cell: mingw-release-shared-math-simd
+  toolchain=mingw  config=Release  mode=shared  profile=math-simd  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\consumer
+  profile enabled_plugins: ID.Math.SIMD  (F:\IDGameEngine\Assemble\profiles\math-simd.json)
+  product configure: exit=0 (0x00000000)  (1s)
+  product build: exit=0 (0x00000000)  (3s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : math-simd
+    profile         : math-simd
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : Release
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared-math-simd/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared-math-simd/product/out/shared
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\share\IDGameEngine\assemblies\math-simd\ProductManifest.txt  exists=True
+    assembly_name : math-simd
+    mode          : SHARED
+    selected      : 1
+    selected  ID.Math.SIMD target=IDMathSIMD macro=ID_USE_PLUGIN_IDMATHSIMD id=0x61940d2581fc3b7full
+    slot      ID.Math.SIMD.ID.Math.SIMD -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Math.SIMD target=IDMathSIMD macro=ID_USE_PLUGIN_IDMATHSIMD id=0x61940d2581fc3b7full
+  bin/: libID.dll
+  lib/: libID.dll.a, libIDAssembly.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\include\IDGameEngine\generated\math-simd\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\include\IDGameEngine\plugins\IDMathSIMD\IDMathSIMDApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_MATH_SIMD=1 -DID_USE_PLUGIN_IDMATHSIMD=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: libID.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=280315  last_write=2026-10-21 22:23:47
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Math.SIMD dot(vec3, vec3) == 32
+  | [PASS] ID.Math.SIMD matrix<3,3>::identity() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-simd\consumer\install_consumer.exe
+
+### cell: mingw-release-shared-math-both
+  toolchain=mingw  config=Release  mode=shared  profile=math-both  monolithic=OFF
+  product_build : C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\product
+  install_prefix: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install
+  consumer_build: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\consumer
+  profile enabled_plugins: ID.Math.Scalar, ID.Math.SIMD  (F:\IDGameEngine\Assemble\profiles\math-both.json)
+  product configure: exit=0 (0x00000000)  (1s)
+  product build: exit=0 (0x00000000)  (3s)
+  install: exit=0 (0x00000000)  (1s)
+  IDBuildInfo.txt (C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\product\IDBuildInfo.txt):
+    IDGameEngine build metadata (由根 CMakeLists.txt 在配置期生成，勿手改)
+    # 用途：同一 build directory 内的"配置名 / 构建模式 / 产品 assembly / 工具链"可直接追踪，
+    # 不需要翻 CMakeCache；它不是产品清单，产品清单是 Assemble 生成的 IDAssemblyEvidence.txt。
+    assembly        : math-both
+    profile         : math-both
+    mode            : shared
+    monolithic      : OFF
+    ipo             : false
+    avx2            : ON
+    configuration   : Release
+    compiler        : GNU 16.2.0
+    compiler_path   : D:/Code/Environment/MinGW/mingw64/bin/g++.exe
+    generator       : MinGW Makefiles
+    source_dir      : F:/IDGameEngine
+    binary_dir      : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared-math-both/product
+    output_root     : C:/Users/Administrator/AppData/Local/Temp/id-install-consumer/mingw-release-shared-math-both/product/out/shared
+  安装清单: C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\share\IDGameEngine\assemblies\math-both\ProductManifest.txt  exists=True
+    assembly_name : math-both
+    mode          : SHARED
+    selected      : 2
+    selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+    slot      ID.Math.Scalar.ID.Math.Scalar -> 无运行期槽位
+    selected  ID.Math.SIMD target=IDMathSIMD macro=ID_USE_PLUGIN_IDMATHSIMD id=0x61940d2581fc3b7full
+    slot      ID.Math.SIMD.ID.Math.SIMD -> 无运行期槽位
+    #   本段给出其中 CMake 能派生的部分（selected / provide / binding / slot），
+    canonical-selected  ID.Math.SIMD target=IDMathSIMD macro=ID_USE_PLUGIN_IDMATHSIMD id=0x61940d2581fc3b7full
+    canonical-selected  ID.Math.Scalar target=IDMathScalar macro=ID_USE_PLUGIN_IDMATHSCALAR id=0x652ecdd7550ec49aull
+  bin/: libID.dll
+  lib/: libID.dll.a, libIDAssembly.a, libIDPluginStub.a
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\include\IDGameEngine\IDGameEngine.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\include\IDGameEngine\generated\math-both\IDAssemblyRuntime.generated.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\lib\cmake\IDGameEngine\IDGameEngineConfig.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\lib\cmake\IDGameEngine\IDGameEngineTargets.cmake
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\include\IDGameEngine\plugins\IDMathScalar\IDMathScalarApi.hpp
+  header/target 存在? True  C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\include\IDGameEngine\plugins\IDMathSIMD\IDMathSIMDApi.hpp
+  consumer configure: exit=0 (0x00000000)
+  consumer build: exit=0 (0x00000000)  (1s)
+  consumer defines: CXX_DEFINES = -DID_CONSUMER_EXPECT_MATH_SCALAR=1 -DID_CONSUMER_EXPECT_MATH_SIMD=1 -DID_CONSUMER_MATH_BACKEND_SIMD=1 -DID_USE_PLUGIN_IDMATHSCALAR=1 -DID_USE_PLUGIN_IDMATHSIMD=1
+  consumer CRT: link.txt 含 -static-libstdc++
+  consumer CRT: link.txt 含 -static-libgcc
+  consumer CRT: libwinpthread 由工具链默认链接、仍动态（以导入表为准）
+  consumer import: DLL Name: libID.dll
+  consumer import: DLL Name: KERNEL32.dll
+  consumer import: DLL Name: api-ms-win-crt-convert-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-environment-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-filesystem-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-heap-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-locale-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-math-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-private-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-runtime-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-stdio-l1-1-0.dll
+  consumer import: DLL Name: api-ms-win-crt-string-l1-1-0.dll
+  consumer link: linkLibs.rsp: whole-archive=True  IDPluginStub 在库清单=True
+  consumer exe: size=280315  last_write=2026-10-21 22:23:56
+  consumer run: exit=0 (0x00000000)  cwd=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both  PATH 前置<prefix>\bin 与 MinGW bin
+  | [PASS] installed product start state=Ready
+  | [PASS] ID.Math.SIMD dot(vec3, vec3) == 32
+  | [PASS] ID.Math.SIMD matrix<3,3>::identity() is the unit matrix
+  | [PASS] installed product shutdown state=Idle
+  | [PASS] installed product shutdown is idempotent (second call is a no-op in Idle)
+  | [PASS] install-consumer summary: 0 failure(s)
+  产物: product_out=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\product\out\shared  prefix_bin=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\install\bin  consumer_exe=C:\Users\Administrator\AppData\Local\Temp\id-install-consumer\mingw-release-shared-math-both\consumer\install_consumer.exe
+
+### 编译期约束的对照（正向两选一 + 负向不给选择 + find_package 顺序）
+
+  反例 1：A+B 产品 + 未给 -DID_CONSUMER_MATH_BACKEND
+    configure: exit=0 (0x00000000)（期望 0）
+    build: exit=2 (0x00000002)（期望非 0）
+    | stderr: F:\IDGameEngine\Benchmark\validation\install-consumer\main.cpp:73:10: error: #error "产品同时选中 ID.Math.Scalar 与 ID.Math.SIMD：consumer 必须用 -DID_CONSUMER_MATH_BACKEND=scalar|simd 在编译期显式选择实现（不得靠运行期分支）"
+    | stderr:    73 |         #error "产品同时选中 ID.Math.Scalar 与 ID.Math.SIMD：consumer 必须用 -DID_CONSUMER_MATH_BACKEND=scalar|simd 在编译期显式选择实现（不得靠运行期分支）"
+
+  对照：同一 A+B 产品显式选择 scalar（-DID_CONSUMER_MATH_BACKEND=scalar）
+    configure: exit=0 (0x00000000)  build: exit=0 (0x00000000)  run: exit=0 (0x00000000)
+    | [PASS] ID.Math.Scalar dot(vec3, vec3) == 32
+    | [PASS] ID.Math.Scalar identity<3>() is the unit matrix
+    | [PASS] install-consumer summary: 0 failure(s)
+
+  反例 2：MSVC 上 target 早于 find_package 创建
+    configure: exit=1 (0x00000001)（期望非 0）
+    | -- IDGameEngine: 插件/桩以静态 CRT 构建，已为消费方设置 CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded$<$<CONFIG:Debug>:Debug>；find_package 必须在创建 target 之前调用，消费方可自行覆盖
+    | stderr: CMake Error at CMakeLists.txt:42 (message):
+    | stderr:   [order-check] 顺序错误被识别：target 在 find_package(IDGameEngine)
+    | stderr:   默认值（CMAKE_MSVC_RUNTIME_LIBRARY）。find_package
+
+### 汇总（逐格结果）
+| cell | toolchain | config | mode | profile | configure | build | install | consumer-config | consumer-build | consumer-run | result |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| mingw-debug-shared | mingw | Debug | shared | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| mingw-release-shared | mingw | Release | shared | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| mingw-debug-static | mingw | Debug | static | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| mingw-release-static | mingw | Release | static | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| msvc-debug-shared | msvc | Debug | shared | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| msvc-release-shared | msvc | Release | shared | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| msvc-debug-static | msvc | Debug | static | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| msvc-release-static | msvc | Release | static | ship | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| mingw-release-shared-math-scalar | mingw | Release | shared | math-scalar | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| mingw-release-shared-math-simd | mingw | Release | shared | math-simd | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| mingw-release-shared-math-both | mingw | Release | shared | math-both | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+
+summary: 11 / 11 格 PASS
+finished     : 2026-10-21 22:24:05（耗时 2.9 分钟）

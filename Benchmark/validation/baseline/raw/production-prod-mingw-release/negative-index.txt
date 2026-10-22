@@ -1,0 +1,95 @@
+# production 反向用例批次索引（RunProductionCases.cmake 自动写入）
+# 判定：exit != 0 && 静态断言失败数 == 1 && 含 EXPECTED:<类别> && 不含 MISMATCH
+MODE          : production-prod-mingw-release
+BUILD_DIR     : F:/IDGameEngine/Benchmark/build/prod-mingw-release
+BATCH_CWD     : F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production
+BUILD_TYPE    : Release
+MONOLITHIC    : OFF
+GENERATOR     : MinGW Makefiles
+CXX           : D:/Code/Environment/MinGW/mingw64/bin/c++.exe
+CXX_ID        : GNU 16.2.0
+DRIVER        : F:/IDGameEngine/Benchmark/validation/production/cmake/RunProductionCases.cmake
+STARTED       : 2026-10-21 21:22:29
+FINISHED      : 2026-10-21 21:23:49
+PASSED        : 70
+FAILED        : 0
+EXPECTED_TOTAL: 70
+LEGAL_CONTROL : IDProductionLegalCases + IDProductionPositiveCases + ProductionCaseControls run
+SELF_CHECKS   : wrong_expectation=MISMATCH-rejected, aux_assert_failure=assert-count-rejected, missing-positive=registration-rejected, mutated-positive-assert=assert-rejected
+COLUMNS       : KIND|CASE|MARKER|TARGET|EXIT|ASSERT_FAIL_COUNT|HAS_EXPECTED|HAS_MISMATCH|VERDICT|LOG
+POSITIVE_REG|registered|-|-|-|-|-|-|OK|positive-registration.log
+SELFCHECK|missing-positive|-|-|-|-|-|-|OK|selfcheck-missing-positive.log
+LEGAL|IDProductionLegalCases|-|-|0|-|-|-|OK|legal-objects.log
+POSITIVE|IDProductionPositiveCases|-|-|0|-|-|-|OK|positive-objects.log
+CONTROL_RUN|ProductionCaseControls|-|-|0|-|-|-|OK|control-run.log
+SELFCHECK|mutated-positive-assert|-|-|2|1|-|-|OK|selfcheck-mutated-positive-assert.log
+CASE|active_overflow|TooManyActive|production_expect_active_overflow|2|1|TRUE|FALSE|OK|negative-active_overflow.log
+CASE|ambiguous_old_new|AmbiguousProvider|production_expect_ambiguous_old_new|2|1|TRUE|FALSE|OK|negative-ambiguous_old_new.log
+CASE|ambiguous_provider|AmbiguousProvider|production_expect_ambiguous_provider|2|1|TRUE|FALSE|OK|negative-ambiguous_provider.log
+CASE|candidate_capability_mismatch|CandidateCapabilityMismatch|production_expect_candidate_capability_mismatch|2|1|TRUE|FALSE|OK|negative-candidate_capability_mismatch.log
+CASE|catalog_overflow|TooManyCatalog|production_expect_catalog_overflow|2|1|TRUE|FALSE|OK|negative-catalog_overflow.log
+CASE|contract_candidate_mismatch|ContractCandidateMismatch|production_expect_contract_candidate_mismatch|2|1|TRUE|FALSE|OK|negative-contract_candidate_mismatch.log
+CASE|contract_count_mismatch|ContractRequirementMismatch|production_expect_contract_count_mismatch|2|1|TRUE|FALSE|OK|negative-contract_count_mismatch.log
+CASE|cycle|Cycle|production_expect_cycle|2|1|TRUE|FALSE|OK|negative-cycle.log
+CASE|cycle_tail|Cycle|production_expect_cycle_tail|2|1|TRUE|FALSE|OK|negative-cycle_tail.log
+CASE|duplicate_active|DuplicateActive|production_expect_duplicate_active|2|1|TRUE|FALSE|OK|negative-duplicate_active.log
+CASE|duplicate_candidate|DuplicateCandidate|production_expect_duplicate_candidate|2|1|TRUE|FALSE|OK|negative-duplicate_candidate.log
+CASE|duplicate_capability_declaration|DuplicateCapability|production_expect_duplicate_capability_declaration|2|1|TRUE|FALSE|OK|negative-duplicate_capability_declaration.log
+CASE|duplicate_capability_slots|DuplicateCapability|production_expect_duplicate_capability_slots|2|1|TRUE|FALSE|OK|negative-duplicate_capability_slots.log
+CASE|duplicate_capability_unused|DuplicateCapability|production_expect_duplicate_capability_unused|2|1|TRUE|FALSE|OK|negative-duplicate_capability_unused.log
+CASE|duplicate_plugin|DuplicatePlugin|production_expect_duplicate_plugin|2|1|TRUE|FALSE|OK|negative-duplicate_plugin.log
+CASE|empty_inner_group|EmptyRequirementGroup|production_expect_empty_inner_group|2|1|TRUE|FALSE|OK|negative-empty_inner_group.log
+CASE|evidence_binding_index_bounds|EvidenceProviderMismatch|production_expect_evidence_binding_index_bounds|2|1|TRUE|FALSE|OK|negative-evidence_binding_index_bounds.log
+CASE|evidence_capacity_binding|EvidenceProviderMismatch|production_expect_evidence_capacity_binding|2|1|TRUE|FALSE|OK|negative-evidence_capacity_binding.log
+CASE|evidence_capacity_edge|EvidenceEdgeMismatch|production_expect_evidence_capacity_edge|2|1|TRUE|FALSE|OK|negative-evidence_capacity_edge.log
+CASE|evidence_capacity_runtime|RuntimeBindingMismatch|production_expect_evidence_capacity_runtime|2|1|TRUE|FALSE|OK|negative-evidence_capacity_runtime.log
+CASE|evidence_capacity_selection|EvidenceSelectionMismatch|production_expect_evidence_capacity_selection|2|1|TRUE|FALSE|OK|negative-evidence_capacity_selection.log
+CASE|evidence_capacity_slot|EvidenceSlotMismatch|production_expect_evidence_capacity_slot|2|1|TRUE|FALSE|OK|negative-evidence_capacity_slot.log
+CASE|evidence_duplicate_binding|EvidenceProviderMismatch|production_expect_evidence_duplicate_binding|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_binding.log
+CASE|evidence_duplicate_edge|EvidenceEdgeMismatch|production_expect_evidence_duplicate_edge|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_edge.log
+CASE|evidence_duplicate_runtime|RuntimeBindingMismatch|production_expect_evidence_duplicate_runtime|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_runtime.log
+CASE|evidence_duplicate_selection|EvidenceSelectionMismatch|production_expect_evidence_duplicate_selection|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_selection.log
+CASE|evidence_duplicate_slot|EvidenceSlotMismatch|production_expect_evidence_duplicate_slot|2|1|TRUE|FALSE|OK|negative-evidence_duplicate_slot.log
+CASE|evidence_edge_mismatch|EvidenceEdgeMismatch|production_expect_evidence_edge_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_edge_mismatch.log
+CASE|evidence_identity_mismatch|EvidenceIdentityMismatch|production_expect_evidence_identity_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_identity_mismatch.log
+CASE|evidence_macro_mismatch|EvidenceMacroMismatch|production_expect_evidence_macro_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_macro_mismatch.log
+CASE|evidence_provider_mismatch|EvidenceProviderMismatch|production_expect_evidence_provider_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_provider_mismatch.log
+CASE|evidence_selection_mismatch|EvidenceSelectionMismatch|production_expect_evidence_selection_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_selection_mismatch.log
+CASE|evidence_slot_index_bounds|EvidenceSlotMismatch|production_expect_evidence_slot_index_bounds|2|1|TRUE|FALSE|OK|negative-evidence_slot_index_bounds.log
+CASE|evidence_slot_mismatch|EvidenceSlotMismatch|production_expect_evidence_slot_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_slot_mismatch.log
+CASE|evidence_target_mismatch|EvidenceTargetMismatch|production_expect_evidence_target_mismatch|2|1|TRUE|FALSE|OK|negative-evidence_target_mismatch.log
+CASE|hash_collision|NameHashCollision|production_expect_hash_collision|2|1|TRUE|FALSE|OK|negative-hash_collision.log
+CASE|interface_lifecycle_mismatch|InterfaceLifecycleMismatch|production_expect_interface_lifecycle_mismatch|2|1|TRUE|FALSE|OK|negative-interface_lifecycle_mismatch.log
+CASE|interface_slot_mismatch|InterfaceLifecycleMismatch|production_expect_interface_slot_mismatch|2|1|TRUE|FALSE|OK|negative-interface_slot_mismatch.log
+CASE|invalid_active|InvalidActive|production_expect_invalid_active|2|1|TRUE|FALSE|OK|negative-invalid_active.log
+CASE|invalid_capability|InvalidCapability|production_expect_invalid_capability|2|1|TRUE|FALSE|OK|negative-invalid_capability.log
+CASE|invalid_namespace|InvalidNamespace|production_expect_invalid_namespace|2|1|TRUE|FALSE|OK|negative-invalid_namespace.log
+CASE|invalid_revision|InvalidRevision|production_expect_invalid_revision|2|1|TRUE|FALSE|OK|negative-invalid_revision.log
+CASE|invalid_revision_range|InvalidRevisionRange|production_expect_invalid_revision_range|2|1|TRUE|FALSE|OK|negative-invalid_revision_range.log
+CASE|invalid_slot|InvalidSlot|production_expect_invalid_slot|2|1|TRUE|FALSE|OK|negative-invalid_slot.log
+CASE|invalid_target|InvalidTargetName|production_expect_invalid_target|2|1|TRUE|FALSE|OK|negative-invalid_target.log
+CASE|missing_provider|MissingProvider|production_expect_missing_provider|2|1|TRUE|FALSE|OK|negative-missing_provider.log
+CASE|namespace_conflict|NamespaceConflict|production_expect_namespace_conflict|2|1|TRUE|FALSE|OK|negative-namespace_conflict.log
+CASE|name_boundaries|InvalidName|production_expect_name_boundaries|2|1|TRUE|FALSE|OK|negative-name_boundaries.log
+CASE|name_first_char|InvalidName|production_expect_name_first_char|2|1|TRUE|FALSE|OK|negative-name_first_char.log
+CASE|name_internal_nul|InvalidName|production_expect_name_internal_nul|2|1|TRUE|FALSE|OK|negative-name_internal_nul.log
+CASE|name_unterminated|InvalidName|production_expect_name_unterminated|2|1|TRUE|FALSE|OK|negative-name_unterminated.log
+CASE|plugin_version_not_api|RevisionMismatch|production_expect_plugin_version_not_api|2|1|TRUE|FALSE|OK|negative-plugin_version_not_api.log
+CASE|pod_candidate_count_capacity|InvalidDeclaration|production_expect_pod_candidate_count_capacity|2|1|TRUE|FALSE|OK|negative-pod_candidate_count_capacity.log
+CASE|pod_contract_count_capacity|InvalidDeclaration|production_expect_pod_contract_count_capacity|2|1|TRUE|FALSE|OK|negative-pod_contract_count_capacity.log
+CASE|pod_group_count_capacity|InvalidDeclaration|production_expect_pod_group_count_capacity|2|1|TRUE|FALSE|OK|negative-pod_group_count_capacity.log
+CASE|pod_invalid_kind|InvalidDeclaration|production_expect_pod_invalid_kind|2|1|TRUE|FALSE|OK|negative-pod_invalid_kind.log
+CASE|pod_invalid_lifecycle|InvalidDeclaration|production_expect_pod_invalid_lifecycle|2|1|TRUE|FALSE|OK|negative-pod_invalid_lifecycle.log
+CASE|pod_pool_bounds|InvalidDeclaration|production_expect_pod_pool_bounds|2|1|TRUE|FALSE|OK|negative-pod_pool_bounds.log
+CASE|revision_mismatch|RevisionMismatch|production_expect_revision_mismatch|2|1|TRUE|FALSE|OK|negative-revision_mismatch.log
+CASE|runtime_binding_id_mismatch|RuntimeBindingMismatch|production_expect_runtime_binding_id_mismatch|2|1|TRUE|FALSE|OK|negative-runtime_binding_id_mismatch.log
+CASE|runtime_binding_revision_mismatch|RuntimeBindingMismatch|production_expect_runtime_binding_revision_mismatch|2|1|TRUE|FALSE|OK|negative-runtime_binding_revision_mismatch.log
+CASE|schema_mismatch|SchemaMismatch|production_expect_schema_mismatch|2|1|TRUE|FALSE|OK|negative-schema_mismatch.log
+CASE|self_dependency|SelfDependency|production_expect_self_dependency|2|1|TRUE|FALSE|OK|negative-self_dependency.log
+CASE|slot_conflict|SlotConflict|production_expect_slot_conflict|2|1|TRUE|FALSE|OK|negative-slot_conflict.log
+CASE|target_macro_conflict|TargetMacroConflict|production_expect_target_macro_conflict|2|1|TRUE|FALSE|OK|negative-target_macro_conflict.log
+CASE|too_many_candidates|TooManyCandidates|production_expect_too_many_candidates|2|1|TRUE|FALSE|OK|negative-too_many_candidates.log
+CASE|too_many_provides|TooManyProvides|production_expect_too_many_provides|2|1|TRUE|FALSE|OK|negative-too_many_provides.log
+CASE|too_many_requirements|TooManyRequirements|production_expect_too_many_requirements|2|1|TRUE|FALSE|OK|negative-too_many_requirements.log
+CASE|unknown_active|UnknownActive|production_expect_unknown_active|2|1|TRUE|FALSE|OK|negative-unknown_active.log
+CASE|unknown_candidate|UnknownCandidate|production_expect_unknown_candidate|2|1|TRUE|FALSE|OK|negative-unknown_candidate.log

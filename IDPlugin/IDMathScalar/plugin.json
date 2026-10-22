@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "ID.Math.Scalar",
+    "target": "IDMathScalar",
+    "namespace": "ID::Math::Scalar",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "ID.Math.Scalar", "api_revision": 1}
+    ],
+    "lifecycle": "none"
+}

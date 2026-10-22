@@ -34,12 +34,14 @@ namespace
     static_assert(kTwoGroupPlan.active_requirement_count[kTwoGroupPlan.find_active("ID.Case.Alpha")] == 2,
                   "positive_graph: 两条需求绑定都必须保留");
     static_assert(kTwoGroupPlan.edge_count == 1, "positive_graph: 同一上游的两条需求只留一条真实边");
-    static_assert(kTwoGroupPlan.provider[kTwoGroupPlan.find_active("ID.Case.Alpha") * 32 + 0] ==
-                      kTwoGroupPlan.find_active("ID.Case.Beta"),
-                  "positive_graph: 第 0 条需求必须绑定 Beta");
-    static_assert(kTwoGroupPlan.provider[kTwoGroupPlan.find_active("ID.Case.Alpha") * 32 + 1] ==
-                      kTwoGroupPlan.find_active("ID.Case.Beta"),
-                  "positive_graph: 第 1 条需求必须绑定 Beta");
+    static_assert(matched_exactly(kTwoGroupPlan, kTwoGroupPlan.find_active("ID.Case.Alpha"), 0,
+                                  kTwoGroupPlan.find_active("ID.Case.Beta")),
+                  "positive_graph: 第 0 条需求必须恰好命中 Beta（schema1 命中集合只有 1 项）");
+    static_assert(matched_exactly(kTwoGroupPlan, kTwoGroupPlan.find_active("ID.Case.Alpha"), 1,
+                                  kTwoGroupPlan.find_active("ID.Case.Beta")),
+                  "positive_graph: 第 1 条需求必须恰好命中 Beta（schema1 命中集合只有 1 项）");
+    static_assert(kTwoGroupPlan.matched_total() == 2,
+                  "positive_graph: 命中记录总数必须等于需求组数（同一上游的两条需求各留一条记录）");
 
     // ---- catalog 里存在 A<->B 环，但两者都未选中：不得误报 Cycle ----
     inline constexpr auto kCyclicCatalog = std::tuple{

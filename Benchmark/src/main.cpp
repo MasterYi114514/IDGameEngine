@@ -13,6 +13,10 @@ int main()
     ID::Bench::Run("ID.Kernel", &ID::Bench::IDKernelSecurityTest, &ID::Bench::IDKernelPerformanceTest);
     ID::Bench::Run("ID.Log",    &ID::Bench::IDLogSecurityTest,    &ID::Bench::IDLogPerformanceTest);
 
+    // 数学两个 backend 各占一行：一个 backend 一个域，通过结论互不替代（skill 第 5、6 节）
+    ID::Bench::Run("ID.Math.Scalar", &ID::Bench::IDMathScalarSecurityTest, &ID::Bench::IDMathScalarPerformanceTest);
+    ID::Bench::Run("ID.Math.SIMD",   &ID::Bench::IDMathSIMDSecurityTest,   &ID::Bench::IDMathSIMDPerformanceTest);
+
     ID::Bench::EndSession();
     return ID::Bench::ExitCode();
 }

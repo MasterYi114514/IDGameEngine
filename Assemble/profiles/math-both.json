@@ -1,0 +1,8 @@
+{
+    "schema_version": 1,
+    "assembly_name": "math-both",
+    "enabled_plugins": [
+        "ID.Math.Scalar",
+        "ID.Math.SIMD"
+    ]
+}

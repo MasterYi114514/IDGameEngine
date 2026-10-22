@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "FX.Alt",
+    "target": "IDFxAlt",
+    "namespace": "ID::Fx::Alt",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "FX.Alt", "api_revision": 1}
+    ],
+    "lifecycle": "none"
+}

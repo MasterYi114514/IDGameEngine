@@ -1,0 +1,14 @@
+{
+    "schema_version": 1,
+    "name": "FX.CoreAlt",
+    "target": "IDFxCoreAlt",
+    "namespace": "ID::Fx::CoreAlt",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [],
+    "requirement_contracts": [],
+    "provides": [
+        {"capability": "FX.Core", "api_revision": 1}
+    ],
+    "lifecycle": "none"
+}

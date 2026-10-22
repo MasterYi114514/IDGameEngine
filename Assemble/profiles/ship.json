@@ -1,0 +1,8 @@
+{
+    "schema_version": 1,
+    "assembly_name": "ship",
+    "enabled_plugins": [
+        "ID.Log",
+        "ID.Math.Scalar"
+    ]
+}

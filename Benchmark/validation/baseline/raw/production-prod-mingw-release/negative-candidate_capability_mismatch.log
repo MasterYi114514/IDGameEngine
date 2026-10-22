@@ -1,0 +1,26 @@
+MODE: production-prod-mingw-release
+BUILD_DIR: F:/IDGameEngine/Benchmark/build/prod-mingw-release
+CWD: F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production
+TARGET: production_expect_candidate_capability_mismatch
+EXPECTED_MARKER: CandidateCapabilityMismatch
+COMMAND: D:/Code/Environment/CMake/bin/cmake.exe --build F:/IDGameEngine/Benchmark/build/prod-mingw-release/Benchmark/validation/production --target production_expect_candidate_capability_mismatch
+EXIT: 2
+STATIC_ASSERT_FAILED_COUNT: 1
+HAS_EXPECTED: TRUE
+HAS_MISMATCH: FALSE
+
+[100%] Built target ID
+[100%] Building CXX object Benchmark/validation/production/CMakeFiles/production_expect_candidate_capability_mismatch.dir/src/cases/case_candidate_capability_mismatch.cpp.obj
+
+In file included from F:\IDGameEngine\Benchmark\validation\production\src\cases\case_candidate_capability_mismatch.cpp:1:
+F:/IDGameEngine/Benchmark/validation/production/include/ProductionCaseSupport.hpp:997:101: error: static assertion failed: ID_ASSEMBLY_ERROR_EXPECTED:CandidateCapabilityMismatch
+  997 |     static_assert(::ID::Bench::Production::error_differs<::ID::PluginCompileTime::PluginError::code>(plan),          \
+      |                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~
+F:\IDGameEngine\Benchmark\validation\production\src\cases\case_candidate_capability_mismatch.cpp:29:5: note: in expansion of macro 'ID_PRODUCTION_EXPECT_ERROR'
+   29 |     ID_PRODUCTION_EXPECT_ERROR(kPlan, CandidateCapabilityMismatch);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~
+mingw32-make[7]: *** [Benchmark\validation\production\CMakeFiles\production_expect_candidate_capability_mismatch.dir\build.make:79: Benchmark/validation/production/CMakeFiles/production_expect_candidate_capability_mismatch.dir/src/cases/case_candidate_capability_mismatch.cpp.obj] Error 1
+mingw32-make[6]: *** [CMakeFiles\Makefile2:555: Benchmark/validation/production/CMakeFiles/production_expect_candidate_capability_mismatch.dir/all] Error 2
+mingw32-make[5]: *** [CMakeFiles\Makefile2:562: Benchmark/validation/production/CMakeFiles/production_expect_candidate_capability_mismatch.dir/rule] Error 2
+mingw32-make[4]: *** [Makefile:205: Benchmark/validation/production/CMakeFiles/production_expect_candidate_capability_mismatch.dir/rule] Error 2
+

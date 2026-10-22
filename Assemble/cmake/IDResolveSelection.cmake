@@ -2,13 +2,19 @@
 #
 # 职责：
 #   1. 读 profile 的显式选中集合：不自动补依赖、不按候选顺序决策、不按版本“择优”；
-#   2. 在 Selected 内为每个需求解析唯一 provider：0 个 -> MissingProvider，>= 2 -> AmbiguousProvider；
-#   3. 检查能力与槽位的产品级唯一性，以及唯一候选的接口修订是否落在契约区间内；
-#   4. 派生真实 PUBLIC 链接边、逐需求 provider、槽位归属与目标身份证据，交给生成器与 C++ 侧复核。
+#   2. 在 Selected 内为每个需求求命中集合 `matches = candidates ∩ selected`：
+#      schema1（legacy_unique）仍要求组内恰好 1 个 —— 0 个 -> MissingProvider、>= 2 -> AmbiguousProvider；
+#      schema2 允许 0 / 1 / N（N 不超过组容量），N > 1 不是错误，逐条独立落地；
+#   3. 每个命中候选都必须自己通过“确实提供它声明的那条能力 + 修订落在该候选区间”两项校验，
+#      任一命中候选校验失败即整组失败（不跳过坏的、不留好的）；
+#   4. 检查能力与槽位的产品级唯一性（跨组也查）；
+#   5. 派生真实 PUBLIC 链接边（按 (上游, 下游) 去重）、逐命中 binding 记录、逐 consumer × 逐需求组的
+#      matched 集合、槽位归属与目标身份证据，交给生成器与 C++ 侧复核。
 #
 # 明确不做的事：
 #   - 不做拓扑排序（最终顺序由 C++ 侧 sort_and_validate 产出）；
-#   - 不向插件注入与自身无关的身份：身份宏只作为对应上游 target 的 PUBLIC usage requirement 传播。
+#   - 不向插件注入与自身无关的身份：身份宏只作为对应上游 target 的 PUBLIC usage requirement 传播；
+#   - 不引入 preferred / 唯一 binding / 顺序择优 / 按版本挑最新：命中集合由选中集合唯一决定。
 include_guard()
 
 # 64 位无符号 FNV-1a（与 ID::hash_fnv_1a64 / PluginCompileTime 的口径一致）。
@@ -86,13 +92,17 @@ endfunction()
 # 回传（Q = OUT_PREFIX）：
 #   Q_ASSEMBLY_NAME / Q_PROFILE_PATH
 #   Q_SELECTED_COUNT / Q_SELECTED_INDICES / Q_SELECTED_NAMES / Q_SELECTED_TARGETS
-#   Q_BINDING_COUNT / Q_BINDINGS          "下游名|provider名|需求组下标"
-#   Q_EDGE_COUNT    / Q_EDGES             "上游名|下游名"（已按 (上游,下游) 去重）
-#   Q_WIRING                              "下游target|上游target"（真实 PUBLIC 链接边）
+#   Q_BINDING_COUNT / Q_BINDINGS          "下游名|命中provider名|需求组下标"，每条 matched 记录一条
+#                                         （schema2 组内多命中时同一组会出现多条，Q_BINDING_COUNT 因此是
+#                                          matched 记录总数，而不是需求组数）
+#   Q_EDGE_COUNT    / Q_EDGES             "上游名|下游名"（已按 (上游,下游) 去重：多组指向同一上游只连一次）
+#   Q_WIRING                              "下游target|上游target"（真实 PUBLIC 链接边，与 Q_EDGES 同序同数）
+#   Q_MATCHED_GROUPS                      "选中下标|需求组|命中条数|命中provider token（逗号分隔）"
+#                                         逐 consumer × 逐需求组的 matched 集合（availability 生成物的输入）
 #   Q_SLOT_COUNT    / Q_SLOTS             "owner名|能力名|槽位"
 #   Q_PROVISION_COUNT / Q_RUNTIME         "插件名|能力名|plugin_id|接口修订"
 #   Q_SELECTED_EVIDENCE                   "插件名|target|身份宏|plugin_id"
-#   Q_EVIDENCE_LINES                      人类可读的构建证据（逐需求 provider / 边 / 槽 / 目标）
+#   Q_EVIDENCE_LINES                      人类可读的构建证据（逐需求命中 / matched-set / 边 / 槽 / 目标）
 function(id_resolve_selection)
     cmake_parse_arguments(R "" "PROFILE;CATALOG_PREFIX;OUT_PREFIX" "" ${ARGN})
 
@@ -152,11 +162,12 @@ function(id_resolve_selection)
         list(APPEND selected_targets "${${C}_${catalog_index}_TARGET}")
     endforeach()
 
-    # ---------------- 逐需求唯一 provider ----------------
+    # ---------------- 逐需求命中集合（0 / 1 / N） ----------------
     set(bindings "")
     set(edges "")
     set(wiring "")
     set(evidence_lines "")
+    set(matched_groups "")
 
     # 能力与槽位的产品级唯一性（即使没有下游使用也要检查，计划书 6.2）
     set(capability_owners "")
@@ -200,7 +211,7 @@ function(id_resolve_selection)
             endif()
         endforeach()
 
-        # 2. 逐需求：在 Selected 内唯一命中
+        # 2. 逐需求：在 Selected 内求命中集合（schema1 组内恰好 1 个，schema2 允许 0/1/N）
         set(group_count "${${C}_${selected_index}_GROUP_COUNT}")
         math(EXPR group_last "${group_count} - 1")
         set(group_indices "")
@@ -211,77 +222,99 @@ function(id_resolve_selection)
         endif()
 
         foreach(group IN LISTS group_indices)
-            set(candidates "${${C}_${selected_index}_GROUP_${group}_CANDIDATES}")
-            set(capability "${${C}_${selected_index}_GROUP_${group}_CAPABILITY}")
+            set(candidates    "${${C}_${selected_index}_GROUP_${group}_CANDIDATES}")
+            set(capability    "${${C}_${selected_index}_GROUP_${group}_CAPABILITY}")
+            set(legacy_unique "${${C}_${selected_index}_GROUP_${group}_LEGACY_UNIQUE}")
 
-            set(matches "")
+            # matches = candidates ∩ selected。记录形如 "<catalog 下标>|<候选在组内的位置>|<候选名>"，
+            # 按 catalog 下标升序排列：matched 记录顺序因此只由 catalog 决定，
+            # 候选书写顺序、profile 书写顺序都不参与（canonical 证据段与 C++ 侧指纹逐字节稳定）。
+            set(matched_records "")
+            set(candidate_position 0)
             foreach(candidate IN LISTS candidates)
                 list(FIND selected_names "${candidate}" selected_position)
                 if(selected_position GREATER -1)
-                    list(APPEND matches "${candidate}")
-                endif()
-            endforeach()
-
-            list(LENGTH matches match_count)
-            if(match_count EQUAL 0)
-                message(FATAL_ERROR "MissingProvider：${selected_name} 的需求组 ${group}（能力 ${capability}）在选中集合内没有候选；不自动启用缺失的依赖")
-            endif()
-            if(match_count GREATER 1)
-                message(FATAL_ERROR "AmbiguousProvider：${selected_name} 的需求组 ${group}（能力 ${capability}）命中 ${match_count} 个候选：${matches}；不挑第一个，也不挑新版本")
-            endif()
-
-            set(provider "${matches}")
-            list(FIND ${C}_NAMES "${provider}" provider_index)
-            set(provider_target "${${C}_${provider_index}_TARGET}")
-
-            # 3. provider 必须真的提供该能力，且接口修订落在契约区间内
-            set(provided_revision "")
-            set(provider_provides_count "${${C}_${provider_index}_PROVIDES_COUNT}")
-            math(EXPR provider_provides_last "${provider_provides_count} - 1")
-            set(provider_provides_indices "")
-            if(provider_provides_count GREATER 0)
-                foreach(provide RANGE 0 ${provider_provides_last})
-                    list(APPEND provider_provides_indices ${provide})
-                endforeach()
-            endif()
-            foreach(provide IN LISTS provider_provides_indices)
-                if("${${C}_${provider_index}_PROVIDE_${provide}_CAPABILITY}" STREQUAL "${capability}")
-                    set(provided_revision "${${C}_${provider_index}_PROVIDE_${provide}_REVISION}")
-                endif()
-            endforeach()
-            if(provided_revision STREQUAL "")
-                message(FATAL_ERROR "CandidateCapabilityMismatch：${provider} 没有提供能力 ${capability}（${selected_name} 的需求组 ${group}）")
-            endif()
-
-            # 契约区间按候选名查（同一组候选的修订要求可以不同）
-            set(min_revision -1)
-            set(max_revision -1)
-            set(candidate_position 0)
-            foreach(candidate IN LISTS candidates)
-                if(candidate STREQUAL provider)
-                    set(min_revision "${${C}_${selected_index}_GROUP_${group}_MIN_${candidate_position}}")
-                    set(max_revision "${${C}_${selected_index}_GROUP_${group}_MAX_${candidate_position}}")
+                    list(FIND ${C}_NAMES "${candidate}" candidate_catalog_index)
+                    list(APPEND matched_records "${candidate_catalog_index}|${candidate_position}|${candidate}")
                 endif()
                 math(EXPR candidate_position "${candidate_position} + 1")
             endforeach()
-            if(min_revision LESS 0 OR max_revision LESS 0)
-                message(FATAL_ERROR "内部错误：${selected_name} 的需求组 ${group} 缺少 ${provider} 的修订契约")
-            endif()
-            if(provided_revision LESS min_revision OR provided_revision GREATER max_revision)
-                message(FATAL_ERROR "RevisionMismatch：${provider} 提供 ${capability} 的接口修订 ${provided_revision} 不在 ${selected_name} 要求的 [${min_revision}, ${max_revision}] 内；不改选其它候选")
+            list(LENGTH matched_records match_count)
+            if(match_count GREATER 1)
+                list(SORT matched_records COMPARE NATURAL)
             endif()
 
-            list(APPEND bindings "${selected_name}|${provider}|${group}")
-            list(APPEND evidence_lines "provider  ${selected_name} -> ${provider}（需求组 ${group}，能力 ${capability}，修订 ${provided_revision}）")
-
-            # 4. 真实链接边：同一 (上游, 下游) 只连一次；需求绑定记录全部保留
-            set(edge_record "${provider}|${selected_name}")
-            list(FIND edges "${edge_record}" duplicate_edge)
-            if(duplicate_edge LESS 0)
-                list(APPEND edges "${edge_record}")
-                list(APPEND wiring "${selected_target}|${provider_target}")
-                list(APPEND evidence_lines "edge      ${provider} -> ${selected_name}（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_${${C}_${provider_index}_TOKEN}）")
+            # 预算先于语义判定：组容量 = kMaxCandidates = 16（超出后 matched 表也不再有位置）
+            if(match_count GREATER 16)
+                message(FATAL_ERROR "TooManyCandidates：${selected_name} 的需求组 ${group}（契约标签 ${capability}）命中 ${match_count} 个候选，超过组容量 16；不挑第一个，也不挑新版本")
             endif()
+            if(match_count EQUAL 0)
+                message(FATAL_ERROR "MissingProvider：${selected_name} 的需求组 ${group}（契约标签 ${capability}）在选中集合内没有候选；不自动启用缺失的依赖")
+            endif()
+            # schema1 仍要求组内恰好一个（legacy_unique = 1）：多命中不因 schema2 落地而被放宽
+            if(legacy_unique EQUAL 1 AND match_count GREATER 1)
+                message(FATAL_ERROR "AmbiguousProvider：${selected_name} 的需求组 ${group}（契约标签 ${capability}）命中 ${match_count} 个候选；schema1 要求组内恰好 1 个，不挑第一个也不挑新版本（需要组内多命中请把清单迁到 schema_version=2）")
+            endif()
+
+            set(group_tokens "")
+            foreach(record IN LISTS matched_records)
+                string(REPLACE "|" ";" record_parts "${record}")
+                list(GET record_parts 0 provider_index)
+                list(GET record_parts 1 candidate_offset)
+                list(GET record_parts 2 provider)
+
+                set(provider_target "${${C}_${provider_index}_TARGET}")
+                set(provider_token  "${${C}_${provider_index}_TOKEN}")
+
+                # 3. 匹配真源是候选自己声明的那条能力（schema1 已在解析时规范化为组能力），
+                #    组级 capability 只是契约标签，这里不再拿它当匹配真源。
+                set(declared_capability "${${C}_${selected_index}_GROUP_${group}_CAP_${candidate_offset}}")
+                set(min_revision        "${${C}_${selected_index}_GROUP_${group}_MIN_${candidate_offset}}")
+                set(max_revision        "${${C}_${selected_index}_GROUP_${group}_MAX_${candidate_offset}}")
+                if(declared_capability STREQUAL "" OR min_revision LESS 0 OR max_revision LESS 0)
+                    message(FATAL_ERROR "内部错误：${selected_name} 的需求组 ${group} 缺少 ${provider} 的逐候选契约（capability / [min,max]）")
+                endif()
+
+                set(provided_revision "")
+                set(provider_provides_count "${${C}_${provider_index}_PROVIDES_COUNT}")
+                math(EXPR provider_provides_last "${provider_provides_count} - 1")
+                set(provider_provides_indices "")
+                if(provider_provides_count GREATER 0)
+                    foreach(provide RANGE 0 ${provider_provides_last})
+                        list(APPEND provider_provides_indices ${provide})
+                    endforeach()
+                endif()
+                foreach(provide IN LISTS provider_provides_indices)
+                    if("${${C}_${provider_index}_PROVIDE_${provide}_CAPABILITY}" STREQUAL "${declared_capability}")
+                        set(provided_revision "${${C}_${provider_index}_PROVIDE_${provide}_REVISION}")
+                    endif()
+                endforeach()
+                if(provided_revision STREQUAL "")
+                    message(FATAL_ERROR "CandidateCapabilityMismatch：${provider} 没有提供能力 ${declared_capability}（${selected_name} 的需求组 ${group}）；组级契约标签 ${capability} 不作为匹配真源")
+                endif()
+                if(provided_revision LESS min_revision OR provided_revision GREATER max_revision)
+                    message(FATAL_ERROR "RevisionMismatch：${provider} 提供 ${declared_capability} 的接口修订 ${provided_revision} 不在 ${selected_name} 要求的 [${min_revision}, ${max_revision}] 内；不改选其它命中，也不跳过本命中")
+                endif()
+
+                # 每条命中各保留一条 binding：多条命中同一个 provider（跨组或同组）都不合并
+                list(APPEND bindings "${selected_name}|${provider}|${group}")
+                list(APPEND evidence_lines "provider  ${selected_name} -> ${provider}（需求组 ${group}，能力 ${declared_capability}，修订 ${provided_revision}）")
+                list(APPEND group_tokens "${provider_token}")
+
+                # 4. 真实链接边按 (上游, 下游) 去重：只保留一条 PUBLIC 链接与一条身份宏 usage
+                set(edge_record "${provider}|${selected_name}")
+                list(FIND edges "${edge_record}" duplicate_edge)
+                if(duplicate_edge LESS 0)
+                    list(APPEND edges "${edge_record}")
+                    list(APPEND wiring "${selected_target}|${provider_target}")
+                    list(APPEND evidence_lines "edge      ${provider} -> ${selected_name}（PUBLIC 链接 + 身份宏 ID_USE_PLUGIN_${provider_token}）")
+                endif()
+            endforeach()
+
+            # 逐 consumer × 逐需求组的 matched 集合：availability 生成物的唯一输入
+            string(REPLACE ";" "," group_token_text "${group_tokens}")
+            list(APPEND matched_groups "${selected_index}|${group}|${match_count}|${group_token_text}")
+            list(APPEND evidence_lines "matched   ${selected_name} 需求组 ${group}（契约标签 ${capability}）命中 ${match_count} 个：${group_token_text}（每 consumer × 每组的可见性宏见 ${selected_target}Matched.generated.hpp）")
         endforeach()
     endforeach()
 
@@ -327,6 +360,15 @@ function(id_resolve_selection)
     list(LENGTH edges edge_count)
     list(LENGTH slots slot_count)
 
+    # 计划表预算（D0-09）：matched 记录进扁平命中表（kMatchSlots = 65536），去重边进边表（kEdgeCapacity = 16256）。
+    # 两者都是静态计划表的容量上界，运行期没有扩容入口，因此超额一律在 configure 期按具体类别拒绝。
+    if(binding_count GREATER 65536)
+        message(FATAL_ERROR "TooManyMatchedRecords：本产品 matched 记录 ${binding_count} 条，超过扁平命中表容量 65536（kGroupSlots × kMaxCandidates）")
+    endif()
+    if(edge_count GREATER 16256)
+        message(FATAL_ERROR "TooManyEdges：本产品按 (上游, 下游) 去重后仍有 ${edge_count} 条依赖边，超过边表容量 16256（kMaxActive × (kMaxActive - 1)）")
+    endif()
+
     set(${Q}_ASSEMBLY_NAME      "${assembly_name}"   PARENT_SCOPE)
     set(${Q}_PROFILE_PATH       "${R_PROFILE}"       PARENT_SCOPE)
     set(${Q}_SELECTED_COUNT     "${selected_count}"  PARENT_SCOPE)
@@ -338,6 +380,7 @@ function(id_resolve_selection)
     set(${Q}_EDGE_COUNT         "${edge_count}"      PARENT_SCOPE)
     set(${Q}_EDGES              "${edges}"           PARENT_SCOPE)
     set(${Q}_WIRING             "${wiring}"          PARENT_SCOPE)
+    set(${Q}_MATCHED_GROUPS     "${matched_groups}"  PARENT_SCOPE)
     set(${Q}_SLOT_COUNT         "${slot_count}"      PARENT_SCOPE)
     set(${Q}_SLOTS              "${slots}"           PARENT_SCOPE)
     set(${Q}_PROVISION_COUNT    "${provision_count}" PARENT_SCOPE)

@@ -12,7 +12,7 @@
  *  本产品（@ID_ASM_ASSEMBLY_NAME@）的编译期组装输入与结果
  *  由 Assemble/cmake/IDGenerateAssembly.cmake 依据 plugin.json + profile 生成，勿手改
  *  1. catalog 与选中集合来自同一份 JSON 元数据，本头不提供第二份人工依赖清单；
- *  2. 构建证据（逐需求 provider / 真实链接边 / 槽位归属 / 运行期绑定元数据）由 CMake 解析结果派生，
+ *  2. 构建证据（逐 matched 记录 / 真实链接边 / 槽位归属 / 运行期绑定元数据）由 CMake 解析结果派生，
  *     C++ 侧 sort_and_validate 会逐项复核，任何一项不一致都编译失败（计划书 8.5）；
  *  3. 全部内容都是常量求值结果：不产生运行期全局构造，也不包含未选中插件的任何声明。
  */
@@ -21,7 +21,10 @@ namespace ID::Assembly::Generated
 {
     inline constexpr std::size_t kCatalogCount   = @ID_ASM_CATALOG_COUNT@;
     inline constexpr std::size_t kSelectedCount  = @ID_ASM_SELECTED_COUNT@;
+    // matched 记录数：每（下游, 需求组, 命中 provider）一条，必须等于 kPlan.matched_total()。
+    // schema2 的组内多命中会让同一需求组折进多条记录，因此它可能大于需求组总数。
     inline constexpr std::size_t kBindingCount   = @ID_ASM_BINDING_COUNT@;
+    // 按 (上游, 下游) 去重后的边数：多组指向同一 provider 只连一次，binding 仍逐条保留。
     inline constexpr std::size_t kEdgeCount      = @ID_ASM_EDGE_COUNT@;
     inline constexpr std::size_t kSlotCount      = @ID_ASM_SLOT_COUNT@;
     inline constexpr std::size_t kProvisionCount = @ID_ASM_PROVISION_COUNT@;
@@ -41,6 +44,8 @@ namespace ID::Assembly::Generated
 
     /**
      *  @brief 组装输入形状：容量全部由生成器已知的数组长度给出（计划书 5.4）
+     *  @note BindingEvidenceCapacity = kBindingCount = matched 记录总数（≥ 实际 matched 条数，逐条一一对应）；
+     *        EdgeEvidenceCapacity = kEdgeCount = 去重后的边数（< matched 记录数是正常形态）
      *  @note RuntimeEvidenceCapacity 取缺省值（catalog 全量 provides 容量之和），
      *        保证任何合法选中集合的运行期绑定记录都放得下
      */
@@ -58,7 +63,10 @@ namespace ID::Assembly::Generated
 
     /**
      *  @brief CMake 派生的构建证据
-     *  @return 逐需求 provider、真实链接边、槽位归属、选中目标/身份宏/身份与运行期绑定元数据
+     *  @return 逐 matched 记录（下游, 需求组, 命中 provider）、去重后的真实链接边、槽位归属、
+     *          选中目标/身份宏/身份与运行期绑定元数据
+     *  @note evidence.bindings 的条数必须等于 kBindingCount，也必须等于 kPlan.matched_total()：
+     *        同一需求组的多个命中各占一条，多组命中同一 provider 也各占一条（不合并）
      */
     consteval ID::PluginCompileTime::AssemblyEvidence<Shape> make_evidence() noexcept
     {
@@ -84,23 +92,31 @@ namespace ID::Assembly::Generated
         input.catalog  = make_catalog();
         input.selected = kSelected;
         input.evidence = kEvidence;
-        return input;
+        // 逐 (选中槽位, 需求组) 的组语义标志：0 = 组内必须恰好命中 1 个、1 = OR 组允许 ≥1 个。
+        // 编址 = 选中槽位（= selected 的下标，profile 顺序）× kMaxRequirements + 需求组，
+        // 与内核 read_group_multi_flag 的读取口径逐字一致。
+        // **缺省值 0 就是 schema1 语义**，因此只写取值为 1 的项：schema1 产品（以及 schema2 的
+        // 字符串项）的数组保持全 0，判定与引入该字段前完全一致。
+@ID_ASM_GROUP_MULTI_ASSIGNMENTS@        return input;
     }
 
     inline constexpr auto kInput = make_input();
 
     /**
-     *  @brief 编译期组装结果：唯一绑定、去重边、确定性拓扑序、槽位归属与指纹
+     *  @brief 编译期组装结果：逐组 matched 集合（match_begin / match_active）、去重边、确定性拓扑序、槽位归属与指纹
      *  @note 运行期不重新求解依赖，也不重排；绑定 TU 按这份 canonical 顺序建表
      */
     inline constexpr auto kPlan = ID::PluginManager::sort_and_validate(kInput);
 
     /**
      *  @brief 本产品的确定性指纹（计划书 13.3）
-     *  @note 输入是"选中插件精确名字 + 接口修订 + 逐需求绑定 + 槽位归属 + schema"的规范化序列，
-     *        不含运行期地址、源文件绝对路径、catalog 枚举顺序或 profile 书写顺序，
+     *  @note 输入是"schema 修订 + canonical 名字 + 逐 provision 接口修订/槽位 + topo_order +
+     *        逐需求组 matched 集合（条数 + 升序 active 下标）+ slot_owner + edge_count + provision_count"
+     *        的规范化序列；不含运行期地址、源文件绝对路径、catalog 枚举顺序或 profile 书写顺序，
      *        因此打乱 catalog、选中集合或候选顺序都不会改变它（由 Benchmark 置换用例与
      *        Assemble 的置换复算共同锁定）；
+     *  @note kSchemaRevision 从 1 升到 2 时**所有产品的指纹都会变化**，这是 schema2 的预期代价，
+     *        不得据此断言"指纹不变"，也不得为保住旧指纹而放弃 matched 语义；
      *  @note 它只用于追踪组装结果，**不是**密码学签名，也不是 ABI 兼容或跨平台二进制可复现的证明；
      *        CMake 侧不重算这个数值（重算等于维护第二份算法），构建证据里记录的是它的输入序列。
      */

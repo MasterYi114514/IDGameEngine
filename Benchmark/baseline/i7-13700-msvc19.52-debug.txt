@@ -1,0 +1,85 @@
+=== IDGameEngine Benchmark regression 基线（数学两域） ===
+命名契约：Benchmark/baseline/<cpu>-<compiler>-<buildtype>.txt（skills/benchmark/references/grading.md §2D）
+
+[1] 适用身份（本文件的参考值只能用于这一格）
+  cpu        : 13th Gen Intel(R) Core(TM) i7-13700
+  compiler   : MSVC 19.52.37025.0（VS 2026 Insiders；报告头 compiler 行 "MSVC 1952"）
+  buildtype  : Debug（/Od 等 Debug 组；无 /fp:fast，因此没有 FMA 收缩）
+  flags      : Debug 组（cmake/IDFlags.cmake）
+  assembly   : math-both（ID.Math.Scalar + ID.Math.SIMD 同时选中；profile = math-both）
+  mode       : shared | LTO=OFF | AVX2=ON | MONOLITHIC=OFF
+  测量协议   : 官方 Benchmark.exe；QPC（freq=10000000, resolution=100ns）；affinity=core 0；
+               DUT 与同轮等价手写对照逐轮相邻测量；单批 >=100 ms 由 iters=1 倍增标定；
+               固定 5 轮取中位数（极差 >20% 的指标在报告 note 里标 unstable）
+
+[2] 口径变更记录（旧 -> 新；本次是该文件首次建立）
+  旧口径 : basis = os-baseline，reference_ns = 同轮等价手写对照值 × 目标倍数 1.0。
+  问题   : 参考值循环论证（B-1）。vec.add.latency / mat.access.const_index /
+           mat.access.proxy_const_index 的 DUT 与对照生成**逐字相同**的机器码（证据
+           Benchmark/build/math-both-mingw-release/machine-code-evidence.txt 第 3.1 / 3.3 节与该文件
+           第 4 节的 MSVC 符号统计）；Debug 下两侧同样只差 -Od 的调用/取址形态，
+           因此 ratio ≡ 1（或只反映调用形态），"good" 不携带质量信息。
+  新口径 : basis = regression，reference_ns = 本文件 [3] 表里的历史实测中位数；
+           允许回退幅度 0%；同轮对照降级为 note 里的披露项，不进入评级。
+  影响   : 旧 Debug 报告里 poor / terrible 的评级不再出现；此后报告只表达"相对本基线是否退化"。
+           旧报告（os-baseline 口径）不可与本基线混用。
+  未改   : 评级带宽（grading.md §5）、两域容差表、测量协议、被测量与输入数据；本次未修改 grading.md。
+  未做   : 没有为提高 ratio 调低任何值（首次建立，不是"调值"）；没有删除任何既有证据文件。
+
+[3] 基线表（各指标历史实测中位数，ns/op）
+  来源报告 : Benchmark/build/math-both-msvc-release/math-both-msvc-debug-run1.txt
+  generated: 2026-10-21 22:34:23
+
+  domain        指标                              基线 ns/op   来源（该报告的 actual / 旧 ratio / 旧 grade）
+  ------------  --------------------------------  ----------   ------------------------------------------
+  Math.Scalar   vec.add.latency.ns                     26.91    26.91 ns 9.19 terrible
+  Math.Scalar   vec.add.throughput.ns                  24.41    24.41 ns 9.37 terrible
+  Math.Scalar   vec.dot.ns                             11.47    11.47 ns 2.38 poor
+  Math.Scalar   vec.normalize.ns                       57.32    57.32 ns 4.21 terrible
+  Math.Scalar   vec.add.aos.ns                         11.70    11.70 ns 2.80 poor
+  Math.Scalar   vec.add.soa.ns                         12.93    12.93 ns 2.35 poor
+  Math.Scalar   mat.matvec.ns                          79.47    79.47 ns 3.21 poor
+  Math.Scalar   mat.matmul.ns                         240.38   240.38 ns 2.38 poor
+  Math.Scalar   mat.access.const_index.ns               1.67     1.67 ns 0.97 good
+  Math.Scalar   mat.access.dynamic_index.ns             1.65     1.65 ns 1.00 good
+  Math.Scalar   mat.access.proxy_const_index.ns         4.01     4.01 ns 2.28 poor
+  Math.Scalar   mat.access.proxy_dynamic_index.ns       3.76     3.76 ns 2.26 poor
+  Math.SIMD     vec.add.latency.ns                     20.51    20.51 ns 7.10 terrible
+  Math.SIMD     vec.add.throughput.ns                  17.04    17.04 ns 6.65 terrible
+  Math.SIMD     vec.dot.ns                              6.84     6.84 ns 1.42 fair
+  Math.SIMD     vec.normalize.ns                       59.11    59.11 ns 4.36 terrible
+  Math.SIMD     vec.add.aos.ns                          6.87     6.87 ns 1.64 fair
+  Math.SIMD     vec.add.soa.ns                         22.54    22.54 ns 4.21 terrible
+  Math.SIMD     mat.matvec.ns                          45.01    45.01 ns 1.88 fair
+  Math.SIMD     mat.matmul.ns                          96.72    96.72 ns 0.97 good
+  Math.SIMD     mat.access.const_index.ns               1.66     1.66 ns 1.00 good
+  Math.SIMD     mat.access.dynamic_index.ns             1.67     1.67 ns 1.01 good
+  Math.SIMD     mat.access.proxy_const_index.ns         3.56     3.56 ns 2.16 poor
+  Math.SIMD     mat.access.proxy_dynamic_index.ns       3.57     3.57 ns 2.16 poor
+
+  精度说明 : 报告只输出 2 位小数，因此基线值带 <= 半个末位的量化；相对评级带宽 ±20% 可忽略。
+
+[4] 组合与更新规则
+  - 组合边界：本文件取自 math-both 组合。math-scalar / math-simd 单 backend 组合与它同编译器、
+    同构建类型、同 flags、同输入数据，沿用同一基线；若某组合连续两次出现 |ratio-1| > 20%，
+    必须按 §2D 为该组合单独标定，不得就地调整本文件数值。
+  - 更新方式：确认后覆盖更新 [3]，并在 [2] 追加一条"旧值 -> 新值 + 理由 + 对既有报告可比性的影响"。
+  - 只允许在同机器、同编译器、同构建类型、同 flags、同精度模式、同输入数据下沿用；换机器 / 换编译器
+    版本 / 改 flags / 改被测量必须新建对应文件，不得在本文件上借用。
+  - git 提交信息由主 Agent 填写；本文件只负责记录口径变更与数值来源。
+
+[5] 未闭合项（本文件不闭合下列问题，读报告时不得当成已有结论）
+  - 未闭合项① 绝对质量仍缺独立下界（regression ≠ 快）：本文件 [3] 的参考值是本机同配置的
+    历史实测中位数，因此 ratio ≈ 1 只证明"相对该基线未退化"，**不证明"快"**。绝对快慢需要
+    一个与 DUT 实现无关的下界，本域目前三种 basis 都拿不到：
+      · theoretical：指令级下界被" DUT 与对照同码"掩盖，给不出比 DUT 更硬的界；
+      · hardware ：L1 命中 4–5 cycles 是访存延迟，不是一次 vec4 加法 / 一次矩阵访问的下界；
+      · os-baseline：同轮等价手写对照在多条指标上与 DUT 生成逐字相同机器码（见 [2]），
+        此时 ratio ≡ 1，参考值循环论证。Debug 下两侧差异来自 -O0 的调用/取址形态，
+        更不是"实现质量"的下界。
+  - 未闭合项② 跨编译器/跨配置的绝对差异未被解释：MinGW 与 MSVC 的同名指标可差一个数量级，
+    Debug 与 Release 之间还差 -O0 / 标量展开一个量级。本文件只按配置各自持有参考值，
+    不解释差异来源，也不得据此判断哪个编译器"更好"。
+  - 关闭条件：新增一条与实现无关的下界证据（同轮**非等价**对照，或公开硬件规格的完整推导式），
+    按 skills/benchmark/references/grading.md §2 写明推导式与参数出处并单独取证。关闭之前，
+    报告里的 ratio 与 grade 只能读作 regression 门槛，不得写成绝对性能结论。

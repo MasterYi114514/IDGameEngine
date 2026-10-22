@@ -1,0 +1,23 @@
+{
+    "schema_version": 2,
+    "name": "FX.Consumer.CycleFree",
+    "target": "IDFxConsumerCycleFree",
+    "namespace": "ID::Fx::Consumer::CycleFree",
+    "kind": "interface",
+    "version": 1,
+    "dependencies": [
+        ["FX.CycA", "FX.CycB", "FX.Neutral"]
+    ],
+    "requirement_contracts": [
+        {
+            "capability": "FX.Loop",
+            "api_revisions": {
+                "FX.CycA":    {"capability": "FX.CycA",    "min": 1, "max": 1},
+                "FX.CycB":    {"capability": "FX.CycB",    "min": 1, "max": 1},
+                "FX.Neutral": {"capability": "FX.Neutral", "min": 1, "max": 1}
+            }
+        }
+    ],
+    "provides": [],
+    "lifecycle": "none"
+}

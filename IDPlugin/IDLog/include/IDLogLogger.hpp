@@ -15,8 +15,11 @@
  *  ID.Log 的调用侧外观（**唯一包含 `<format>` 的公开头**）
  *  1. `Logger` 是可平凡复制的纯数据（`table` / `category` / `category_len` 三个 public 字段），
  *     由插件在固定槽位内分配、调用方内联读字段；跨 DLL 只传它的指针；
- *  2. 格式化在**调用方**完成：`std::format_to_n` 写进 `kStackFormatCapacity` 栈缓冲，不分配、可重入；
- *     截断时收敛到 UTF-8 码点边界并补 "..."；插件侧不再解析格式串，只做 `[category] message` 拼接；
+ *  2. 格式化在**调用方**完成：`std::format_to_n` 写进 `kStackFormatCapacity` 栈缓冲，插件侧不再解析格式串，
+ *     只做 `[category] message` 拼接；截断只保证"合法 UTF-8 输入的前缀 + ..."，不修复调用方给定的非法 UTF-8 字节；
+ *     分配与异常边界**如实披露**：`std::format_to_n` 对自定义 formatter 可能分配、可能抛异常，而 `Logger` 的方法与
+ *     `write_at` 都标 `noexcept`，异常穿过该边界即 `std::terminate`——那是进程终止，不是可捕获、可恢复的日志失败。
+ *     唯一可承诺的是"插件内不做第二次格式化"，不得读成"零分配""不抛异常"或"失败可恢复"；
  *  3. 格式串形参固定为 `std::format_string<Args...>`（构造函数是 `consteval`），
  *     非字面量、占位符数量或类型不匹配一律编译期报错；**不提供 `std::vformat` 这类运行期格式串入口**；
  *  4. 编译期底线是 `ID_LOG_MIN_LEVEL`（由 `IDLogApi.hpp` 固定，不可由构建覆盖）：
@@ -101,8 +104,8 @@ namespace ID::Log
 
     struct Logger
     {
-        const LogApiTable* table        = nullptr;    // 发布到 ServiceSlot::Log 的表；Ready 区间内有效
-        const char*        category     = nullptr;    // category 标签；调用方保证在句柄有效期内不释放
+        const LogApiTable* table        = nullptr;    // 发布到 ServiceSlot::Log 的表；只在 Ready 区间内有效，shutdown 复位后为 nullptr
+        const char*        category     = nullptr;    // category 标签：字面量或调用方持有的稳定存储，插件只保存指针不复制
         uint32_t           category_len = 0;          // category 字节数（不含 NUL）
 
         /**
@@ -122,7 +125,9 @@ namespace ID::Log
          *  @param level 目标级别
          *  @param fmt 编译期格式串 `std::format_string<Args...>`
          *  @param args 格式实参，按引用转发给 `std::format_to_n`
-         *  @note 截断时由 `mark_truncated` 收敛到 UTF-8 码点边界并补 "..."，绝不越界写栈缓冲；
+         *  @note 截断由 `mark_truncated` 收敛到 UTF-8 码点边界并补 "..."，绝不越界写栈缓冲；该规则只对合法 UTF-8
+         *        输入生效，调用方给定的非法字节原样保留。格式化本身可能分配、可能抛异常（自定义 formatter），
+         *        而本方法标 `noexcept`：异常穿过即 `std::terminate`。
          *        标 `ID_NOINLINE` 让调用点只留一次调用指令，避免每个调用点各自展开一整套格式解析。
          *        本入口不做运行期级别过滤，过滤在 `Logger` 固定级别方法与插件内完成。
          */
@@ -254,6 +259,8 @@ namespace ID::Log
          *        仍然先输出再终止，而不是静默返回。只在真正不可恢复时使用。
          *        `write_at(Fatal)` 之后由插件负责 flush + abort；本方法末尾的 `std::abort()`
          *        覆盖"表指向替代表、其 write 对 Fatal 直接返回"的情形，保证终止语义不依赖表实现。
+         *        终止是**唯一**保证：Fatal 不排空主队列、与在途异步消息没有全局顺序保证，
+         *        任意 I/O 失败也不保证这一行输出成功（契约是"尽力输出后终止"，不是"最后一行一定落盘"）。
          */
         template <typename... Args>
         [[noreturn]] void fatal(std::format_string<Args...> fmt, Args&&... args) const noexcept
@@ -301,7 +308,12 @@ namespace ID::Log
      *  @param table 已发布的函数表（Ready 区间内取得）
      *  @param category 分类标签，必须是编译期字符串字面量
      *  @return 句柄；表项为空或槽位耗尽时返回 nullptr
-     *  @note 无锁、无分配、不做字符串查重；同一 category 重复申请得到不同槽位，语义相同。
+     *  @note 只在 Ready 区间内调用：前端 `on_init` 成功后，下游在自己的 `on_init` 序内即可调用
+     *        （运行期状态仍是 `Initializing`，不需要额外的就绪检查）。
+     *        无锁、无分配、不做字符串查重；同一 category 重复申请得到不同槽位，语义相同。
+     *        槽位固定 64 个、本插件自占 1 个，产品侧最多 63 个；耗尽之后一律返回 nullptr，
+     *        调用方必须把它当成"本模块没有日志能力"的显式分支，不静默继续（没有扩容入口与重试）。
+     *        category 只保存指针：本模板要求字符串字面量（静态存储期），因此自动满足"调用方持有"。
      */
     template <size_t N>
     Logger* acquire_logger(const LogApiTable& table, const char (&category)[N]) noexcept
@@ -318,7 +330,7 @@ namespace ID::Log
      *  @tparam N 字符串字面量长度（含末尾 NUL）
      *  @param owner 已取得的句柄，只借用它的 `table`
      *  @param category 分类标签，必须是编译期字符串字面量
-     *  @return 句柄；owner 没有表或槽位耗尽时返回 nullptr
+     *  @return 句柄；owner 的表为空（句柄已失效）或槽位耗尽时返回 nullptr
      */
     template <size_t N>
     Logger* acquire_logger(const Logger& owner, const char (&category)[N]) noexcept

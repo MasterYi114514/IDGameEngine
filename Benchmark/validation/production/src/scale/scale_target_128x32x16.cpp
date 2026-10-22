@@ -2,8 +2,10 @@
 
 /**
  *  有限预算压力目标（GNU 限定）：128 active / 256 catalog / 32 需求 / 每组 16 候选
- *  仅本目标追加 -fconstexpr-ops-limit=184549376；该值是 GCC 16.2.0 上实测的最小可通过档：
- *  默认 33554432 在夹具构造就超限、134217728 与 183500800 在生产校验超限、184549376 通过。
+ *  A03（kSchemaRevision = 2）之后本档追加 -fconstexpr-ops-limit=192413696，与 128x32x2/4/8 候选档
+ *  共用 CMake 变量 IDP_SCALE_CONSTEXPR_OPS_LIMIT；本次实二分：189792256 失败、192413696 通过。
+ *  该值随 A03 的匹配静态计划表上移（match_begin 4097 项 + match_active 65536 项 + edge_target 16256 项
+ *  ≈ 180 KiB / 每个结果对象）：A03 之前实测最小通过档 184549376 现在也超限。
  *  普通生产目标与普通 Benchmark 目标都不加该参数，也不进全局 CMAKE_CXX_FLAGS。
  *  MSVC / clang 未验证，不创建对应目标。
  */
@@ -32,8 +34,10 @@ namespace
     static_assert(kPlan.edge_count == 127, "scale_target_128x32x16: 去重边只能有 127 条");
     static_assert(kPlan.active_requirement_count[127] == 32,
                   "scale_target_128x32x16: 最后一个 active 必须真实绑定 32 条需求");
-    static_assert(kPlan.provider[127 * 32 + 15] == kPlan.find_active("ID.Case.N0"),
-                  "scale_target_128x32x16: 第 16 个候选命中后仍只能绑定 P0");
+    static_assert(matched_exactly(kPlan, 127, 15, kPlan.find_active("ID.Case.N0")),
+                  "scale_target_128x32x16: 16 候选组里只有被选中的 P0 计入命中，第 15 组仍恰好 1 条");
+    static_assert(kPlan.matched_total() == 127 * kMaxRequirements,
+                  "scale_target_128x32x16: 命中记录总数必须等于 127 个下游 × 32 需求（未选备选不计命中）");
     static_assert(kPlan.provision_count == 128, "scale_target_128x32x16: provides 记录数必须为 128");
     static_assert(kPlan.fingerprint != 0, "scale_target_128x32x16: 必须输出确定性指纹");
 } // namespace

@@ -14,18 +14,44 @@
  *  编译期插件声明与静态产品组装（ID::PluginCompileTime）
  *  1. 本头只承载“编译期”数据与算法：拥有存储的插件身份、不等长二维候选清单、
  *     能力/槽位/接口修订契约、构建证据，以及把完整 catalog + 显式选中集合解析成
- *     唯一绑定、去重边、确定性拓扑序与指纹的纯常量求值实现；
+ *     matched 集合、去重边、确定性拓扑序与指纹的纯常量求值实现；
  *  2. 对外操作只有 `ID::PluginManager` 上的三个静态 `consteval` 操作族
  *     （register_plugin / declare_dependencies / sort_and_validate）。本头里的
  *     `ID::PluginCompileTime::detail` 全部是内部 `constexpr` 实现，不构成第四个公共入口；
  *  3. 所有返回数据自带拥有存储：PluginIdentity 复制名字字节，PluginDeclaration 把候选名写进
  *     自己的字节池，AssemblyResult 只存身份、索引、槽位归属与诊断，不保存指向常量求值局部
  *     对象或自身成员的指针，因此复制/移动不会产生悬空 view；
+ *  3.1 matched 表用 offset + count 引用扁平命中记录（`kSchemaRevision = 2` 的布局）：
+ *     组槽位 `kGroupSlots = kMaxActive × kMaxRequirements = 4096`，`match_begin[kGroupSlots + 1]`
+ *     存每个 (canonical active, 需求组) 槽位的区间起点与终点，元素类型是 `MatchOffset = uint32_t`
+ *     ——终止 offset 与总命中数的上界是 `kMatchSlots = 65536`，超出 `uint16_t` 的 0..65535，
+ *     因此在**类型上**排除截断；
+ *     `match_active[kMatchSlots]` 是扁平命中表，元素是 canonical active 下标；
+ *     `|matches| = match_begin[i + 1] - match_begin[i]`，`match_begin[kGroupSlots]` 是总命中数，
+ *     未使用的组槽位是空区间，因此整张偏移表单调不减；
+ *  3.2 组内命中集合按 canonical active 下标**升序**排列（唯一确定性来源），因此 matched 表与
+ *     catalog 枚举顺序、profile 书写顺序、候选书写顺序都无关；同一组内的候选名唯一
+ *     （DuplicateCandidate 已在声明阶段拒绝），因此同一 catalog 条目在组内至多出现一次；
+ *  3.3 这些表是**静态计划表**：容量由编译期常量决定，超预算在 constexpr / 组装期就是具体错误
+ *     （TooManyMatchedRecords / TooManyEdges），运行期没有扩容入口、也不重新求解依赖图；
+ *     它们是编译期产物，不是运行期热路径新增的持久数组；
+ *  3.4 组内"允许多少命中"由**静态计划输入**决定，不来自候选顺序、catalog 顺序或 profile 顺序：
+ *     `AssemblyInput::group_allows_multi[选中槽位 × kMaxRequirements + 需求组]`，
+ *     0 = 组内必须恰好 1 个（schema1 的 legacy_unique 组与 schema2 的字符串项），
+ *     1 = 组内至少 1 个且允许多个（schema2 的数组项 / OR 组）。取值只能是 0 或 1；
+ *  3.4.1 `allows_multi = 0` 时 schema1 语义逐字不变：0 命中 = MissingProvider、≥2 命中 = AmbiguousProvider；
+ *     `allows_multi = 1` 时 ≥1 命中都合法，但**每个命中候选都必须独立通过**"提供它自己声明的那条能力
+ *     + 修订落在该候选的区间"两项校验，任一命中校验失败即整组失败（不跳过坏的、也不留下好的），
+ *     不存在 preferred、唯一 binding、顺序择优或按版本挑最新；
+ *  3.4.2 逐候选能力的匹配真源是 `CandidateRevision::capability`（schema2）：它为空时回退到组级契约标签
+ *     `RequirementContract::capability`（schema1 规范化结果），因此 schema1 的判定逐字不变；
+ *     非空时以候选自己声明的能力为准，OR 组因此可以混放声明了不同能力的候选；
  *  4. 运行期零成本：全部结论在常量求值期算完，产物是编译期常量；本头不引入锁、分配、
  *     字符串查找或任何运行期分支；
  *  5. 诊断分阶段（AssemblyPhase），阶段优先级固定：
- *     声明/身份/契约 -> catalog 候选引用 -> 选中与唯一绑定 -> 能力/槽位 -> 固定图 -> 构建证据
- *     -> 运行期绑定元数据。低阶段错误不会因为高阶段的提前中断而被掩盖；
+ *     声明/身份/契约 -> catalog 候选引用 -> 选中与 matched 绑定（含计划表预算）-> 能力/槽位
+ *     -> 固定图（含去重边预算）-> 构建证据 -> 运行期绑定元数据。低阶段错误不会因为高阶段的
+ *     提前中断而被掩盖；
  *     `Shape::kActiveCapacity > 128` 属于 Selection，必须先完成 Declaration/CatalogBinding 检查才报。
  *  5.1 声明组内顺序固定：组区间/候选上限/修订容量与候选格式、自依赖、组内重复候选先判，
  *     之后才是"逐候选修订记录与候选名集合一一对应"。因此同一组出现两条同名候选得到
@@ -59,12 +85,36 @@ namespace ID::PluginCompileTime
     inline constexpr size_t   kMacroCapacity   = 128;     // ID_USE_PLUGIN_<TARGET_ID> 缓冲上限
     inline constexpr uint16_t kNoIndex         = 0xFFFF;  // 无下标哨兵（索引前必须先判等）
     inline constexpr int16_t  kNoSlot          = -1;      // 无服务槽位哨兵；0..63 是合法槽位
-    inline constexpr uint32_t kSchemaRevision  = 1;       // 组装输入的结构修订，进入指纹
+    inline constexpr uint32_t kSchemaRevision  = 2;       // 组装输入的结构修订（matched 布局），进入指纹
+
+    // ---- matched 计划表容量（D0-09 冻结；静态计划表，不是运行期热路径数组） ----
+    // 组槽位：每个 (canonical active, 需求组) 一项；扁平命中表：每个组槽位最多 kMaxCandidates 条记录。
+    // 不能按 kMaxActive × kMaxCandidates 估算命中表——那会漏掉同一 active 的其余 31 个需求组。
+    inline constexpr size_t   kGroupSlots    = kMaxActive * kMaxRequirements;    // 4096 个组槽位
+    inline constexpr size_t   kMatchSlots    = kGroupSlots * kMaxCandidates;     // 65536 条扁平命中记录
+    inline constexpr size_t   kEdgeCapacity  = kMaxActive * (kMaxActive - 1);    // 16256 条 (source,target) 去重边
+    // match_begin 的 offset / count 与总命中数：必须是 uint32_t。
+    // 终止 offset 与总命中数的上界是 kMatchSlots = 65536，超出 uint16_t 的 0..65535，
+    // 因此用独立别名从**类型上**排除 uint16_t 截断（不靠运行期断言兜底）。
+    using MatchOffset = uint32_t;
+
+    static_assert(kGroupSlots == 4096, "组槽位必须等于 kMaxActive × kMaxRequirements");
+    static_assert(kMatchSlots == 65536, "扁平命中表容量必须等于 kGroupSlots × kMaxCandidates");
+    static_assert(kEdgeCapacity == 16256, "边容量必须等于 kMaxActive × (kMaxActive - 1)");
+    static_assert(sizeof(MatchOffset) == sizeof(uint32_t), "match_begin 的 offset / count 必须是 32 位");
+    static_assert(std::is_same_v<MatchOffset, uint32_t>, "match_begin 的 offset / count 只允许 uint32_t");
+    static_assert(kGroupSlots < static_cast<size_t>(kNoIndex),
+                  "match_begin 的条目数（kGroupSlots + 1）本身仍在 uint16_t 范围内");
+    static_assert(kMatchSlots > static_cast<size_t>(kNoIndex),
+                  "kMatchSlots = 65536 超出 uint16_t 表示范围：offset 与总命中数不得用 uint16_t");
+    static_assert(kEdgeCapacity <= static_cast<size_t>(kNoIndex),
+                  "去重边数仍以 uint16_t 表达（edge_begin / edge_target offset+count 形态），容量必须在索引范围内");
 
     /**
      *  @brief 组装期结构化错误类别（计划书第 7 节每条校验项对应一个稳定类别）
      *  @note 反向编译用例按枚举值断言类别，因此枚举值属于公共契约：增加类别或改名必须同步更新用例；
-     *        类别按阶段分组排列，组内顺序不代表报告优先级，优先级由 AssemblyPhase 决定。
+     *        新类别只能追加在 MaxErrors 之前，既有枚举值保持不变；阶段归属以 AssemblyPhase 为准，
+     *        不依赖枚举排列位置。组内顺序不代表报告优先级。
      */
     enum class PluginError : uint8_t
     {
@@ -97,16 +147,16 @@ namespace ID::PluginCompileTime
 
         // ---- 阶段 2：catalog 全量候选引用（AssemblyPhase::CatalogBinding） ----
         UnknownCandidate,                   // 候选名不在完整 catalog 中（未选中的插件也校验）
-        CandidateCapabilityMismatch,        // 候选没有声明提供该需求的能力（白名单必须与能力一致）
+        CandidateCapabilityMismatch,        // 候选没有提供它逐候选契约里声明的那条能力（白名单必须与能力一致）
 
-        // ---- 阶段 3：选中集合与唯一绑定（AssemblyPhase::Selection） ----
+        // ---- 阶段 3：选中集合与逐需求 matched 判定（AssemblyPhase::Selection） ----
         TooManyActive,                      // 选中插件数超过 128
         InvalidActive,                      // 选中身份本身非法
         UnknownActive,                      // 选中集合出现 catalog 之外的插件
         DuplicateActive,                    // 选中集合重复出现同一插件
-        MissingProvider,                    // 某需求在选中集合内 0 个候选
-        AmbiguousProvider,                  // 某需求在选中集合内 >= 2 个候选
-        RevisionMismatch,                   // 唯一候选的接口修订不在契约区间内
+        MissingProvider,                    // 某需求在选中集合内 0 个候选（两种组语义都是错误）
+        AmbiguousProvider,                   // 不允许组内多命中的组（allows_multi = 0）在选中集合内 >= 2 个候选
+        RevisionMismatch,                    // 某命中候选提供其声明能力的接口修订不在该候选的契约区间内
 
         // ---- 阶段 4：能力与槽位一致性（AssemblyPhase::Ownership） ----
         DuplicateCapability,                // 同一能力在选中集合里出现两个提供者（即使无人使用）
@@ -127,6 +177,10 @@ namespace ID::PluginCompileTime
         // ---- 阶段 7：运行期绑定元数据（AssemblyPhase::RuntimeMetadata） ----
         RuntimeBindingMismatch,             // 运行期绑定记录的插件身份/接口修订与计划不一致
 
+        // ---- 计划表预算（阶段归属见行尾；新增类别只能追加在 MaxErrors 之前，既有枚举值不变） ----
+        TooManyMatchedRecords,              // matched 记录超预算（Selection 阶段）：扁平命中表装不下本次匹配
+        TooManyEdges,                       // 去重后的 (source,target) 边超预算（Graph 阶段）
+
         MaxErrors
     };
 
@@ -138,7 +192,7 @@ namespace ID::PluginCompileTime
         None = 0,           // 无错误
         Declaration,        // 格式 / 身份 / 契约 / 容量
         CatalogBinding,     // catalog 全量候选引用
-        Selection,          // 选中集合与逐需求唯一绑定
+        Selection,          // 选中集合与逐需求 matched 判定（含组语义与逐命中能力/修订）
         Ownership,          // 能力与槽位一致性
         Graph,              // 去重边、拓扑序、环
         Evidence,           // 构建系统派生的证据
@@ -199,6 +253,8 @@ namespace ID::PluginCompileTime
             case PluginError::EvidenceEdgeMismatch:      return "EvidenceEdgeMismatch";
             case PluginError::EvidenceSlotMismatch:      return "EvidenceSlotMismatch";
             case PluginError::RuntimeBindingMismatch:    return "RuntimeBindingMismatch";
+            case PluginError::TooManyMatchedRecords:     return "TooManyMatchedRecords";
+            case PluginError::TooManyEdges:              return "TooManyEdges";
             case PluginError::MaxErrors:                 return "MaxErrors";
         }
         return "Unknown";
@@ -783,13 +839,19 @@ namespace ID::PluginCompileTime
     };
 
     /**
-     *  @brief 逐候选的接口修订要求（与需求组内的候选逐一对应）
+     *  @brief 逐候选的契约：该候选自己声明提供的能力 + 允许的接口修订区间
+     *  @note 与需求组内的候选逐一对应（记录名集合 == 该组候选名集合）。
+     *        `capability` 是**匹配真源**：非空时校验"该候选确实提供这条能力"，是 schema2 的 OR 组
+     *        混放不同能力候选（如 `ID.Math.Scalar` / `ID.Math.SIMD`）的前提；为空表示该清单没有
+     *        逐候选能力（schema1 规范化结果），此时回退到组级契约标签 `RequirementContract::capability`，
+     *        因此 schema1 的判定逐字不变。
      */
     struct CandidateRevision
     {
         std::string_view name         = {};         // 候选取名（必须与组内候选精确一致）
         uint32_t         min_revision = 0;          // 允许的最小接口修订（>= 1）
         uint32_t         max_revision = 0;          // 允许的最大接口修订（>= min）
+        std::string_view capability   = {};         // 候选自己声明的匹配能力；空 = 回退组级契约标签
     };
 
     /**
@@ -1035,17 +1097,29 @@ namespace ID::PluginCompileTime
     /**
      *  @brief 第三个操作族的完整输入（计划书 5.4）
      *  @tparam Shape 容量形状
-     *  @note 四个成员都是显式数据：结构修订、完整 catalog、本产品选中身份、构建证据。
+     *  @note 五个成员都是显式数据：结构修订、完整 catalog、本产品选中身份、构建证据、逐需求组的组语义标志。
      *        schema_revision 必须等于当前头文件的 kSchemaRevision，否则在声明阶段直接拒绝，
      *        避免旧生成物悄悄喂进新语义。
+     *  @note `group_allows_multi` 是**静态计划输入**，不进入运行期热路径，也不改变
+     *        `PluginRuntimePlanView` 与 `kPluginRuntimeAbiRevision`：它只影响编译期 Selection 的
+     *        "组内必须恰好 1 个"与"组内允许 ≥1 个"两种判定。
      */
     template <typename Shape>
     struct AssemblyInput
     {
-        uint32_t                                           schema_revision = kSchemaRevision;   // 必须等于当前头文件修订
-        typename Shape::CatalogTypeAlias                   catalog         = {};               // 全部已知插件声明及能力元数据
-        std::array<PluginIdentity, Shape::kActiveCapacity> selected        = {};               // 本产品显式选中的插件身份
-        AssemblyEvidence<Shape>                            evidence        = {};               // 构建系统派生的证据
+        uint32_t                                           schema_revision     = kSchemaRevision;   // 必须等于当前头文件修订
+        typename Shape::CatalogTypeAlias                   catalog             = {};               // 全部已知插件声明及能力元数据
+        std::array<PluginIdentity, Shape::kActiveCapacity> selected            = {};               // 本产品显式选中的插件身份
+        AssemblyEvidence<Shape>                            evidence            = {};               // 构建系统派生的证据
+        // 每需求组是否允许组内多命中：编址 = 选中槽位（= selected 的下标，**不是** canonical active 顺序）
+        // × kMaxRequirements + 需求组；0 = 组内必须恰好 1 个（schema1 组与 schema2 字符串项），
+        // 1 = 组内允许 ≥1 个（schema2 数组项 / OR 组）。未被选中的槽位与未用到的组永远不被读取，
+        // 缺省值 0 因此等价于"全部按 schema1 的恰好 1 个"，旧生成物无需改动即可保持原判定。
+        // 取值只允许 0/1：越界值由 Selection 在读取该组时按 InvalidDeclaration 拒绝（先于任何命中判定），
+        // 因此"只能取 0/1"由读取点强制，而不是靠填充方自律。
+        uint8_t                                            group_allows_multi[kGroupSlots] = {};
+        static_assert(sizeof(group_allows_multi) == kGroupSlots,
+                      "组语义标志必须是 kGroupSlots 项 uint8_t（每 (选中槽位, 需求组) 一项）");
     };
 
     /**
@@ -1071,6 +1145,10 @@ namespace ID::PluginCompileTime
      *  @note 只含身份、索引、槽位归属、接口修订与诊断；不携带任何指向常量求值局部对象的指针，
      *        也不含动态容器。canonical active 下标按精确插件名的名字字节序编号，
      *        因此结果与 catalog 顺序、选中输入顺序、候选顺序都无关。
+     *  @note matched 表（match_begin / match_active）与去重边表（edge_begin / edge_target）的容量是
+     *        **固定**的编译期常量（kGroupSlots / kMatchSlots / kEdgeCapacity），不随 Shape 缩小：
+     *        它们描述的是分页记录的最坏规模，而不是"本产品实际用到的条数"；实际条数由
+     *        match_begin[kGroupSlots] 与 edge_count 给出。这些数组是静态计划表，不是运行期热路径数组。
      */
     template <typename Shape>
     struct AssemblyResult
@@ -1079,9 +1157,16 @@ namespace ID::PluginCompileTime
         static inline constexpr size_t kActiveSlots = kDeclaredActiveCapacity > kMaxActive
                                                         ? kMaxActive
                                                         : (kDeclaredActiveCapacity > 0 ? kDeclaredActiveCapacity : 1);
-        static inline constexpr size_t kEdgeSlots        = kActiveSlots * kMaxRequirements;
-        static inline constexpr size_t kBindingSlots     = kActiveSlots * kMaxRequirements;
+        static inline constexpr size_t kEdgeSlots        = kEdgeCapacity;          // 去重边上界（!= 需求组数）
+        static inline constexpr size_t kGroupSlots       = PluginCompileTime::kGroupSlots;
+        static inline constexpr size_t kMatchSlots       = PluginCompileTime::kMatchSlots;
         static inline constexpr size_t kProvisionSlots   = Shape::kProvisionSlots;
+
+        static_assert(kGroupSlots == kMaxActive * kMaxRequirements, "组槽位必须是 kMaxActive × kMaxRequirements");
+        static_assert(kMatchSlots == kGroupSlots * kMaxCandidates, "扁平命中表必须是 组槽位 × kMaxCandidates");
+        static_assert(kEdgeSlots == kMaxActive * (kMaxActive - 1), "去重边容量必须是 kMaxActive × (kMaxActive - 1)");
+        static_assert(kMatchSlots > static_cast<size_t>(kNoIndex), "扁平命中表容量超出 uint16_t：下标不得用 uint16_t");
+        static_assert(kEdgeSlots <= static_cast<size_t>(kNoIndex), "去重边数必须能被 uint16_t 的 edge_begin 表达");
 
         uint16_t active_count     = 0;                      // 规范化后的选中插件数
         uint16_t catalog_count    = 0;                      // 输入 catalog 的条目数
@@ -1103,9 +1188,13 @@ namespace ID::PluginCompileTime
         uint16_t       active_requirement_count[kActiveSlots] = {};           // 每插件实际需求组数
         uint16_t       active_provision_count[kActiveSlots]   = {};           // 每插件声明的 provides 数
         uint16_t       topo_order[kActiveSlots]               = {};           // canonical 拓扑序
-        uint16_t       provider[kBindingSlots]                = {};           // (active, req) -> provider
+        // matched 表：组槽位 = canonical active * kMaxRequirements + requirement，槽位按该顺序升序排布。
+        // match_begin[s] 是第 s 个槽位的记录区间起点，match_begin[s + 1] 是终点（= 下一个槽位的起点）；
+        // 未使用的槽位是空区间，因此整张表单调不减，match_begin[kGroupSlots] 就是总命中数。
+        MatchOffset    match_begin[kGroupSlots + 1]           = {};           // 组槽位 -> 区间起点 / 终止 offset
+        uint16_t       match_active[kMatchSlots]              = {};           // 扁平命中记录：canonical active 下标（组内升序）
         uint16_t       edge_begin[kActiveSlots + 1]           = {};           // 每个下游的边区间起点
-        uint16_t       edge_target[kEdgeSlots]                = {};           // 上游 canonical 下标
+        uint16_t       edge_target[kEdgeSlots]                = {};           // 上游 canonical 下标（(source,target) 去重后）
         uint16_t       slot_owner[kMaxSlots]                  = {};           // 槽位 -> active owner，kNoIndex 为空
 
         // 选中插件的 provides 扁平表：按 (canonical active, capability 名字字节序) 规范化排序。
@@ -1116,6 +1205,14 @@ namespace ID::PluginCompileTime
         uint32_t provision_api_revision[kProvisionSlots]       = {};          // 该能力自己的接口修订
         uint32_t provision_capability_length[kProvisionSlots]  = {};          // 能力名长度
         char     provision_capability[kProvisionSlots][kNameCapacity] = {};   // 能力名拥有存储
+
+        // 表长度与元素宽度是布局契约：容量常量、数组维度与 offset 类型三者必须在这里同时成立
+        static_assert(sizeof(match_begin) == (kGroupSlots + 1) * sizeof(MatchOffset),
+                      "match_begin 必须是 kGroupSlots + 1 项 MatchOffset（uint32_t）");
+        static_assert(sizeof(match_active) == kMatchSlots * sizeof(uint16_t),
+                      "match_active 必须是 kMatchSlots 项 canonical active 下标");
+        static_assert(sizeof(edge_target) == kEdgeSlots * sizeof(uint16_t),
+                      "edge_target 必须是去重边容量项 canonical active 下标");
 
         /**
          *  @brief 按精确插件名查找 canonical active 下标
@@ -1155,6 +1252,28 @@ namespace ID::PluginCompileTime
         constexpr std::string_view provision_capability_view(size_t index) const noexcept
         {
             return { provision_capability[index], provision_capability_length[index] };
+        }
+
+        /**
+         *  @brief 某个 (canonical active, 需求组) 组槽位的命中条数
+         *  @param group_slot 组槽位下标，必须小于 kGroupSlots，且小于 (active_count × kMaxRequirements)
+         *  @return `|matches| = match_begin[group_slot + 1] - match_begin[group_slot]`
+         *  @note 未使用的组槽位返回 0；合法计划里组内命中数由该组的组语义决定：
+         *        `allows_multi = 0` 时恒为 1（0 与 ≥2 都不会成为合法计划），
+         *        `allows_multi = 1` 时是 1..kMaxCandidates（每一条都通过了自己的能力与修订区间校验）。
+         */
+        constexpr MatchOffset matched_count(size_t group_slot) const noexcept
+        {
+            return match_begin[group_slot + 1] - match_begin[group_slot];
+        }
+
+        /**
+         *  @brief 全部组槽位的命中记录总数（= match_begin 终止元素）
+         *  @return 扁平命中表里被占用的记录条数
+         */
+        constexpr MatchOffset matched_total() const noexcept
+        {
+            return match_begin[kGroupSlots];
         }
     };
 
@@ -1382,6 +1501,10 @@ namespace ID::PluginCompileTime
             uint16_t       catalog_macro_slot[kCatalogSlotCount] = {};   // 身份宏开放寻址表
             uint16_t       catalog_namespace_slot[kCatalogSlotCount] = {}; // 命名空间开放寻址表
             uint16_t       active_of_catalog[kMaxCatalog]    = {};   // 未选中为 kNoIndex
+            // canonical active 下标 -> 该插件在 AssemblyInput::selected 里的**输入槽位**：
+            // group_allows_multi 按输入槽位编址（与 selected 同序），因此 canonical 编号与组语义标志之间
+            // 需要这一层映射；它同时保证"打乱选中顺序"不会改变任何组语义（等价重排指纹一致）。
+            uint16_t       selected_slot[kMaxActive]         = {};
 
             uint16_t       capability_begin[kMaxCatalog]     = {};   // 该 catalog 条目的能力在扁平表的起点
             uint16_t       capability_count[kMaxCatalog]     = {};   // 该 catalog 条目的能力数
@@ -1392,7 +1515,9 @@ namespace ID::PluginCompileTime
 
             uint16_t       in_degree[kMaxActive]             = {};
             uint16_t       forward_begin[kMaxActive + 1]     = {};
-            uint16_t       forward_target[kMaxActive * kMaxRequirements] = {};
+            // 正向邻接按**去重边**建表：schema2 的每个需求组可以有多个命中，边数因此不再受
+            // "active × 需求组" 约束，必须按去重边容量 kEdgeCapacity 给足（否则多命中会越界）。
+            uint16_t       forward_target[kEdgeCapacity]     = {};
             bool           is_sorted[kMaxActive]             = {};
 
             // 该 catalog 条目的修订记录是否恰好按候选顺序排列（声明阶段逐项验证过）：
@@ -1421,6 +1546,35 @@ namespace ID::PluginCompileTime
             diagnostic.other       = other;
             diagnostic.requirement = requirement;
             diagnostic.candidate   = candidate;
+        }
+
+        // ---------- 计划表预算判定（constexpr / 组装期；运行期没有扩容入口） ----------
+
+        /**
+         *  @brief 扁平命中表是否还能再容纳 count 条记录
+         *  @param used 已占用的记录数（当前命中游标）
+         *  @param count 本次要追加的记录数（<= kMaxCandidates）
+         *  @return 放得下返回 true
+         *  @note 当前容量下 `kGroupSlots × kMaxCandidates == kMatchSlots`，因此合法声明永远放得下；
+         *        这个判定是**具体错误类别可达**的组装期闸门（TooManyMatchedRecords），不是提示性断言：
+         *        一旦容量常量或每组候选上限被调大，超预算就会在常量求值期直接失败，而不是静默截断。
+         */
+        constexpr bool match_records_fit(size_t used, size_t count) noexcept
+        {
+            return count <= kMatchSlots && used <= kMatchSlots - count;
+        }
+
+        /**
+         *  @brief 去重边表是否还能再容纳 count 条 (source,target) 边
+         *  @param used 已占用的边数
+         *  @param count 本次要追加的边数
+         *  @return 放得下返回 true
+         *  @note 上界 `kMaxActive × (kMaxActive - 1) = 16256` 是"去重 + 无自环"的结构上界，
+         *        合法计划永远放得下；超预算同样是具体错误类别 TooManyEdges，运行期没有扩容入口。
+         */
+        constexpr bool edge_records_fit(size_t used, size_t count) noexcept
+        {
+            return count <= kEdgeCapacity && used <= kEdgeCapacity - count;
         }
 
         // ---------- 阶段 1：声明 / 身份 / 契约 ----------
@@ -1609,6 +1763,14 @@ namespace ID::PluginCompileTime
                          record_index, kNoIndex);
                     return false;
                 }
+                // 逐候选能力（schema2 的匹配真源）可以为空（schema1 规范化结果，回退组级标签），
+                // 但一旦声明就必须是合法能力名，不能靠后面的 Selection 才发现格式被写坏。
+                if (!record.capability.empty() && !is_valid_name(record.capability))
+                {
+                    fail(state, AssemblyPhase::Declaration, PluginError::InvalidCapability, index, group,
+                         record_index, kNoIndex);
+                    return false;
+                }
             }
             if (ordered)
             {
@@ -1640,6 +1802,52 @@ namespace ID::PluginCompileTime
             }
             in_order = false;
             return true;
+        }
+
+        /**
+         *  @brief 某候选用于匹配的能力名：有逐候选能力就用它，否则回退到组级契约标签
+         *  @param contract 该需求组的契约（提供组级标签）
+         *  @param declared 该候选的逐候选契约能力（`CandidateRevision::capability`）
+         *  @return 用于"该候选确实提供这条能力"校验的能力名
+         *  @note 组级 capability 只是契约标签，不是 schema2 的匹配真源；schema1 的清单没有逐候选能力，
+         *        回退到组级标签后判定与历史实现逐字一致。
+         */
+        inline constexpr std::string_view resolve_candidate_capability(const RequirementContract& contract,
+                                                                      std::string_view declared) noexcept
+        {
+            return declared.empty() ? contract.capability : declared;
+        }
+
+        /**
+         *  @brief 定位某候选（声明候选表中的绝对下标）对应的逐候选契约记录
+         *  @param declaration 该插件的依赖声明
+         *  @param metadata 该插件的元数据（持有扁平修订记录）
+         *  @param contract 该候选所属需求组的契约
+         *  @param group 需求组下标（只用它取组起点）
+         *  @param candidate 候选的绝对下标，必须落在该组区间内
+         *  @param in_order 记录是否恰好按候选顺序排列（声明阶段已判定）
+         *  @return 记录在组内的相对下标；定位失败返回 kNoIndex
+         *  @note 记录按候选顺序排列时只做一次下标差；否则按精确名字在同组记录里扫描，
+         *        与声明阶段的一一对应判定使用同一相等口径。
+         */
+        template <typename Declaration, typename Metadata>
+        constexpr uint16_t find_revision_record(const Declaration& declaration, const Metadata& metadata,
+                                                const RequirementContract& contract, uint16_t group,
+                                                uint16_t candidate, bool in_order) noexcept
+        {
+            if (in_order)
+            {
+                return static_cast<uint16_t>(candidate - declaration.group_begin[group]);
+            }
+            const std::string_view name = declaration.candidate_view(candidate);
+            for (uint16_t record_index = 0; record_index < contract.revision_count; ++record_index)
+            {
+                if (metadata.revisions[contract.revision_begin + record_index].name == name)
+                {
+                    return record_index;
+                }
+            }
+            return kNoIndex;
         }
 
         /**
@@ -2038,8 +2246,10 @@ namespace ID::PluginCompileTime
                     fail(state, AssemblyPhase::Declaration, PluginError::EmptyRequirementGroup, index, group, 0, kNoIndex);
                     return;
                 }
-                const std::string_view capability = metadata.contracts[group].capability;
-                uint32_t               seen[kSeenWords] = {};
+                const RequirementContract& contract           = metadata.contracts[group];
+                const std::string_view     group_capability   = contract.capability;
+                const bool                 revisions_in_order = state.revision_in_order[index];
+                uint32_t                   seen[kSeenWords]   = {};
                 for (uint16_t candidate = begin; candidate < end; ++candidate)
                 {
                     const uint32_t length  = declaration.candidate_length[candidate];
@@ -2107,14 +2317,24 @@ namespace ID::PluginCompileTime
                     }
                     seen[word] |= bit;
 
-                    // 候选必须自己声明提供该需求的能力：白名单是作者声明，必须在 catalog 里成立。
+                    // 候选必须自己声明提供该需求契约要求的能力：白名单是作者声明，必须在 catalog 里成立。
+                    // schema2 的要求是**该候选自己声明的能力**（组级标签只是契约标签）；schema1 没有逐候选
+                    // 能力，回退到组级标签后判定与历史实现逐字一致。记录缺失（畸形 POD）同样回退组级标签：
+                    // 绑定阶段会用真实记录再判一次 ContractCandidateMismatch，这里不重复诊断。
                     // 先比 (长度, 数据指针) 两个标量：同一份静态能力名在生成器里共用存储，命中即免掉逐字节比较。
+                    const uint16_t record_index =
+                        find_revision_record(declaration, metadata, contract, group, candidate, revisions_in_order);
+                    const std::string_view declared_capability =
+                        record_index == kNoIndex
+                            ? group_capability
+                            : resolve_candidate_capability(
+                                  contract, metadata.revisions[contract.revision_begin + record_index].capability);
                     const uint16_t capability_begin = state.capability_begin[found];
                     const uint16_t capability_end   = static_cast<uint16_t>(capability_begin + state.capability_count[found]);
                     bool           provides         = false;
                     for (uint16_t entry_index = capability_begin; entry_index < capability_end; ++entry_index)
                     {
-                        if (state.capability[entry_index].name == capability)
+                        if (state.capability[entry_index].name == declared_capability)
                         {
                             provides = true;
                             break;
@@ -2138,7 +2358,7 @@ namespace ID::PluginCompileTime
             ((validate_entry_candidates(state, std::get<Index>(catalog), cursor++)), ...);
         }
 
-        // ---------- 阶段 3：选中集合与唯一绑定 ----------
+        // ---------- 阶段 3：选中集合与逐需求 matched 判定 ----------
 
         /**
          *  @brief 规范化选中集合：按名字字节序编号，校验未知/重复/非法/上限，并建立 catalog 反查
@@ -2167,18 +2387,23 @@ namespace ID::PluginCompileTime
             for (size_t index = 0; index < SelectedCapacity; ++index)
             {
                 result.active_identity[index] = selected[index];
+                state.selected_slot[index]    = static_cast<uint16_t>(index);   // canonical 排序前先记下输入槽位
             }
-            // 插入排序：canonical 编号与 Kahn tie-break 都由名字字节序决定，与输入顺序无关
+            // 插入排序：canonical 编号与 Kahn tie-break 都由名字字节序决定，与输入顺序无关；
+            // 输入槽位作为平行数组一起搬移，使 canonical 下标始终能拿回它在 selected 里的位置
             for (size_t index = 1; index < SelectedCapacity; ++index)
             {
-                const PluginIdentity key = result.active_identity[index];
-                int32_t              pos = static_cast<int32_t>(index) - 1;
+                const PluginIdentity key      = result.active_identity[index];
+                const uint16_t       key_slot = state.selected_slot[index];
+                int32_t              pos      = static_cast<int32_t>(index) - 1;
                 while (pos >= 0 && name_less(key, result.active_identity[pos]))
                 {
                     result.active_identity[pos + 1] = result.active_identity[pos];
+                    state.selected_slot[pos + 1]    = state.selected_slot[pos];
                     --pos;
                 }
                 result.active_identity[pos + 1] = key;
+                state.selected_slot[pos + 1]    = key_slot;
             }
             for (uint16_t active = 0; active < result.active_count; ++active)
             {
@@ -2211,36 +2436,113 @@ namespace ID::PluginCompileTime
         }
 
         /**
-         *  @brief 为单个 catalog 条目做逐需求唯一绑定与接口修订校验
-         *  @note 先判 0/1/多命中（歧义优先于修订不足），命中唯一后才比较接口修订区间。
+         *  @brief 把一个 canonical active 下标按升序插入组内命中集合
+         *  @param matches 组内命中集合（长度 < kMaxCandidates）
+         *  @param candidates 与上一行同序的绝对候选下标，随命中集合一起搬移
+         *  @param count 当前条数，插入后自增
+         *  @param active 命中项的 canonical active 下标
+         *  @param candidate 该命中项在声明候选表中的绝对下标
+         *  @note 升序插入是 matched 记录顺序的**唯一**确定性来源：catalog 枚举顺序、profile 书写顺序与
+         *        候选书写顺序都不参与，因此等价重排得到逐字节相同的 match_active 区间。
+         *        逐命中的能力/修订校验也按这个升序进行，所以"首个失败项"同样与书写顺序无关。
+         */
+        constexpr void insert_match_ascending(uint16_t* matches, uint16_t* candidates, uint16_t& count,
+                                              uint16_t active, uint16_t candidate) noexcept
+        {
+            uint16_t position = count;
+            while (position > 0 && matches[position - 1] > active)
+            {
+                matches[position]    = matches[position - 1];
+                candidates[position] = candidates[position - 1];
+                --position;
+            }
+            matches[position]    = active;
+            candidates[position] = candidate;
+            ++count;
+        }
+
+        /**
+         *  @brief 读取某 (选中槽位, 需求组) 的"是否允许组内多命中"标志
+         *  @param input 组装输入
+         *  @param selected_slot 选中槽位（= `AssemblyInput::selected` 的下标，不是 canonical active 下标）
+         *  @param group 需求组下标
+         *  @param is_valid 出参：编址是否落在 kGroupSlots 内且取值只有 0/1
+         *  @return 1 表示该组允许组内多命中，0 表示该组必须恰好命中 1 个
+         */
+        template <typename Shape>
+        constexpr uint8_t read_group_multi_flag(const AssemblyInput<Shape>& input, uint16_t selected_slot,
+                                                uint16_t group, bool& is_valid) noexcept
+        {
+            const size_t index = static_cast<size_t>(selected_slot) * kMaxRequirements + group;
+            if (index >= kGroupSlots)
+            {
+                is_valid = false;
+                return 0;
+            }
+            const uint8_t value = input.group_allows_multi[index];
+            is_valid = value <= 1;
+            return value;
+        }
+
+        /**
+         *  @brief 为一个选中插件做逐需求匹配、组语义判定与逐命中能力/接口修订校验，并把命中集合写入 matched 表
+         *  @param state 计划状态
+         *  @param entry 该插件的 catalog 条目
+         *  @param catalog_index 该条目在 catalog 中的下标
+         *  @param input 组装输入（提供本需求的组语义标志）
+         *  @param match_cursor 扁平命中表游标：进入时是本插件第一个组槽位的起点，返回时是下一个可用下标
+         *  @return 成功返回 true；任何失败都已写入诊断并返回 false（错误结果按契约不得进入运行期绑定）
+         *  @note 组内命中集合先完整写入 `match_active`，再按该组自己的语义判定：
+         *        `allows_multi = 0`（schema1 组与 schema2 字符串项）→ 0 命中 = MissingProvider、
+         *        ≥2 命中 = AmbiguousProvider，与历史实现逐字一致；
+         *        `allows_multi = 1`（schema2 数组项）→ ≥1 命中都合法，但**每个命中候选**都必须独立通过
+         *        "确实提供它自己声明的那条能力 + 修订落在该候选区间"两项校验，任一失败即整组失败；
+         *        两条路径都不"取第一个"、不"跳过坏的留下好的"、不按版本挑最新。
          */
         template <typename Shape, typename Entry>
-        constexpr void bind_entry(PlanState<Shape>& state, const Entry& entry, uint16_t catalog_index) noexcept
+        constexpr bool bind_active(PlanState<Shape>& state, const Entry& entry, uint16_t catalog_index,
+                                   const AssemblyInput<Shape>& input, uint32_t& match_cursor) noexcept
         {
             if (has_error(state))
             {
-                return;
+                return false;
             }
             const uint16_t active = state.active_of_catalog[catalog_index];
             if (active == kNoIndex)
             {
-                return;     // 未选中：不绑定、不建图
+                return true;     // 未选中：不绑定、不建图
             }
-            const auto& declaration = entry.declaration;
-            const auto& metadata    = entry.metadata;
-            auto&       result      = state.result;
+            const auto&    declaration = entry.declaration;
+            const auto&    metadata    = entry.metadata;
+            auto&          result      = state.result;
+            const uint16_t group_base  = static_cast<uint16_t>(active * kMaxRequirements);
 
-            // 直接写结果里的 provider 行：本函数任何错误都会立刻返回并留下非 None 诊断，
-            // 错误结果按契约不得进入运行期绑定，因此不需要额外的 row 暂存与回填循环。
+            // 组槽位按 (canonical active, 需求组) 升序写入；任何错误都会立刻返回并留下非 None 诊断，
+            // 因此不需要额外的 row 暂存与回填循环。
             for (uint16_t group = 0; group < declaration.group_count; ++group)
             {
                 const uint16_t begin = declaration.group_begin[group];
                 const uint16_t end   = declaration.group_begin[group + 1];
-                uint16_t       matches         = 0;
-                uint16_t       provider        = kNoIndex;
-                uint16_t       second_provider = kNoIndex;
-                uint16_t       first_candidate = kNoIndex;
-                uint16_t       match_count     = 0;
+                const uint16_t slot  = static_cast<uint16_t>(group_base + group);
+
+                // 组语义来自静态计划输入，不来自候选顺序、catalog 顺序或 profile 顺序：
+                // 1 = schema2 数组项（OR 组，至少 1 个且允许多个），0 = schema1 组与 schema2 字符串项（恰好 1 个）
+                bool          allows_multi_valid = false;
+                const uint8_t allows_multi      =
+                    read_group_multi_flag(input, state.selected_slot[active], group, allows_multi_valid);
+                if (!allows_multi_valid)
+                {
+                    // 取值只允许 0/1，编址也必须落在 kGroupSlots 内：计划输入被写坏时先于任何命中判定拒绝
+                    fail(state, AssemblyPhase::Selection, PluginError::InvalidDeclaration, active, group, kNoIndex,
+                         kNoIndex);
+                    return false;
+                }
+
+                uint16_t matched[kMaxCandidates]           = {};   // 组内命中集合（canonical active，升序）
+                uint16_t matched_candidate[kMaxCandidates] = {};   // 与上一行同序的绝对候选下标
+                uint16_t match_count                       = 0;
+                uint16_t first_candidate                   = kNoIndex;
+                uint16_t second_provider                   = kNoIndex;
                 for (uint16_t candidate = begin; candidate < end; ++candidate)
                 {
                     const uint32_t length  = declaration.candidate_length[candidate];
@@ -2248,11 +2550,11 @@ namespace ID::PluginCompileTime
                     const uint64_t prefix0 = declaration.candidate_prefix0[candidate];
                     const uint64_t prefix1 = declaration.candidate_prefix1[candidate];
                     const char*    bytes   = declaration.candidate_pool + declaration.candidate_offset[candidate];
-                    uint16_t       slot    = static_cast<uint16_t>(id & kCatalogSlotMask);
-                    uint16_t       found   = kNoIndex;
+                    uint16_t       probe_slot = static_cast<uint16_t>(id & kCatalogSlotMask);
+                    uint16_t       found      = kNoIndex;
                     for (uint16_t probe = 0; probe < kCatalogSlotCount; ++probe)
                     {
-                        const uint16_t occupied = state.catalog_slot[slot];
+                        const uint16_t occupied = state.catalog_slot[probe_slot];
                         if (occupied == 0)
                         {
                             break;
@@ -2270,18 +2572,16 @@ namespace ID::PluginCompileTime
                             }
                             break;
                         }
-                        slot = static_cast<uint16_t>((slot + 1) & kCatalogSlotMask);
+                        probe_slot = static_cast<uint16_t>((probe_slot + 1) & kCatalogSlotMask);
                     }
                     if (found == kNoIndex || state.active_of_catalog[found] == kNoIndex)
                     {
                         continue;
                     }
-                    ++matches;
                     const uint16_t matched_active = state.active_of_catalog[found];
                     if (first_candidate == kNoIndex)
                     {
                         first_candidate = candidate;
-                        provider        = matched_active;
                     }
                     else if (second_provider == kNoIndex)
                     {
@@ -2293,97 +2593,168 @@ namespace ID::PluginCompileTime
                         // 但诊断必须能定位每一个命中项。
                         result.candidate_match[match_count]        = candidate;
                         result.candidate_match_active[match_count] = matched_active;
-                        ++match_count;
+                        insert_match_ascending(matched, matched_candidate, match_count, matched_active, candidate);
                     }
                 }
                 result.candidate_match_count = match_count;
-                if (matches == 0)
+
+                // 预算先于写表：静态计划表没有运行期扩容入口，超预算就是组装期具体错误类别
+                if (!match_records_fit(match_cursor, match_count))
+                {
+                    fail(state, AssemblyPhase::Selection, PluginError::TooManyMatchedRecords, active, group,
+                         first_candidate, kNoIndex);
+                    return false;
+                }
+                result.match_begin[slot] = match_cursor;
+                for (uint16_t index = 0; index < match_count; ++index)
+                {
+                    result.match_active[match_cursor + index] = matched[index];
+                }
+                match_cursor += match_count;
+                result.match_begin[slot + 1] = match_cursor;   // 空命中天然是空区间
+
+                if (match_count == 0)
                 {
                     // 空命中：没有候选可记录，用无候选哨兵说明，而不是恒 0
                     fail(state, AssemblyPhase::Selection, PluginError::MissingProvider, active, group, kNoIndex, kNoIndex);
-                    return;
+                    return false;
                 }
-                if (matches > 1)
+                if (allows_multi == 0 && match_count > 1)
                 {
-                    // 歧义：candidate 指向第一个命中候选，other 指向第二个 provider；
-                    // 全部命中项已写入 candidate_match / candidate_match_active。
+                    // schema1 语义逐字不变：candidate 指向第一个命中候选，other 指向第二个 provider；
+                    // 全部命中项已写入 candidate_match / candidate_match_active 与 matched 区间。
                     fail(state, AssemblyPhase::Selection, PluginError::AmbiguousProvider, active, group,
                          first_candidate, second_provider);
-                    return;
+                    return false;
                 }
                 result.candidate_match_count = 0;   // 成功绑定不保留歧义诊断数据
-                // 唯一命中后才检查接口修订：唯一候选不达标是 RevisionMismatch，而不是去挑另一个候选
+
                 const RequirementContract& contract = metadata.contracts[group];
-                uint32_t min_revision = 0;
-                uint32_t max_revision = 0;
-                bool     has_range    = false;
-                if (state.revision_in_order[catalog_index])
+                const bool                 in_order = state.revision_in_order[catalog_index];
+                // 每个命中候选各判一次：能力用**该候选自己声明的**那条（schema1 回退组级标签），
+                // 修订用该候选自己的 [min, max]。任一命中失败即整组失败——不跳过坏的、也不留下好的，
+                // 更不改选另一个候选。按 canonical active 升序遍历，首个失败项与书写顺序无关。
+                for (uint16_t hit = 0; hit < match_count; ++hit)
                 {
-                    // 声明阶段已逐项验证“第 i 条记录对第 i 个候选”，这里直接按下标取修订区间，
-                    // 不再对每组做一次 16 条记录的名字扫描。
-                    const uint16_t record_index = static_cast<uint16_t>(first_candidate - begin);
-                    const CandidateRevision& record =
-                        metadata.revisions[contract.revision_begin + record_index];
-                    min_revision = record.min_revision;
-                    max_revision = record.max_revision;
-                    has_range    = true;
-                }
-                else
-                {
-                    for (uint16_t record_index = 0; record_index < contract.revision_count; ++record_index)
+                    const uint16_t hit_active    = matched[hit];
+                    const uint16_t hit_candidate = matched_candidate[hit];
+                    const uint16_t record_index =
+                        find_revision_record(declaration, metadata, contract, group, hit_candidate, in_order);
+                    // 单命中路径沿用历史的候选诊断字段 0（schema1 的观测字段逐字不变），
+                    // 多命中路径给出真实候选下标，否则无法定位是哪一个命中不达标。
+                    const uint16_t reported_candidate = match_count > 1 ? hit_candidate : 0;
+                    if (record_index == kNoIndex)
                     {
-                        const CandidateRevision& record = metadata.revisions[contract.revision_begin + record_index];
-                        if (record.name == result.active_identity[provider].view())
+                        // 声明阶段已保证一一对应；走到这里说明 POD 被写坏，类别与历史一致
+                        fail(state, AssemblyPhase::Declaration, PluginError::ContractCandidateMismatch,
+                             catalog_index, group, reported_candidate, hit_active);
+                        return false;
+                    }
+                    const CandidateRevision& record   = metadata.revisions[contract.revision_begin + record_index];
+                    const std::string_view   declared = resolve_candidate_capability(contract, record.capability);
+                    const uint16_t provider_catalog  = result.active_catalog_index[hit_active];
+                    uint32_t       provider_revision = 0;
+                    bool           has_provision     = false;
+                    const uint16_t capability_begin  = state.capability_begin[provider_catalog];
+                    const uint16_t capability_end    =
+                        static_cast<uint16_t>(capability_begin + state.capability_count[provider_catalog]);
+                    for (uint16_t entry_index = capability_begin; entry_index < capability_end; ++entry_index)
+                    {
+                        if (state.capability[entry_index].name == declared)
                         {
-                            min_revision = record.min_revision;
-                            max_revision = record.max_revision;
-                            has_range    = true;
+                            provider_revision = state.capability[entry_index].api_revision;
+                            has_provision     = true;
                             break;
                         }
                     }
-                }
-                if (!has_range)
-                {
-                    fail(state, AssemblyPhase::Declaration, PluginError::ContractCandidateMismatch, catalog_index,
-                         group, 0, provider);
-                    return;
-                }
-                const uint16_t provider_catalog  = result.active_catalog_index[provider];
-                uint32_t       provider_revision = 0;
-                bool           has_provision     = false;
-                const uint16_t capability_begin  = state.capability_begin[provider_catalog];
-                const uint16_t capability_end    = static_cast<uint16_t>(capability_begin + state.capability_count[provider_catalog]);
-                for (uint16_t entry_index = capability_begin; entry_index < capability_end; ++entry_index)
-                {
-                    if (state.capability[entry_index].name == contract.capability)
+                    if (!has_provision)
                     {
-                        provider_revision = state.capability[entry_index].api_revision;
-                        has_provision     = true;
-                        break;
+                        fail(state, AssemblyPhase::CatalogBinding, PluginError::CandidateCapabilityMismatch,
+                             catalog_index, group, reported_candidate, provider_catalog);
+                        return false;
+                    }
+                    if (provider_revision < record.min_revision || provider_revision > record.max_revision)
+                    {
+                        fail(state, AssemblyPhase::Selection, PluginError::RevisionMismatch, active, group,
+                             reported_candidate, hit_active);
+                        return false;
                     }
                 }
-                if (!has_provision)
-                {
-                    fail(state, AssemblyPhase::CatalogBinding, PluginError::CandidateCapabilityMismatch, catalog_index,
-                         group, 0, provider_catalog);
-                    return;
-                }
-                if (provider_revision < min_revision || provider_revision > max_revision)
-                {
-                    fail(state, AssemblyPhase::Selection, PluginError::RevisionMismatch, active, group, 0, provider);
-                    return;
-                }
-                result.provider[static_cast<size_t>(active) * kMaxRequirements + group] = provider;
+                // 命中绑定已经由 match_begin / match_active 表达（单命中时 count == 1），不再写第二份 provider 表
             }
             result.active_requirement_count[active] = declaration.group_count;
+            return true;
         }
 
-        template <typename Shape, typename Catalog, size_t... Index>
-        constexpr void bind_catalog(PlanState<Shape>& state, const Catalog& catalog,
-                                    std::index_sequence<Index...>) noexcept
+        /**
+         *  @brief 按 catalog 下标定位条目并绑定：只有 Index == wanted 的那一个条目会真正执行
+         *  @param input 组装输入（提供本需求的组语义标志）
+         *  @param bound 是否已经绑定过（一次调用链里只允许绑定一个条目，避免重复写 matched 表）
+         *  @note 绑定顺序是 canonical active 顺序，不是 catalog 枚举顺序：matched 表必须按组槽位升序
+         *        追加记录，偏移表才能用一趟顺序写入建立。canonical 顺序同时让诊断里的首个失败项
+         *        与 catalog 顺序无关（"结果与 catalog 顺序无关"的一部分）。
+         */
+        template <size_t Index, typename Shape, typename Catalog>
+        constexpr void bind_indexed_entry(PlanState<Shape>& state, const Catalog& catalog,
+                                          const AssemblyInput<Shape>& input, uint16_t wanted,
+                                          uint32_t& match_cursor, bool& bound) noexcept
         {
-            uint16_t cursor = 0;
-            ((bind_entry(state, std::get<Index>(catalog), cursor++)), ...);
+            if (!bound && static_cast<uint16_t>(Index) == wanted)
+            {
+                bound = true;
+                bind_active(state, std::get<Index>(catalog), wanted, input, match_cursor);
+            }
+        }
+
+        /**
+         *  @brief 收敛 matched 偏移表：未使用的组槽位是空区间，终止元素恒等于总命中数
+         *  @param match_cursor 全部选中插件的命中记录总数
+         *  @note 已绑定的组槽位按升序写入了 [起点, 终点)，其余槽位保持 0；单趟单调补齐因此让每个
+         *        组槽位都满足 `|matches| = match_begin[i + 1] - match_begin[i]`，且整张表单调不减。
+         */
+        template <typename Shape>
+        constexpr void close_match_ranges(PlanState<Shape>& state, uint32_t match_cursor) noexcept
+        {
+            auto&    result   = state.result;
+            uint32_t previous = 0;
+            for (size_t slot = 0; slot <= kGroupSlots; ++slot)
+            {
+                if (result.match_begin[slot] < previous)
+                {
+                    result.match_begin[slot] = previous;
+                }
+                previous = result.match_begin[slot];
+            }
+            result.match_begin[kGroupSlots] = match_cursor;   // 终止 offset == 总命中数
+        }
+
+        /**
+         *  @brief 按 canonical active 顺序绑定全部选中插件，并收敛 matched 偏移表
+         *  @note 出错的计划同样收敛偏移表（结构不变式与诊断分开：表始终单调、终止元素始终是总命中数），
+         *        但错误结果按契约不得进入运行期绑定。
+         */
+        template <typename Shape, typename Catalog, size_t... Index>
+        constexpr void bind_selected(PlanState<Shape>& state, const Catalog& catalog,
+                                     const AssemblyInput<Shape>& input, std::index_sequence<Index...>) noexcept
+        {
+            uint32_t match_cursor = 0;
+            for (uint16_t active = 0; active < state.result.active_count; ++active)
+            {
+                if (has_error(state))
+                {
+                    break;      // 首条错误已经确定：后续插件不再写 matched 表
+                }
+                const uint16_t catalog_index = state.result.active_catalog_index[active];
+                bool           bound         = false;
+                (bind_indexed_entry<Index>(state, catalog, input, catalog_index, match_cursor, bound), ...);
+                if (!bound)
+                {
+                    // 反查表指向了 catalog 之外的条目：属于内部不变量被破坏，不能静默少绑定一个插件
+                    fail(state, AssemblyPhase::Selection, PluginError::InvalidDeclaration, active, 0, 0, kNoIndex);
+                    break;
+                }
+            }
+            close_match_ranges(state, match_cursor);
         }
 
         // ---------- 阶段 4：能力与槽位一致性 ----------
@@ -2619,7 +2990,8 @@ namespace ID::PluginCompileTime
         /**
          *  @brief 去重边、固定图环检测、确定性 Kahn 拓扑序与真实环路径提取
          *  @note 只有选中后的固定图参与判定：未选中后端形成的潜在环不影响本产品。
-         *        同一上游满足同一插件的多个需求时，绑定记录全保留，图边只计一次。
+         *        边按 `(source, target)` 去重后再占表：同一上游满足同一插件的多个需求、
+         *        或同一需求组的多个命中指向同一上游时，matched 记录全保留，图边只计一次。
          */
         template <typename Shape>
         constexpr void build_graph(PlanState<Shape>& state) noexcept
@@ -2628,10 +3000,6 @@ namespace ID::PluginCompileTime
             {
                 return;
             }
-            using Result = AssemblyResult<Shape>;
-
-            constexpr size_t kEdgeSlots = Result::kEdgeSlots;
-
             auto&          result = state.result;
             const uint16_t count  = result.active_count;
 
@@ -2640,25 +3008,31 @@ namespace ID::PluginCompileTime
             {
                 result.edge_begin[dependent]     = result.edge_count;
                 const uint16_t requirement_count = result.active_requirement_count[dependent];
+                const uint16_t group_base        = static_cast<uint16_t>(dependent * kMaxRequirements);
                 uint32_t       seen_provider[kSeenProviderWords] = {};   // 每个下游一张位图：去重是 O(1)，不再回扫前面所有组
                 for (uint16_t group = 0; group < requirement_count; ++group)
                 {
-                    const uint16_t provider = result.provider[static_cast<size_t>(dependent) * kMaxRequirements + group];
-                    const uint32_t word     = static_cast<uint32_t>(provider) >> 5;
-                    const uint32_t bit      = 1u << (static_cast<uint32_t>(provider) & 31u);
-                    if ((seen_provider[word] & bit) != 0)
+                    const uint16_t slot        = static_cast<uint16_t>(group_base + group);
+                    const uint32_t match_end   = result.match_begin[slot + 1];
+                    for (uint32_t match = result.match_begin[slot]; match < match_end; ++match)
                     {
-                        continue;
+                        const uint16_t provider = result.match_active[match];
+                        const uint32_t word     = static_cast<uint32_t>(provider) >> 5;
+                        const uint32_t bit      = 1u << (static_cast<uint32_t>(provider) & 31u);
+                        if ((seen_provider[word] & bit) != 0)
+                        {
+                            continue;
+                        }
+                        seen_provider[word] |= bit;
+                        if (!edge_records_fit(result.edge_count, 1))
+                        {
+                            fail(state, AssemblyPhase::Graph, PluginError::TooManyEdges, dependent, group, 0, provider);
+                            return;
+                        }
+                        result.edge_target[result.edge_count] = provider;
+                        ++result.edge_count;
+                        ++state.in_degree[dependent];
                     }
-                    seen_provider[word] |= bit;
-                    if (result.edge_count >= kEdgeSlots)
-                    {
-                        fail(state, AssemblyPhase::Graph, PluginError::InvalidDeclaration, dependent, group, 0, kNoIndex);
-                        return;
-                    }
-                    result.edge_target[result.edge_count] = provider;
-                    ++result.edge_count;
-                    ++state.in_degree[dependent];
                 }
             }
             result.edge_begin[count] = result.edge_count;
@@ -2781,13 +3155,18 @@ namespace ID::PluginCompileTime
         }
 
         /**
-         *  @brief 确定性指纹：schema + 规范化名字 + 逐 provision 修订/槽位 + 拓扑序 + 逐需求绑定 + 槽位归属
+         *  @brief 确定性指纹：schema + 规范化名字 + 逐 provision 修订/槽位 + 拓扑序 + 组语义 + matched 集合 + 槽位归属
          *  @note 不含 catalog 枚举顺序、选中输入顺序、候选顺序、运行期地址或绝对路径；
-         *        provides 已按 (owner, 能力名) 规范化排序，因此书写顺序也不影响指纹。
+         *        provides 已按 (owner, 能力名) 规范化排序，matched 记录已按 canonical active 升序排列，
+         *        组语义标志按 canonical active 顺序读取（不是按选中输入顺序），因此书写顺序也不影响指纹。
          *        每条 provision 的接口修订与槽位都单独折叠，不再由插件的单个 active_slot 代表全部能力。
+         *        matched 集合按"每需求组的命中条数 + 依升序的命中 active 下标"折叠：不允许组内多命中的组
+         *        恒为 1 条，schema2 的 OR 组会让同一组折进更多记录——这不改变算法，只是输入集合变大。
+         *        逐需求组的"是否允许多命中"是组语义的一部分、会改变同一份 matched 集合的计划含义，
+         *        因此它进指纹：同一份命中集合在两种组语义下必须是不同的指纹。
          */
         template <typename Shape>
-        constexpr void compute_fingerprint(PlanState<Shape>& state) noexcept
+        constexpr void compute_fingerprint(PlanState<Shape>& state, const AssemblyInput<Shape>& input) noexcept
         {
             if (has_error(state))
             {
@@ -2819,9 +3198,20 @@ namespace ID::PluginCompileTime
             for (uint16_t active = 0; active < result.active_count; ++active)
             {
                 hash = hash_mix(hash, result.active_requirement_count[active]);
+                const uint16_t group_base = static_cast<uint16_t>(active * kMaxRequirements);
                 for (uint16_t group = 0; group < result.active_requirement_count[active]; ++group)
                 {
-                    hash = hash_mix(hash, result.provider[static_cast<size_t>(active) * kMaxRequirements + group]);
+                    const uint16_t slot        = static_cast<uint16_t>(group_base + group);
+                    const uint32_t range_begin = result.match_begin[slot];
+                    const uint32_t range_count = result.match_begin[slot + 1] - range_begin;
+                    // 组语义按 canonical active 映射回输入槽位后读取：打乱选中顺序不改变指纹
+                    const size_t flag_index = static_cast<size_t>(state.selected_slot[active]) * kMaxRequirements + group;
+                    hash = hash_mix(hash, input.group_allows_multi[flag_index]);
+                    hash = hash_mix(hash, range_count);
+                    for (uint32_t match = 0; match < range_count; ++match)
+                    {
+                        hash = hash_mix(hash, result.match_active[range_begin + match]);
+                    }
                 }
             }
             for (uint16_t slot = 0; slot < kMaxSlots; ++slot)
@@ -2850,6 +3240,8 @@ namespace ID::PluginCompileTime
          *  @note 四类证据都做**双向一一匹配**：每条证据必须消费一个尚未被消费的计划条目，
          *        因此重复记录（两条相同 provider 顶替两条不同需求、两条相同边顶替另一条边、
          *        重复的 selected 名字）必然被判为不一致，不会被数量相等掩盖。
+         *        逐需求绑定证据按 **matched 记录**（不是需求组）一对一消费：schema1 下每组恰好 1 条，
+         *        schema2 的多命中组必须为每条命中各写一条证据，重复写同一个 provider 会被拒绝。
          *        所有计数都先做容量与范围检查，越界时只返回类别、不索引数组。
          */
         template <typename Shape>
@@ -2861,8 +3253,7 @@ namespace ID::PluginCompileTime
             }
             using Result = AssemblyResult<Shape>;
 
-            constexpr size_t kBindingSlots = Result::kBindingSlots;
-            constexpr size_t kEdgeSlots    = Result::kEdgeSlots;
+            constexpr size_t kEdgeSlots = Result::kEdgeSlots;
 
             auto&       result   = state.result;
             const auto& evidence = input.evidence;
@@ -2903,29 +3294,21 @@ namespace ID::PluginCompileTime
                 }
             }
 
-            // ---- 2. 逐需求 provider ----
-            size_t expected_bindings = 0;
-            for (uint16_t active = 0; active < result.active_count; ++active)
-            {
-                expected_bindings += result.active_requirement_count[active];
-            }
+            // ---- 2. matched 集合：每条命中记录都必须有唯一证据（schema1 下每组恰好 1 条） ----
+            const size_t expected_bindings = result.matched_total();
             if (evidence.binding_count != expected_bindings ||
                 evidence.binding_count > Shape::kBindingEvidenceCapacity)
             {
                 fail_evidence(state, PluginError::EvidenceProviderMismatch, 0, kNoIndex, 0, 0);
                 return;
             }
-            uint32_t consumed_binding[(kBindingSlots + 31) / 32] = {};
-            // 相邻记录常指向同一个下游与同一个 provider（生成器按 (下游, 需求) 顺序写出证据）。
-            // 这里只缓存上一次的判定：(指针, 长度, 下标) 全等就复用结论，否则退回完整名字比较。
+            uint32_t consumed_binding[(Result::kMatchSlots + 31) / 32] = {};
+            // 相邻记录常指向同一个下游（生成器按 (下游, 需求) 顺序写出证据）。
+            // 这里只缓存上一次的下游判定：(指针, 长度) 全等就复用结论，否则退回完整名字比较。
             // 判据没有变松——指针相等且长度相等必然字节相等，且缓存只用于完全相同的记录形态。
-            const char* cached_dependent_data  = nullptr;
-            size_t      cached_dependent_size  = 0;
-            uint16_t    cached_active          = kNoIndex;
-            const char* cached_provider_data   = nullptr;
-            size_t      cached_provider_size   = 0;
-            uint16_t    cached_provider_index  = kNoIndex;
-            bool        cached_provider_matches = false;
+            const char* cached_dependent_data = nullptr;
+            size_t      cached_dependent_size = 0;
+            uint16_t    cached_active         = kNoIndex;
             for (uint16_t record = 0; record < static_cast<uint16_t>(evidence.binding_count); ++record)
             {
                 const BindingEvidence& item = evidence.bindings[record];
@@ -2946,36 +3329,33 @@ namespace ID::PluginCompileTime
                     fail_evidence(state, PluginError::EvidenceProviderMismatch, record, active, item.requirement, 0);
                     return;
                 }
-                const size_t   slot_index = static_cast<size_t>(active) * kMaxRequirements + item.requirement;
-                const uint16_t provider   = result.provider[slot_index];
-                bool           provider_matches;
-                if (provider == cached_provider_index && item.provider.data() == cached_provider_data &&
-                    item.provider.size() == cached_provider_size)
+                // 证据按 (下游, 需求) 定位组槽位，再在组内区间里找**尚未被消费**的同名命中记录：
+                // 同一组的多条命中各要一条证据，重复写同一个 provider 会被识别成不一致。
+                const size_t   slot        = static_cast<size_t>(active) * kMaxRequirements + item.requirement;
+                const uint32_t range_begin = result.match_begin[slot];
+                const uint32_t range_count = result.match_begin[slot + 1] - range_begin;
+                bool           matched     = false;
+                for (uint32_t index = 0; index < range_count; ++index)
                 {
-                    provider_matches = cached_provider_matches;
+                    const uint32_t match_index = range_begin + index;
+                    const uint32_t word        = match_index >> 5;
+                    const uint32_t bit         = 1u << (match_index & 31u);
+                    if ((consumed_binding[word] & bit) != 0)
+                    {
+                        continue;
+                    }
+                    if (result.active_identity[result.match_active[match_index]].view() == item.provider)
+                    {
+                        consumed_binding[word] |= bit;
+                        matched                = true;
+                        break;
+                    }
                 }
-                else
-                {
-                    provider_matches      = provider < result.active_count &&
-                                            result.active_identity[provider].view() == item.provider;
-                    cached_provider_index  = provider;
-                    cached_provider_data   = item.provider.data();
-                    cached_provider_size   = item.provider.size();
-                    cached_provider_matches = provider_matches;
-                }
-                if (!provider_matches)
-                {
-                    fail_evidence(state, PluginError::EvidenceProviderMismatch, record, active, item.requirement, 0);
-                    return;
-                }
-                const uint32_t word = static_cast<uint32_t>(slot_index) >> 5;
-                const uint32_t bit  = 1u << (static_cast<uint32_t>(slot_index) & 31u);
-                if ((consumed_binding[word] & bit) != 0)
+                if (!matched)
                 {
                     fail_evidence(state, PluginError::EvidenceProviderMismatch, record, active, item.requirement, 0);
                     return;
                 }
-                consumed_binding[word] |= bit;
             }
 
             // ---- 3. 真实链接边（上游 -> 下游） ----
@@ -3179,13 +3559,13 @@ namespace ID::PluginCompileTime
                                    std::index_sequence<Index...> indices) noexcept
         {
             build_active_table(state, input.selected);
-            bind_catalog(state, input.catalog, indices);
+            bind_selected(state, input.catalog, input, indices);
             collect_ownership_all(state);
             canonicalize_provisions(state);
             check_capability_uniqueness(state);
             build_slot_ownership(state);
             build_graph(state);
-            compute_fingerprint(state);
+            compute_fingerprint(state, input);
             verify_evidence(state, input);
             verify_runtime_bindings(state, input);
         }

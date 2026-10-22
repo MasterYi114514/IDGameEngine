@@ -1,0 +1,38 @@
+# 组装 fixture 矩阵批次索引（RunFixtureMatrix.cmake 自动写入）
+# 判定：判定器自检按预期拒绝错误输出；configure 期反例恰好 1 条类别诊断行且类别相符；
+#       正例生成物计数/availability/allows_multi 逐条相符；环按 Cycle 拒绝且对照不拒；
+#       传递身份宏误判有正向对照 + 负向编译用例；等价重排指纹一致。
+GENERATED     : 2026-10-21 21:57:22
+WORK_DIR      : F:/IDGameEngine/Benchmark/build/assembly-fixtures-msvc/Benchmark/validation/assembly/work-fixtures
+REPORT        : F:/IDGameEngine/Benchmark/build/assembly-fixtures-msvc/Benchmark/validation/assembly/out/fixture-matrix-report.txt
+GENERATOR     : Visual Studio 18 2026
+BUILD_TYPE    : 
+CONFIG        : Debug
+CXX           : D:/Software/VS2026/Insiders/VC/Tools/MSVC/14.52.37025/bin/Hostx64/x64/cl.exe
+CXX_ID        : MSVC
+CASES         : 23
+PASSED        : 23
+FAILED        : 0
+FINGERPRINTS  : p01_schema1_single=9535169566208445182
+p02_schema2_or_a_only=10736200470875213928
+p03_schema2_or_b_only=5925196132236788776
+p04_schema2_or_both=18024331219865796359
+p05_cross_group_same_provider=15223281651884210828
+p06_reorder_catalog=18024331219865796359
+p07_reorder_profile=18024331219865796359
+p08_reorder_candidates=18024331219865796359
+REORDER       : p06_reorder_catalog: 18024331219865796359 == p04_schema2_or_both:18024331219865796359 same
+p07_reorder_profile: 18024331219865796359 == p04_schema2_or_both:18024331219865796359 same
+p08_reorder_candidates: 18024331219865796359 == p04_schema2_or_both:18024331219865796359 same
+
+SELFCHECK     : good: verdict=ok expect=ok as-expected MissingProvider=1
+wrong: verdict=category-mismatch expect=category-mismatch as-expected 期望 MissingProvider（恰好 1 条），实际 AmbiguousProvider=1
+two: verdict=category-count-not-one expect=category-count-not-one as-expected 期望恰好 1 条类别诊断行，实际 2 种：DuplicateCandidate=1 MissingProvider=1
+none: verdict=no-category expect=no-category as-expected 输出里没有任何类别诊断行（只有退出码不能作为判据）
+exitcode-only: verdict=no-category expect=no-category as-expected 输出里没有任何类别诊断行（只有退出码不能作为判据）
+marker-one: count=1 expect=1 as-expected
+marker-two: count=2 expect=2 as-expected
+marker-none: count=0 expect=0 as-expected
+marker-echo-only: count=0 expect=0 as-expected
+
+PROBLEMS      : 

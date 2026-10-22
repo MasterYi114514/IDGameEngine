@@ -38,6 +38,11 @@ function(id_generate_assembly)
     file(MAKE_DIRECTORY "${gen}")
 
     # ---------------- 通用计数与产品信息 ----------------
+    # ID_ASM_BINDING_COUNT 是 **matched 记录数**（每下游 × 每需求组 × 每命中 provider 一条），
+    # 不是需求组数：schema2 的组内多命中会让同一组折进多条记录，因此它可能大于需求组总数，
+    # 并且必须等于 C++ 侧 kPlan.matched_total()（IDAssemblyValidate 有逐条断言）。
+    # ID_ASM_EDGE_COUNT 是按 (上游, 下游) 去重后的边数：多组指向同一 provider 只算一条边，
+    # 但 binding 与证据行仍逐条保留，所以 bindings >= edges 恒成立。
     set(ID_ASM_CATALOG_COUNT   "${${C}_COUNT}")
     set(ID_ASM_SELECTED_COUNT  "${${Q}_SELECTED_COUNT}")
     set(ID_ASM_BINDING_COUNT   "${${Q}_BINDING_COUNT}")
@@ -96,8 +101,12 @@ function(id_generate_assembly)
                     string(APPEND candidate_items "\"${candidate}\", ")
                     set(min_revision "${${C}_${index}_GROUP_${group}_MIN_${candidate_position}}")
                     set(max_revision "${${C}_${index}_GROUP_${group}_MAX_${candidate_position}}")
+                    # 逐候选能力是**匹配真源**（D0-01）：schema2 的 OR 组允许混放不同能力的候选
+                    # （如 ID.Math.Scalar / ID.Math.SIMD），组级 capability 只是契约标签。
+                    # schema1 由解析器按组能力规范化补齐，取值与组级标签相同，判定因此逐字不变。
+                    set(declared_capability "${${C}_${index}_GROUP_${group}_CAP_${candidate_position}}")
                     string(APPEND revision_text
-                        "                        ID::PluginCompileTime::CandidateRevision{ .name = \"${candidate}\", .min_revision = ${min_revision}, .max_revision = ${max_revision} },\n")
+                        "                        ID::PluginCompileTime::CandidateRevision{ .name = \"${candidate}\", .min_revision = ${min_revision}, .max_revision = ${max_revision}, .capability = \"${declared_capability}\" },\n")
                     math(EXPR candidate_position "${candidate_position} + 1")
                 endforeach()
 
@@ -160,6 +169,81 @@ ${provides_text}                    },
             "        ID::PluginManager::register_plugin(\"${${C}_${index}_NAME}\"),\n")
     endforeach()
 
+    # ---------------- 逐 (选中槽位, 需求组) 的组语义：是否允许组内多命中 ----------------
+    # 编址与内核 `read_group_multi_flag` 逐字一致：
+    #   选中槽位（= AssemblyInput::selected 的下标，即 **profile 顺序**）× kMaxRequirements + 需求组。
+    # 取值：1 = schema2 的数组项（OR 组，≥1 命中都合法，每条命中各自校验能力与修订）；
+    #       0 = schema1 的组、schema2 的字符串项（组内必须恰好 1 个）。
+    # 缺省值 0 就是"恰好 1 个"，因此这里只写取值为 1 的项：schema1 产品的输入数组保持全 0，
+    # 判定与生成物含义都与引入该字段前一致。
+    # 派生口径：catalog 变量把"字符串项 / 数组项"都归一化成候选列表，因此按语义判定——
+    #   候选数 = 1 的组不可能命中 2 个（写 0 与写 1 的判定结果相同，这里如实写 0）。
+    set(ID_ASM_GROUP_MULTI_ASSIGNMENTS "")
+    set(selected_slot 0)
+    foreach(index IN LISTS selected_indices)
+        set(slot_group_count "${${C}_${index}_GROUP_COUNT}")
+        set(slot_schema      "${${C}_${index}_SCHEMA}")
+        set(slot_groups "")
+        if(slot_group_count GREATER 0)
+            math(EXPR slot_group_last "${slot_group_count} - 1")
+            foreach(slot_group RANGE 0 ${slot_group_last})
+                list(APPEND slot_groups ${slot_group})
+            endforeach()
+        endif()
+        foreach(slot_group IN LISTS slot_groups)
+            set(slot_candidates "${${C}_${index}_GROUP_${slot_group}_CANDIDATES}")
+            list(LENGTH slot_candidates slot_candidate_count)
+            if(slot_schema EQUAL 2 AND slot_candidate_count GREATER 1)
+                string(APPEND ID_ASM_GROUP_MULTI_ASSIGNMENTS
+                    "        input.group_allows_multi[${selected_slot} * ID::PluginCompileTime::kMaxRequirements + ${slot_group}] = 1;\n")
+            endif()
+        endforeach()
+        math(EXPR selected_slot "${selected_slot} + 1")
+    endforeach()
+
+    # ---------------- 逐 consumer × 逐需求组 的 matched 集合（编译期 availability） ----------------
+    # 每个选中插件一份 `<Target>Matched.generated.hpp`：
+    #   - 宏名绑定到"本 consumer + 本需求组 + 本命中 provider"，因此传递可见的
+    #     ID_USE_PLUGIN_<TOKEN>（只证明该 target 在真实 PUBLIC 链上可见）不会被误当成某组的 matched 成员；
+    #   - 不做全局 -D 注入、不表达 preferred：文件随本插件自己的 PUBLIC include 传播，
+    #     同一产品内所有 TU（consumer 自己与它的下游）读到同一份宏值，公开头里的 #if 判定因此在
+    #     所有 TU 一致；跨 TU 不会出现不同定义，所以不产生 ODR 冲突；
+    #   - 内容只由本产品的 matched 集合决定：换 profile 就换一组宏值，consumer 源码不动。
+    set(matched_groups "${${Q}_MATCHED_GROUPS}")
+    foreach(index IN LISTS selected_indices)
+        set(ID_ASM_MATCHED_CONSUMER_NAME   "${${C}_${index}_NAME}")
+        set(ID_ASM_MATCHED_CONSUMER_TARGET "${${C}_${index}_TARGET}")
+        set(ID_ASM_MATCHED_CONSUMER_TOKEN  "${${C}_${index}_TOKEN}")
+        set(ID_ASM_MATCHED_GROUP_COUNT     "${${C}_${index}_GROUP_COUNT}")
+        set(ID_ASM_MATCHED_DEFINES "")
+        set(ID_ASM_MATCHED_TOTAL 0)
+
+        foreach(record IN LISTS matched_groups)
+            string(REPLACE "|" ";" record_parts "${record}")
+            list(GET record_parts 0 record_index)
+            if(NOT record_index EQUAL index)
+                continue()
+            endif()
+            list(GET record_parts 1 record_group)
+            list(GET record_parts 2 record_count)
+            list(GET record_parts 3 record_tokens)
+            math(EXPR ID_ASM_MATCHED_TOTAL "${ID_ASM_MATCHED_TOTAL} + ${record_count}")
+            string(APPEND ID_ASM_MATCHED_DEFINES
+                "#define ID_MATCHED_COUNT_${ID_ASM_MATCHED_CONSUMER_TOKEN}_G${record_group} ${record_count}\n")
+            if(NOT record_tokens STREQUAL "")
+                string(REPLACE "," ";" record_token_list "${record_tokens}")
+                foreach(member_token IN LISTS record_token_list)
+                    string(APPEND ID_ASM_MATCHED_DEFINES
+                        "#define ID_MATCHED_MEMBER_${ID_ASM_MATCHED_CONSUMER_TOKEN}_G${record_group}_${member_token} 1\n")
+                endforeach()
+            endif()
+        endforeach()
+
+        configure_file("${R_TEMPLATE_DIR}/AssemblyMatched.generated.hpp.in"
+                       "${gen}/${ID_ASM_MATCHED_CONSUMER_TARGET}Matched.generated.hpp"
+                       @ONLY)
+    endforeach()
+
     # ---------------- 构建证据（CMake 派生） ----------------
     set(ID_ASM_EVIDENCE_BODY "")
     set(record 0)
@@ -176,6 +260,8 @@ ${provides_text}                    },
         math(EXPR record "${record} + 1")
     endforeach()
 
+    # bindings 按 matched 记录逐条写出：每（下游, 需求组, 命中 provider）一条，
+    # 因此条数 = matched 总数，可能不等于需求组数（schema2 组内多命中）。
     set(record 0)
     foreach(item IN LISTS ${Q}_BINDINGS)
         string(REPLACE "|" ";" parts "${item}")
@@ -219,6 +305,41 @@ ${provides_text}                    },
             "        evidence.runtime[${record}] = ID::PluginCompileTime::RuntimeBindingEvidence{ .name = \"${name}\", .capability = \"${capability}\", .plugin_id = ${plugin_id}, .api_revision = ${api_revision} };\n")
         math(EXPR record "${record} + 1")
     endforeach()
+
+    # ---------------- 逐 (consumer, 需求组) 的多命中许可与命中条数（证据对照） ----------------
+    # allows_multi 回答的问题是"本需求组是否允许同时命中 ≥ 2 个候选"：
+    #   1 = schema2 的数组项（OR 组）：组内多命中是合法结果，每条命中各自产生真实 PUBLIC 边与证据行；
+    #   0 = schema1 的组、schema2 的字符串项（单项必需）：命中数只能是 0 或 1。
+    # 同一份取值也是内核 Selection 判定"多命中是否合法"的输入，因此这里必须与组槽位一一对应，
+    # 不能只看本次实际命中数（同一份清单换 profile 后命中数会变，allow 取值不能跟着变）。
+    # 派生口径：catalog 变量把"字符串项 / 数组项"都归一化成候选列表，因此按语义判定——
+    #   候选数 = 1 的组不可能命中 2 个（记 0 与记 1 的判定结果相同，这里如实记 0）；schema1 一律 0。
+    # 形状：一条 line 同时给出 allows_multi 与本次命中条数，便于与上面的 matched / provider 行逐组对照。
+    set(group_match_lines "")
+    foreach(match_record IN LISTS ${Q}_MATCHED_GROUPS)
+        string(REPLACE "|" ";" match_parts "${match_record}")
+        list(GET match_parts 0 match_index)
+        list(GET match_parts 1 match_group)
+        list(GET match_parts 2 match_count)
+        set(group_consumer   "${${C}_${match_index}_NAME}")
+        set(group_schema     "${${C}_${match_index}_SCHEMA}")
+        set(group_capability "${${C}_${match_index}_GROUP_${match_group}_CAPABILITY}")
+        set(group_candidates "${${C}_${match_index}_GROUP_${match_group}_CANDIDATES}")
+        list(LENGTH group_candidates group_candidate_count)
+        if(group_schema EQUAL 2 AND group_candidate_count GREATER 1)
+            set(group_allows_multi 1)
+        else()
+            set(group_allows_multi 0)
+        endif()
+        string(REPLACE ";" "," group_candidate_text "${group_candidates}")
+        list(APPEND group_match_lines
+            "group     ${group_consumer} 需求组 ${match_group}: allows_multi=${group_allows_multi} 命中 ${match_count} 个（候选 ${group_candidate_count} 个：${group_candidate_text}；契约标签 ${group_capability}；清单 schema=${group_schema}）")
+    endforeach()
+    if(group_match_lines)
+        string(REPLACE ";" "\n" ID_ASM_GROUP_MATCH_TEXT "${group_match_lines}")
+    else()
+        set(ID_ASM_GROUP_MATCH_TEXT "group     <本产品没有任何需求组：未选中的能力不占组槽位>")
+    endif()
 
     # ---------------- 运行期绑定：只含选中模块的生命周期声明与回调 ----------------
     set(ID_ASM_BINDING_INCLUDES "")
@@ -268,6 +389,8 @@ ${provides_text}                    },
     endforeach()
     list(SORT canonical_provision)
 
+    # canonical-binding 行数 = matched 记录数（不是需求组数）：组内多命中与跨组同一 provider 都逐条保留，
+    # 排序后与 catalog 顺序、候选顺序、候选枚举顺序无关。
     set(canonical_binding "")
     foreach(item IN LISTS ${Q}_BINDINGS)
         string(REPLACE "|" ";" parts "${item}")

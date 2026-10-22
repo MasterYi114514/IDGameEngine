@@ -295,17 +295,58 @@ foreach(scale_name IN LISTS IDP_SCALE_NAMES)
     target_link_libraries(production_${scale_name} PRIVATE ID)
 endforeach()
 
+# MSVC 源编码：规模档同样 include 生产头，而这些头里的 static_assert 消息是中文。
+# 缺 /utf-8 时 MSVC 按系统 ANSI 代码页解析无 BOM 的 UTF-8 源，先在
+# `Kernel/PluginCompileTime.hpp` / `Kernel/Plugin.hpp` 报 C2001（字符串字面量中的换行符），
+# 于是"规模档能不能编译"根本无法判定（这是实测：未补该选项时 production_scale_active_128
+# 在 MSVC Debug 下就是这个报错，而不是常量求值超限）。
+# 与上面 legal/positive/expect 目标同一口径：只补项目基线里的 /utf-8，
+# 不改任何用例语义、不改容量、不加优化参数。
+if(MSVC)
+    foreach(scale_name IN LISTS IDP_SCALE_NAMES)
+        target_compile_options(production_${scale_name} PRIVATE /utf-8)
+    endforeach()
+    # 已知未冻结项（不在本资产内抬预算）：MSVC 默认 /constexpr:steps 下 128 active × 32 需求档
+    # 会报 C2131（实测：scale_128x32x1）。探针实测该档在 /constexpr:steps2147483647 下可通过
+    # （35 s），说明障碍是默认步数预算而不是用例本身；本资产未对 MSVC 步数做二分，
+    # 因此不写"实测最小档"、也不把 MSVC 规模档计入通过结论。
+endif()
+
+# A03（kSchemaRevision = 2）把计划结果换成 matched 静态计划表：
+#   match_begin[kGroupSlots + 1] = 4097 × 4B + match_active[kMatchSlots] = 65536 × 2B
+#   + edge_target[16256] × 2B ≈ 180 KiB / 每个结果对象，
+# 128 active 档的常量求值成本因此越过 GCC 默认 -fconstexpr-ops-limit=33554432。
+# 实测（GCC 16.2.0，本机，单 TU 直接编译 + 真实目标构建复核）：
+#   - 默认 33554432 下 128x32x2 / 128x32x4 / 128x32x8 / 128x32x16 全部
+#     "'constexpr' evaluation operation count exceeds limit"；
+#   - 128x32x1 与 32x32x1 仍可通过默认预算，因此这两档不加该参数；
+#   - 16 候选档二分：134217728 失败、183500800 失败、184549376 失败（A03 之前曾通过）、
+#     189792256 失败、192413696 通过 -> 192413696 是本次实测最小通过档；
+#   - 2 / 4 / 8 候选档在同一上界下实测通过（未逐档二分，不声称各自的最小档）。
+# 上界仍是有限值、容量口径不变；scale_limit_128x32x16 与 scale_plan_only_128x32x16
+# 保持默认预算，继续记录"默认限制档"的失败，不抬高也不下调。
+set(IDP_SCALE_CONSTEXPR_OPS_LIMIT 192413696)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    foreach(budget_scale IN ITEMS scale_128x32x2 scale_128x32x4 scale_128x32x8)
+        target_compile_options(production_${budget_scale} PRIVATE
+            -fconstexpr-ops-limit=${IDP_SCALE_CONSTEXPR_OPS_LIMIT})
+    endforeach()
+    message(STATUS "production 规模档 production_scale_128x32x{2,4,8} 使用 -fconstexpr-ops-limit=${IDP_SCALE_CONSTEXPR_OPS_LIMIT}（GCC 限定，A03 表体积导致）")
+endif()
+
 # 有限预算压力目标：只对 GNU 目标追加明确的有限上界，普通目标不加（也不进全局 CMAKE_CXX_FLAGS）。
-# 取值来自本机 GCC 16.2.0 实测二分（见 raw/production-p1production/r2-bisect-16cand-*.log）：
-#   134217728 失败、183500800 失败、184549376 通过 -> 184549376 是实测最小可通过档，
-# 因此这里写实测最小档而不是留大余量；上界仍是有限值，不是"抬高到不失败为止"。
+# 取值与上一条规模档共用 IDP_SCALE_CONSTEXPR_OPS_LIMIT：A03 之前该档的最小通过档是 184549376，
+# A03 的 matched 静态计划表把成本抬高到 184549376 也超限（实测），本次重新二分得到 192413696。
+# 这里同样写实测最小通过档，而不是留大余量；上界仍是有限值，不是"抬高到不失败为止"。
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_library(production_scale_target_128x32x16 OBJECT EXCLUDE_FROM_ALL
         ${IDP_DIR}/src/scale/scale_target_128x32x16.cpp)
     target_include_directories(production_scale_target_128x32x16 PRIVATE ${IDP_INCLUDE_DIR})
     target_link_libraries(production_scale_target_128x32x16 PRIVATE ID)
-    target_compile_options(production_scale_target_128x32x16 PRIVATE -fconstexpr-ops-limit=184549376)
-    message(STATUS "production 压力目标 production_scale_target_128x32x16 使用 -fconstexpr-ops-limit=184549376（GCC 限定，实测最小可通过档）")
+    target_compile_options(production_scale_target_128x32x16 PRIVATE
+        -fconstexpr-ops-limit=${IDP_SCALE_CONSTEXPR_OPS_LIMIT})
+    message(STATUS "production 压力目标 production_scale_target_128x32x16 使用 -fconstexpr-ops-limit=${IDP_SCALE_CONSTEXPR_OPS_LIMIT}（GCC 限定，实测最小可通过档）")
 else()
     message(STATUS "production 压力目标跳过：有限常量求值预算只在 GCC 16.2.0 上实测")
 endif()
