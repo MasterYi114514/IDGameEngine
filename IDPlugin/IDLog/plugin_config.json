@@ -1,0 +1,6 @@
+{
+    "name": "IDLog",
+    "dependencies": [],
+    "kind": "module",
+    "requirements": [ "SHARED_BUILD_ONLY" ]
+}

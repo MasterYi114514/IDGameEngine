@@ -1,0 +1,56 @@
+# 构建产物：按工具链与配置隔离的本地生成目录，不入库
+out/
+build/
+bin/
+lib/
+
+# 测试报告与证据目录属于运行产物
+Benchmark/report.txt
+Benchmark/build/
+
+# 本机项目登记：路径与本机绑定，不入库
+ID/project.json
+
+# CMake 生成物与编译中间文件
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+CMakeUserPresets.json
+compile_commands.json
+.ninja_deps
+.ninja_log
+*.ninja
+*.obj
+*.o
+*.a
+*.lib
+*.exp
+*.pdb
+*.ilk
+*.idb
+*.d
+*.out
+*.dll
+*.exe
+
+# IDE 与编辑器本机文件
+*.user
+*.userprefs
+*.suo
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+*.aps
+*.ncb
+*.swp
+.vs/
+.vscode/
+.idea/
+.cache/
+
+# 其它本机垃圾
+__pycache__/
+*.pyc
+Thumbs.db
+Desktop.ini

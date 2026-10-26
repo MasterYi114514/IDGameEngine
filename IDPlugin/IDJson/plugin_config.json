@@ -1,0 +1,6 @@
+{
+    "name": "IDJson",
+    "dependencies": [ "IDLog" ],
+    "kind": "module",
+    "requirements": []
+}

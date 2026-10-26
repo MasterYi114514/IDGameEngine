@@ -1,0 +1,40 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "GCCBuild",
+            "displayName": "GCC 16.2.0 x86_64-w64-mingw32",
+            "description": "正在使用编译器: C = D:\\Code\\Environment\\MinGW\\mingw64\\bin\\gcc.exe, CXX = D:\\Code\\Environment\\MinGW\\mingw64\\bin\\g++.exe",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "D:/Code/Environment/MinGW/mingw64/bin/gcc.exe",
+                "CMAKE_CXX_COMPILER": "D:/Code/Environment/MinGW/mingw64/bin/g++.exe",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "MSVCBuild",
+            "displayName": "Visual Studio Community 2026 Preview - amd64_x86",
+            "description": "将编译器用于 Visual Studio 18 2026 (x64_x86 体系结构)",
+            "generator": "Visual Studio 18 2026",
+            "toolset": "host=x64",
+            "architecture": "win32",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "cl.exe",
+                "CMAKE_CXX_COMPILER": "cl.exe"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "MSVCBuild-debug",
+            "displayName": "Visual Studio Community 2026 Preview - amd64_x86 - Debug",
+            "configurePreset": "MSVCBuild",
+            "configuration": "Debug"
+        }
+    ]
+}
