@@ -41,6 +41,9 @@ int main(int argc, char** argv)
     ID::Bench::BeginSession();
     ID::Bench::Run("IDLog", ID::Bench::IdLogCorrectnessTest, ID::Bench::IdLogPerformanceTest,
                    ID::Bench::IdLogPerformanceNotes);
+    // IDJson 契约没有"终止进程"的路径，因此本域不需要子进程分裂，主入口不为它增加子进程参数分支
+    ID::Bench::Run("IDJson", ID::Bench::IdJsonCorrectnessTest, ID::Bench::IdJsonPerformanceTest,
+                   ID::Bench::IdJsonPerformanceNotes);
     ID::Bench::EndSession();
     return ID::Bench::ExitCode();
 }

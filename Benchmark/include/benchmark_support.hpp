@@ -53,6 +53,13 @@
     #define BENCHMARK_ARCH "unknown"
 #endif
 
+// IDJson 错误日志桥的构建身份（ON/OFF）：取值由构建清单从插件自己的选项 IDJSON_ENABLE_LOG 派生
+// （同一构建树内的唯一来源），因为该宏在插件侧是 PRIVATE、公开头默认按 1 兜底，消费者无法从编译期读出实际形态。
+// 用途：报告头如实标注被测库的形态，并让 IDJson 域的"OFF 变体零日志"断言有可核对的依据。
+#if !defined(BENCHMARK_IDJSON_LOG)
+    #define BENCHMARK_IDJSON_LOG "unknown"
+#endif
+
 namespace ID::Bench
 {
     using TestFn = void (*)() noexcept;

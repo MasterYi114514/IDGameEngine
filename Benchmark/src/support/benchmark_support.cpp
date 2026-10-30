@@ -604,8 +604,20 @@ namespace ID::Bench
              " median of per-op ns reported, min/max/spread in note");
         Emit("measurement   : latency metrics (latency_p50/p90/p99) = one sampling pass over batched samples,"
              " percentile estimate of that pass; not a 5-round median");
-        Emit("unverified    : MSVC (spdlog 1.17 内嵌 fmt 需 /utf-8，本工程未设置 -> 构建阻塞) | Linux (未构建)"
+        Emit("unverified    : MSVC Release / LTCG（已构建并运行的 MSVC 变体只有 19.52 / Debug / SHARED / Win32 x86，"
+             "/utf-8 已由根 CMakeLists 为 MSVC 启用；该变体正确性全部通过，性能为 provisional 单次归档）"
+             " | x64 主流架构对照（CMakePresets 现为 win32，架构方案待定） | Linux (未构建)"
              " | real terminal rendering (console 计时期间 stdout->NUL，未测终端渲染)");
+        // IDJson 域的构建身份与输入配置：一行标注被测库形态，两行标注输入规模与统计口径（不覆盖 IDLog 的配置行）
+        Emit(std::string("plugin        : IDLog=LINK ") + BENCHMARK_LINK_MODE + " | IDJson=STATIC"
+             " | IDJson.log_bridge=" + BENCHMARK_IDJSON_LOG);
+        Emit("config (IDJson): documents=config(~1.6 KB)/bulk(800 objects ~150 KB)/nested(96 levels ~25 KB)"
+             " | modes=owning+non_owning | serialize=compact+indent2 | arena block=64 KiB default,"
+             " sensitivity 16 KiB/256 KiB");
+        Emit("unverified (IDJson): MSVC Debug/32 位已有 provisional 运行期证据（正确性 376/0/4/3，"
+             "其中 2 项是 IDLog 域 fatal 子进程超时失败，归 IDLog 域）；"
+             "仍为未验证：Linux/clang、MSVC Release、SHARED 形态、32 位 GCC 运行期；"
+             "跨进程 5 连跑资格未进入代码自动判定（framework.md §4）");
         WriteAll("--------------------------------------------------------------------");
 
         if (!session.m_report_open)

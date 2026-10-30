@@ -32,7 +32,9 @@
  *    （报告输出与日志输出共用 stdout，不重定向就无法区分两者）；重定向建立失败时该用例记 Skip，
  *    绝不向真实控制台写日志。
  *  - fatal 与陈旧指针：同进程取证会杀掉/污染整个测试进程，由父进程按参数分裂自身，
- *    按子进程退出码与该子进程实际落盘内容判定。
+ *    按子进程退出码与该子进程实际落盘内容判定；其中 abort 的退出码按工具链分化
+ *    （MSVC CRT 为 3、MinGW-w64 + UCRT 为 0xC0000409，各以该平台实测为依据），
+ *    两平台都保留"非 0、非子进程正常返回码、fatal 落盘证据齐全"的判定。
  *  - 违约用法的可观察行为（destroy_logger 之后的陈旧 `Logger*`、`shutdown` 之后重新 init 的句柄别名 ABA）
  *    按"实现行为"断言，不写成契约承诺：公开头与 README 明确不承诺安全、也不检测句柄跨轮复用。
  *  
@@ -72,14 +74,25 @@ namespace
     constexpr int kDestroyedChildLevelFailed   = 0xC5;      // set_sink_level 未返回 false
     constexpr int kDestroyedChildPathFailed    = 0xC6;      // set_sink_path 未返回 false
 
-#if defined(_WIN32)
-    // 本平台（MinGW-w64 + UCRT）实测：std::abort() 经 __fastfail 终止进程，退出码 0xC0000409
-    constexpr unsigned long kExpectedAbortExitCode  = 0xC0000409UL;
-    constexpr bool          kHasExpectedAbortCode   = true;
+    // ---- abort 的期望退出码：按工具链分化，不是"任意非 0"也不是单一常量 ----
+    //
+    // 终止路径不同，退出码就不同，两平台各以本机实测为准：
+    //  - MSVC CRT（_MSC_VER）：std::abort() 由 CRT 走 SIGABRT 默认动作终止进程，
+    //    实测依据为 MSVC 19.52.37025.0 / Win32 x86 / /MDd（Debug、_MSC_VER=1952）子进程退出码 0x00000003；
+    //  - MinGW-w64 + UCRT：实测依据为 GCC 16.2.0 / AMD64 / Release 子进程经 __fastfail 终止，退出码 0xC0000409。
+    // 两者都是"异常终止"，与子进程按返回值收尾的 0xA1/0xA2/0xA3 区分开；用例仍保留
+    // "退出码非 0、非子进程正常返回码、fatal 落盘证据齐全"的既有判定，只把平台专属退出码放进期望集合。
+#if defined(_MSC_VER)
+    constexpr unsigned long kExpectedAbortExitCodes[]  = {3UL};
+    constexpr char          kExpectedAbortBasis[]      = "MSVC CRT abort：MSVC 19.52 / Win32 x86 / /MDd Debug 子进程实测退出码 0x00000003";
+    constexpr bool          kHasExpectedAbortCode      = true;
+#elif defined(_WIN32)
+    constexpr unsigned long kExpectedAbortExitCodes[]  = {0xC0000409UL};
+    constexpr char          kExpectedAbortBasis[]      = "MinGW-w64 + UCRT abort：GCC 16.2.0 / AMD64 / Release 子进程实测退出码 0xC0000409";
+    constexpr bool          kHasExpectedAbortCode      = true;
 #else
     // 非本平台：未配置 abort 的期望退出码，只断言"异常终止"，具体码按未覆盖登记
-    constexpr unsigned long kExpectedAbortExitCode  = 0UL;
-    constexpr bool          kHasExpectedAbortCode   = false;
+    constexpr bool          kHasExpectedAbortCode      = false;
 #endif
 
     // ---- 文件与文本工具 ----
@@ -1610,12 +1623,31 @@ namespace
 
         if (kHasExpectedAbortCode)
         {
-            char exit_detail[192] = {};
-            std::snprintf(exit_detail, sizeof(exit_detail),
-                          "子进程退出码=0x%08lX；本平台 abort 期望值=0x%08lX；超时=%s",
-                          outcome.m_exit_code, kExpectedAbortExitCode, outcome.m_timed_out ? "是" : "否");
-            ID::Bench::Check(outcome.m_exit_code == kExpectedAbortExitCode, "fatal.exit_code_abort",
-                             exit_detail);
+            // 期望集合按工具链给出（MSVC CRT 3 / MinGW-UCRT 0xC0000409）；退出码非 0 由集合本身保证，
+            // 与子进程正常返回码 0xA1/0xA2/0xA3 的区分由上一条 Check 负责
+            bool exit_code_matched = false;
+            std::string expected_text = "{";
+            for (const unsigned long expected_code : kExpectedAbortExitCodes)
+            {
+                char expected_code_text[16] = {};
+                std::snprintf(expected_code_text, sizeof(expected_code_text), "0x%08lX", expected_code);
+                if (expected_text.size() > 1)
+                {
+                    expected_text += ", ";
+                }
+                expected_text += expected_code_text;
+                exit_code_matched = exit_code_matched || (outcome.m_exit_code == expected_code);
+            }
+            expected_text += "}";
+
+            char code_text[16] = {};
+            std::snprintf(code_text, sizeof(code_text), "0x%08lX", outcome.m_exit_code);
+
+            const std::string exit_detail = std::string("子进程退出码=") + code_text
+                                            + "；本工具链 abort 期望集合=" + expected_text
+                                            + "（非 0、非子进程正常返回码 0xA1/0xA2/0xA3）；依据：" + kExpectedAbortBasis
+                                            + "；超时=" + (outcome.m_timed_out ? "是" : "否");
+            ID::Bench::Check(exit_code_matched, "fatal.exit_code_abort", exit_detail);
         }
         else
         {

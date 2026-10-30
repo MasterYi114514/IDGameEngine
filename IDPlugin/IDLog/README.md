@@ -266,8 +266,9 @@ target_link_libraries(app PRIVATE IDLog)     # 公开 include 与 vendor 头由 
   `get_logger` 无法区分新旧日志器；调用方必须重新 `create_logger`（见 5、6 节）。
 - 中文等非 ASCII 消息要求终端代码页为 65001（UTF-8）。库不修改进程级控制台设置。
 - MSVC 组合：spdlog 1.17 内嵌 fmt 要求编译单元以 UTF-8 执行字符集编译（`/utf-8`）。
-  当前工程未设置该选项，因此 MSVC 构建下本插件与任何包含其公开头的消费者都需要该选项，
-  否则 fmt 会触发静态断言。GCC（MinGW）不受影响。
+  本工程根 `CMakeLists.txt` 已为 MSVC 统一启用该选项，因此在本仓库构建树内构建本插件与包含其公开头的
+  消费者都不需要另行设置；该选项只作用于本仓库构建树，外部消费者自行构建时仍需在自己的构建中提供
+  `/utf-8`，否则 fmt 会触发静态断言。构建与运行验证状态见第 10 节。GCC（MinGW）不受影响。
 - 不使用 spdlog 的全局 registry / 默认 logger / 全局线程池：全部对象由本插件实例独占并显式释放。
 - 未提供异步写，也未提供调用方可读的丢弃计数：同步写出，慢设备会直接反映为调用阻塞；
   运行期写失败的唯一报告是底层向 stderr 的限频消息（其中带一个累计计数），见第 6 节。
@@ -275,22 +276,32 @@ target_link_libraries(app PRIVATE IDLog)     # 公开 include 与 vendor 头由 
 ## 10. 验证状态
 
 - 正确性与性能测试归 `Benchmark` 工程；本插件内不含测试入口。
-- **MinGW GCC 16.2.0 / Release / SHARED / AMD64**：`Benchmark` 正式套件已出报告（`Benchmark/report.txt`）——
-  IDLog 正确性 103 例通过、0 失败、0 跳过、3 项未覆盖（运行期写失败的可观测性、`init`/`shutdown` 成本、
-  `shutdown` 后旧指针调用）。相对上一版 84 项判定不变，新增非法 `Level`（含与非法 `SinkType` 组合）、
-  `shutdown`→`init` 句柄别名（ABA 现状固化）、`create_logger` 与 `shutdown`/`init` 竞态防御三组用例。
-  性能 11 项指标已测量：7 项以场景预算目标评级（`basis=budget`，即 `grading.md` §2 E 的 `POLICY` 类
-  500 ns/条参考值，不是理论下界、也不是同轮实测对照）——`world-class` 5、`excellent` 1、`good` 1、
-  `fair` 0；4 项按规则不评级，因此报告 `ungraded=4`、官方退出码 2（`ungraded-metrics`）：
-  `get_logger` 登记路径（budget 不适用于登记/查表类操作，且本配置无同轮同进程的直接调用对照）、
-  `file.latency_p90`（上一数据块同变体跨进程 5 连跑极差超 `grading.md` §5 的 20% 噪声带，按已知缺口固定不评级）、
-  `file.latency_p99`（尾部分位在多组跨进程 5 连跑中持续超同一带，固定标 `unstable` 不给比值评级）、
-  `trim.partial_one_target`（当轮进程内 5 轮极差超同一带，标 `unstable`，按 §6 不当有效评级）；
-  `trim.all_targets` 当轮未超带，正常评为 `world-class`。
+- **MinGW GCC 16.2.0 / Release / SHARED / AMD64**：官方报告为 `Benchmark/report.txt`。
+  正确性 103 例通过、0 失败、0 跳过、3 项未覆盖（运行期写失败的可观测性、`init`/`shutdown` 成本、
+  `shutdown` 后旧指针调用）。
+  性能 11 项指标已测量：8 项以场景预算目标评级（`basis=budget`，即 `grading.md` §2 E 的 `POLICY` 类
+  500 ns/条参考值，不是理论下界、也不是同轮实测对照）——`world-class` 4（`console.throughput`、
+  `file.latency_p50`、`mt.file.1thread`、`trim.all_targets`）、`excellent` 2（`file.throughput`、
+  `trim.partial_one_target`）、`good` 2（`mt.file.2threads`、`mt.file.4threads`），
+  `fair` / `poor` / `terrible` 均为 0。
+  3 项按规则不评级，因此报告 `ungraded=3`、官方退出码 2（`ungraded-metrics`）：
+  `file.latency_p90` 与 `file.latency_p99`（尾部分位按代码侧固定标 `unstable`、不给比值评级，其
+  note 逐组具名引用归档的跨进程极差——既有超带组、也有落在 `grading.md` §5 的 20% 噪声带内的组）、
+  `get_logger` 登记路径（budget 不适用于登记/查表类操作，且本配置无同轮同进程的直接调用对照）。
+  本轮第 5 次运行无进程内 5 轮极差超带（`unstable`）命中，不评级只来自上述代码侧固定的 3 项。
   500 ns/条的推导式与全部假设见该报告 measurement notes 的 reference 推导节。
-  噪声带由 budget 口径启用后的 5 连跑确认，逐次读数与极差表见
-  `Benchmark/build/gcc16.2-release-shared/repeat-runs.txt`。
+  该块 5 次中位相对上一数据块（set7）中位整体漂移 -10.0%（11 项逐指标比值的中位数），
+  本块窗口较安静，但仍**只作当前窗口记录、长期基线待多块确认**；逐次读数与极差表见
+  `Benchmark/build/gcc16.2-release-shared/repeat-runs.txt` 的 set8 节。
   具体读数与完整结论以该报告为准，本文件不转抄实测 ns 数字。
-- **MSVC**：未验证。spdlog 1.17 内嵌 fmt 要求编译单元带 `/utf-8`，当前工程未设置该选项，构建被阻塞。
+- **MSVC 19.52.37025.0 / Debug / SHARED / Win32（x86）**：已构建并运行。
+  正确性 103 例通过、0 失败、0 跳过、3 项未覆盖（同上三项），`Benchmark` 退出码 2（`ungraded-metrics`）。
+  `fatal.exit_code_abort` 的期望退出码按工具链分化断言：MSVC CRT 下 `std::abort()` 子进程退出码为 3，
+  MinGW-UCRT 下为 `0xC0000409`，判定集合另加"非 0、非子进程正常返回码"的约束，两侧均通过，
+  因此不再有平台假设导致的失败项。
+  性能为**单次 provisional 归档**（`Benchmark/build/msvc-debug-shared/report.txt`：Debug、未做 Release
+  与跨进程 5 连跑资格确认，该归档记 11 项指标、其中 `world-class` 1 / `poor` 4 / `terrible` 3 / 3 项不评级）；
+  该变体是 32 位目标，与官方 AMD64 配置不同架构，跨配置、跨架构、跨编译器的读数不可互换，
+  其等级不代表 Release 官方结论。正式评级与报告口径归 `Benchmark` 工程。
 - **Linux 与非 Windows 平台**：未构建、未验证。
 - **真实终端渲染成本**：未测（console 计时期间 stdout 重定向到 NUL，不含终端渲染）。
