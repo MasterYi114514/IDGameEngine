@@ -10,6 +10,7 @@ target_include_directories(IDCommonHeaders
 )
 
 set(IDPLUGIN_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+set(IDPLUGIN_VENDOR_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Vendor)
 
 add_subdirectory(IDLog)
 add_subdirectory(IDJson)
