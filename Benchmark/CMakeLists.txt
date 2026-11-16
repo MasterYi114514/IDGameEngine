@@ -1,43 +1,6 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 4.1.0)
 
 project(Benchmark)
-
-# 测试源码用 CONFIGURE_DEPENDS 通配收集：新增域文件不需要手改本文件
-file(GLOB_RECURSE BENCHMARK_SRC_FILES CONFIGURE_DEPENDS
-    "src/*.cpp"
-)
-
-add_executable(Benchmark ${BENCHMARK_SRC_FILES})
-
-# `src` 也进 include 路径：域声明与测试私有头跟随实现在 src/<domain>/ 下（见 benchmark framework 的域声明约定）
-target_include_directories(Benchmark
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
-
-# 被测插件按普通库方式消费：公开头 + CMake 目标（不经过 ID 的生成接线，也不依赖运行期服务槽）
-# IDJson 是 STATIC：公开头 + 目标直接链接；它自己的 IDLog 依赖以 LINK_ONLY 传递，这里不重复声明形式
-# IDWindow 的链接形态由它自己的选项 IDWINDOW_BUILD_SHARED 决定，本文件不改该选项，只按现有目标链接
-target_link_libraries(Benchmark
-    PRIVATE
-        IDCommonHeaders
-        IDLog
-        IDJson
-        IDWindow
-)
-
-# 接入成本对照实现：直接调用同一份 vendor GLFW 的等价接线（os-baseline）。
-# 只在 IDWindow 为 STATIC 时链接：SHARED 形态下 GLFW 被静态编入 IDWindow.dll，测试侧再链一份静态 GLFW
-# 只会得到第二份未初始化的 GLFW 全局状态，因此那种形态下对照代码整体不参与编译（见 window_performance.cpp 的守卫）。
-if(NOT IDWINDOW_BUILD_SHARED)
-    target_link_libraries(Benchmark PRIVATE glfw)
-endif()
-
-target_compile_features(Benchmark
-    PRIVATE
-        cxx_std_20
-)
 
 # ---- 构建身份与路径注入：报告路径是绝对路径，与工作目录无关；缺失时实现侧显示 unknown ----
 set(BENCHMARK_REPORT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/report.txt"
@@ -103,6 +66,14 @@ endif()
 set(BENCHMARK_IDWINDOW_INCLUDE_VALUE "${CMAKE_SOURCE_DIR}/IDPlugin/IDWindow/include")
 set(BENCHMARK_COMMON_INCLUDE_VALUE "${CMAKE_SOURCE_DIR}/IDPlugin/Common")
 
+# 测试源码用 CONFIGURE_DEPENDS 通配收集：新增域文件不需要手改本文件
+file(GLOB_RECURSE BENCHMARK_SRC_FILES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+)
+
+add_executable(Benchmark ${BENCHMARK_SRC_FILES})
+
 target_compile_definitions(Benchmark
     PRIVATE
         BENCHMARK_REPORT_PATH="${BENCHMARK_REPORT_FILE}"
@@ -118,6 +89,40 @@ target_compile_definitions(Benchmark
         BENCHMARK_IDWINDOW_INCLUDE="${BENCHMARK_IDWINDOW_INCLUDE_VALUE}"
         BENCHMARK_COMMON_INCLUDE="${BENCHMARK_COMMON_INCLUDE_VALUE}"
 )
+
+target_compile_features(Benchmark
+    PRIVATE
+        cxx_std_20
+)
+
+set_target_properties(Benchmark PROPERTIES
+    CXX_EXTENSIONS OFF
+)
+
+# `src` 也进 include 路径：域声明与测试私有头跟随实现在 src/<domain>/ 下（见 benchmark framework 的域声明约定）
+target_include_directories(Benchmark
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+# 被测插件按普通库方式消费：公开头 + CMake 目标（不经过 ID 的生成接线，也不依赖运行期服务槽）
+# IDJson 是 STATIC：公开头 + 目标直接链接；它自己的 IDLog 依赖以 LINK_ONLY 传递，这里不重复声明形式
+# IDWindow 的链接形态由它自己的选项 IDWINDOW_BUILD_SHARED 决定，本文件不改该选项，只按现有目标链接
+target_link_libraries(Benchmark
+    PRIVATE
+        IDCommonHeaders
+        IDLog
+        IDJson
+        IDWindow
+)
+
+# 接入成本对照实现：直接调用同一份 vendor GLFW 的等价接线（os-baseline）。
+# 只在 IDWindow 为 STATIC 时链接：SHARED 形态下 GLFW 被静态编入 IDWindow.dll，测试侧再链一份静态 GLFW
+# 只会得到第二份未初始化的 GLFW 全局状态，因此那种形态下对照代码整体不参与编译（见 window_performance.cpp 的守卫）。
+if(NOT IDWINDOW_BUILD_SHARED)
+    target_link_libraries(Benchmark PRIVATE glfw)
+endif()
 
 # IDLog 是 SHARED：把运行期 DLL 复制到测试可执行文件旁边，避免依赖 PATH 或工作目录
 add_custom_command(TARGET Benchmark POST_BUILD

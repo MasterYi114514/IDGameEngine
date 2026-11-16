@@ -1,0 +1,10 @@
+{
+    "name": "IDLog",
+    "dependencies": [],
+    "kind": "module",
+    "requirements": [ "SHARED_ONLY" ],
+    "header_dirs": [
+        "include",
+        "vendor/spdlog"
+    ]
+}

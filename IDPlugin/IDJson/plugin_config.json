@@ -2,5 +2,9 @@
     "name": "IDJson",
     "dependencies": [ "IDLog" ],
     "kind": "module",
-    "requirements": []
+    "requirements": [],
+    "header_dirs": [
+        "include"
+    ],
+    "options": [ "ENABLE_LOG" ]
 }

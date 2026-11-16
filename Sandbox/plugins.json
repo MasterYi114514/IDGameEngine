@@ -1,4 +1,13 @@
-[
-    "IDLog",
-    "IDJson"
-]
+{
+    "name": "Sandbox",
+    "plugins": [
+        {
+            "name": "IDLog",
+            "linkage_type": "static"
+        },
+        {
+            "name": "IDJson",
+            "linkage_type": "static"
+        }
+    ]
+}

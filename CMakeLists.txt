@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 4.1.0)
 
 project(IDGameEngine)
 
@@ -9,7 +9,6 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
-set(ID_ON_DEBUG ON)
-
 add_subdirectory(IDPlugin)
 add_subdirectory(Benchmark)
+add_subdirectory(ID)
