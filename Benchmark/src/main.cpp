@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include "benchmark.hpp"
+#include "window/window_domain.hpp"
 
 /**
  *  官方测试可执行文件入口。
@@ -44,6 +45,10 @@ int main(int argc, char** argv)
     // IDJson 契约没有"终止进程"的路径，因此本域不需要子进程分裂，主入口不为它增加子进程参数分支
     ID::Bench::Run("IDJson", ID::Bench::IdJsonCorrectnessTest, ID::Bench::IdJsonPerformanceTest,
                    ID::Bench::IdJsonPerformanceNotes);
+    // IDWindow 契约里会终止进程的入口（get_window / get_current_window 的违约用法）本轮无子进程隔离，
+    // 因此本域不为它增加子进程参数分支（按 Uncovered 登记）
+    ID::Bench::Run("IDWindow", ID::Bench::IdWindowCorrectnessTest, ID::Bench::IdWindowPerformanceTest,
+                   ID::Bench::IdWindowPerformanceNotes);
     ID::Bench::EndSession();
     return ID::Bench::ExitCode();
 }

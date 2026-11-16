@@ -1,0 +1,8 @@
+// Negative case: WindowPool is a static-only manager and must not be instantiable.
+#include "IDWindow/WindowPool.hpp"
+
+int probe_pool() noexcept
+{
+    ID::Window::WindowPool pool;
+    return static_cast<int>(sizeof(pool) == 0);
+}

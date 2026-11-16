@@ -1,0 +1,22 @@
+// Legal control for the access-control negative cases: uses only the public contract
+// (pool creation entry + public queries). It must compile with the same compiler and options
+// as the negative translation units, otherwise those failures have no discriminating power.
+#include "IDWindow/WindowPool.hpp"
+#include "IDWindow/Window.hpp"
+
+int probe_legal_control() noexcept
+{
+    ID::Window::WindowDesc desc{};
+    desc.is_visible = false;
+
+    const ID::Window::WindowHandle handle = ID::Window::WindowPool::create_window(desc);
+    if (!handle.is_valid())
+    {
+        return 1;
+    }
+
+    ID::Window::Window& window = ID::Window::WindowPool::get_window(handle);
+    const ID::Window::WindowSize size = window.get_size();
+    ID::Window::WindowPool::destroy_window(handle);
+    return static_cast<int>(size.width == 0);
+}

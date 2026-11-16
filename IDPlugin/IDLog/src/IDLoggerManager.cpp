@@ -1,6 +1,7 @@
 #include "IDLoggerManager.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
@@ -39,6 +40,74 @@ namespace ID::Log
         {
             // 销毁与关闭路径不把 IO 失败变成异常或终止
         }
+    }
+
+    std::uint32_t LoggerManager::LoggerSlotTable::create(LoggerEntry&& entry)
+    {
+        if (!m_freed_indices.empty()) [[likely]]
+        {
+            const std::uint32_t index = m_freed_indices.back();
+            m_freed_indices.pop_back();
+
+            // 复用：就地移动赋值，被复用条目的对象与地址都不变，因此旧 `Logger*` 指向新日志器（ABA）
+            m_entries[index] = std::move(entry);
+            return index;
+        }
+
+        // 追加：`std::deque` 的两端插入不失效已有元素的引用与指针，已取出的 `Logger*` 继续有效
+        m_entries.emplace_back(std::move(entry));
+        return static_cast<std::uint32_t>(m_entries.size() - 1);
+    }
+
+    void LoggerManager::LoggerSlotTable::destroy(std::uint32_t index) noexcept
+    {
+        if (static_cast<std::size_t>(index) >= m_entries.size()) [[unlikely]]
+        {
+            return;
+        }
+
+        m_entries[index].destroy();
+
+        try
+        {
+            m_freed_indices.push_back(index);
+        }
+        catch (...)
+        {
+            // 空闲表扩容失败：丢弃该下标，槽位不复用。条目已由上面的 destroy() 清空，不会泄漏；
+            // 本函数因此不会向 noexcept 调用方抛出（否则会直接 terminate）。
+        }
+    }
+
+    LoggerEntry* LoggerManager::LoggerSlotTable::try_get(std::uint32_t index) noexcept
+    {
+        if (static_cast<std::size_t>(index) >= m_entries.size()) [[unlikely]]
+        {
+            return nullptr;
+        }
+
+        return &m_entries[index];
+    }
+
+    const LoggerEntry* LoggerManager::LoggerSlotTable::try_get(std::uint32_t index) const noexcept
+    {
+        if (static_cast<std::size_t>(index) >= m_entries.size()) [[unlikely]]
+        {
+            return nullptr;
+        }
+
+        return &m_entries[index];
+    }
+
+    void LoggerManager::LoggerSlotTable::clear() noexcept
+    {
+        for (LoggerEntry& entry : m_entries)
+        {
+            entry.destroy();
+        }
+
+        m_entries.clear();
+        m_freed_indices.clear();
     }
 
     void LoggerManager::initialize() noexcept

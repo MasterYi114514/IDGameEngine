@@ -4,6 +4,6 @@
     "kind": "module",
     "requirements": [],
     "header_dirs": [
-        "include", "${IDPLUGIN_VENDOR_PATH}/glfw-3.5.1"
+        "include"
     ]
 }

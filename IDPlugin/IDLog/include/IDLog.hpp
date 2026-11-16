@@ -12,10 +12,13 @@
  *  - `init()` 幂等；`shutdown()` 之后可以再次 `init()`。
  *  
  *  句柄与指针的生命周期：
+ *  - `get_logger` 返回的 `Logger*` 在同一轮 `init` / `shutdown` 生命周期内**地址稳定**：其它日志器的
+ *    `create_logger` / `destroy_logger` 不会使它失效，可以长期缓存并直接解引用。
  *  - `LoggerHandle` 与 `Logger*` 都只属于当前那一轮 `init` / `shutdown` 生命周期。`shutdown()` 之后
  *    重新 `init()`，槽位下标从 0 重新分配，旧句柄的数值可能被新日志器复用（ABA）：此时
  *    `get_logger(旧句柄)` 会返回**新日志器**而不是 nullptr，调用方无法据返回值分辨。
  *    因此重新 `init()` 之后必须重新 `create_logger`，不得复用上一轮的句柄；本插件不提供代数/版本位。
+ *  - 该日志器自身被 `destroy_logger` 之后、以及 `shutdown()` 之后旧 `Logger*` 的边界见下面“失败语义”。
  *  
  *  线程契约：
  *  - `init` / `shutdown` / `create_logger` / `get_logger` / `destroy_logger` 之间由本插件互斥保护，
@@ -80,8 +83,11 @@ namespace ID::Log
      *  @brief 按句柄取日志器
      *  @param handle 由 `create_logger` 返回的句柄
      *  @return 句柄有效且槽位存活时返回对象指针；否则返回 nullptr
-     *  @note 返回的指针只保证到下一次 `create_logger` / `destroy_logger` / `shutdown` 之前有效
-     *        （槽位数组扩容会使旧指针失效）。需要长期持有时保存 `LoggerHandle`，每次使用前重新取。
+     *  @note 返回的指针地址在同一轮 `init` / `shutdown` 生命周期内稳定：其它日志器的 `create_logger` /
+     *        `destroy_logger` 不会使它失效，可以长期缓存并直接解引用。该日志器自身被 `destroy_logger`
+     *        之后条目仍留在池内并被清空（日志调用不产生输出、四个配置方法返回 false），槽位被后续
+     *        `create_logger` 复用时同一指针指向新日志器；`shutdown()` 之后全部 `Logger*` 失效
+     *        （边界见文件头的“句柄与指针的生命周期”与“失败语义”）
      *  @note 句柄只属于当前生命周期：`shutdown` 之后重新 `init`，旧句柄的数值可能被新日志器复用，
      *        此时本函数返回新日志器而不是 nullptr，调用方无法区分（ABA）；不得靠本函数的返回值
      *        判断“旧句柄是否还有效”

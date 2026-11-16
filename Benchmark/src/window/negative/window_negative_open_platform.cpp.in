@@ -1,0 +1,7 @@
+// Negative case: open_platform() is a private creation entry owned by WindowPool only.
+#include "IDWindow/Window.hpp"
+
+bool probe_open_platform(ID::Window::Window& window) noexcept
+{
+    return window.open_platform();
+}

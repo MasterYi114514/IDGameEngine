@@ -1,0 +1,7 @@
+// Negative case: destroy() is a private lifecycle entry owned by WindowPool only.
+#include "IDWindow/Window.hpp"
+
+void probe_destroy(ID::Window::Window& window) noexcept
+{
+    window.destroy();
+}

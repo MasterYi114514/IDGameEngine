@@ -1,0 +1,7 @@
+// Negative case: an external translation unit must NOT be able to destroy a Window.
+#include "IDWindow/Window.hpp"
+
+void probe_destruct(ID::Window::Window& window) noexcept
+{
+    window.~Window();
+}

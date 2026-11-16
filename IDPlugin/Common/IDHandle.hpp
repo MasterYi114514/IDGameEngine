@@ -30,10 +30,10 @@ namespace ID::Common
         constexpr bool is_valid() const noexcept { return m_id != static_cast<UintType>(-1); }
         constexpr UintType get_id() const noexcept { return m_id; }
 
-        bool operator==(const Handle& other) const noexcept { return m_id == other.m_id; }
-        bool operator!=(const Handle& other) const noexcept { return m_id != other.m_id; }
-        bool operator==(const UintType& id) const noexcept { return m_id == id; }
-        bool operator!=(const UintType& id) const noexcept { return m_id != id; }
+        constexpr bool operator==(const Handle& other) const noexcept { return m_id == other.m_id; }
+        constexpr bool operator!=(const Handle& other) const noexcept { return m_id != other.m_id; }
+        constexpr bool operator==(const UintType& id) const noexcept { return m_id == id; }
+        constexpr bool operator!=(const UintType& id) const noexcept { return m_id != id; }
 
     private:
         friend Factory;

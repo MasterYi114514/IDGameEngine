@@ -9,5 +9,7 @@ if(MSVC)
     add_compile_options(/utf-8)
 endif()
 
+set(ID_ON_DEBUG ON)
+
 add_subdirectory(IDPlugin)
 add_subdirectory(Benchmark)

@@ -24,20 +24,28 @@
 
 namespace ID::Common
 {
+    template <typename T>
+    struct SlotAllocator;
+
     template <std::unsigned_integral UintType, typename T>
     class SlotPool
     {
-        static_assert(requires(T& slot) { { slot.destroy() } noexcept; },
-                      "SlotPool requires a noexcept destroy() member on T");
+        static_assert(requires(T& slot) { { slot.destroy() } noexcept; }, "SlotPool requires a noexcept destroy() member on T");
 
     public:
-        /**
+        /** 
          *  @brief 取得一个槽位并放入对象
          *  @param obj 被移入槽位的对象；调用后 obj 处于有效但未指定状态
          *  @return 槽位下标，可作为句柄保存
          *  @note 可能分配（空闲表为空时扩容 `m_pool`）；分配失败以异常传播给调用方
          */
         UintType create(T&& obj);
+
+        /**
+         *  @brief 通过完美转发进行槽位构造
+         */
+        template <typename... Args>
+        UintType create(Args&&... args);
 
         /**
          *  @brief 销毁槽位内容并回收下标
@@ -65,8 +73,27 @@ namespace ID::Common
         void clear() noexcept;
 
     private:
-        std::vector<T>          m_pool;             // 槽位数组，只增长
-        std::vector<UintType>   m_freed_indices;    // 空闲下标栈，尾部为最近归还项
+        std::vector<T, SlotAllocator<T>>            m_pool;             // 槽位数组，设置自定义分配器允许外界将其设置为友元
+        std::vector<UintType>                       m_freed_indices;    // 空闲下标栈，尾部为最近归还项
+    };
+
+    template <typename T>
+    struct SlotAllocator : std::allocator<T>
+    {
+        template <typename U>
+        struct rebind { using other = SlotAllocator<U>; };
+
+        template <typename U, typename... Args>
+        void construct(U* p, Args&&... args)
+        {
+            ::new (static_cast<void*>(p)) U(std::forward<Args>(args)...);
+        }
+
+        template <typename U>
+        void destroy(U* p) noexcept
+        {
+            p->~U();
+        }
     };
 
     template <std::unsigned_integral UintType, typename T>
@@ -82,6 +109,13 @@ namespace ID::Common
 
         m_pool.emplace_back(std::move(obj));
         return static_cast<UintType>(m_pool.size() - 1);
+    }
+
+    template <std::unsigned_integral UintType, typename T>
+    template <typename... Args>
+    UintType SlotPool<UintType, T>::create(Args&&... args)
+    {
+        return create(T{ std::forward<Args>(args)... });
     }
 
     template <std::unsigned_integral UintType, typename T>

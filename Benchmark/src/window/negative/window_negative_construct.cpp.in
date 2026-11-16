@@ -1,0 +1,8 @@
+// Negative case: an external translation unit must NOT be able to construct a Window.
+#include "IDWindow/Window.hpp"
+
+int probe_construct() noexcept
+{
+    ID::Window::Window window;
+    return static_cast<int>(sizeof(window) == 0);
+}

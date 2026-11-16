@@ -1,0 +1,54 @@
+IDWindow 交付件许可说明
+========================
+
+本文件记录 IDWindow 插件的第三方组件许可与分发义务。
+
+一、本插件源码的授权条款
+------------------------
+
+本仓库根目录当前没有 LICENSE / COPYING 文件（交付前核实的仓库现状），插件源码的授权条款
+尚未由仓库层级声明。本文件不擅自拟定或代填插件源码的许可文本，也不改变仓库既有做法
+（同目录下的其它插件同样未在插件根放置自行拟定的许可文本）。插件源码的授权由仓库/产品决策确定后，
+在同一处补充，本文件届时同步。
+
+二、第三方组件
+--------------
+
+组件：GLFW 3.5.1
+位置：IDPlugin/Vendor/glfw-3.5.1（本插件以 PRIVATE 方式静态链接它的未裁剪源码）
+许可：zlib/libpng（原文见 IDPlugin/Vendor/glfw-3.5.1/LICENSE.md）
+
+分发要求：
+1. vendor 目录内的 LICENSE.md 是许可原文，必须原样随交付资产留存，不得删除、裁剪或改写；
+   该文件不在本插件的写入范围内，本插件也不复制第二份可被误当成原文的副本。
+2. 分发本插件（源码或二进制、发行包或安装包）时必须同时分发该 LICENSE.md。
+3. 若交付前对 vendor 源码做过任何改动，按 zlib 许可第 2 条必须在分发时明确标注为修改版本；
+   本文件不声称 vendor 已被或未被改动，实际内容以 vendor 目录为准。
+4. 本节下方抄录的是同一份许可原文（一字未改），只用于交付包单独查阅；与原文冲突时以
+   IDPlugin/Vendor/glfw-3.5.1/LICENSE.md 为准。
+
+三、许可原文抄录（GLFW 3.5.1，zlib/libpng）
+------------------------------------------
+
+Copyright (c) 2002-2006 Marcus Geelnard
+
+Copyright (c) 2006-2019 Camilla Löwy
+
+This software is provided 'as-is', without any express or implied
+warranty. In no event will the authors be held liable for any damages
+arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not
+   claim that you wrote the original software. If you use this software
+   in a product, an acknowledgment in the product documentation would
+   be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not
+   be misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source
+   distribution.

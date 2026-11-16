@@ -1,0 +1,9 @@
+// Negative case: on_event() is the private dispatch entry; events reach a window only through
+// its own platform callback stack, never from outside code.
+#include "IDWindow/Event/EventContext.hpp"
+#include "IDWindow/Window.hpp"
+
+void probe_on_event(ID::Window::Window& window, const ID::Window::Event::EventContext& event) noexcept
+{
+    window.on_event(event);
+}

@@ -39,7 +39,7 @@ namespace ID::Log
 | `init()` | 幂等；无失败返回。未初始化时 `create_logger` 返回无效句柄。与 `shutdown` 不得并发。 |
 | `shutdown()` | flush 全部存活日志器 → 销毁残留日志器（释放底层 logger 与 sink）→ 复位登记状态。未初始化时是无操作；之后可再次 `init()`。使所有句柄与 `Logger*` 失效，此后经旧 `Logger*` 的任何调用属未定义行为（见第 5、6 节）。句柄不跨生命周期：重新 `init` 后旧句柄数值可能被新日志器复用（ABA）。 |
 | `create_logger(name)` | `name` 为 `%n` 显示的日志器名（UTF-8），可为 `nullptr`（按空名）。成功返回有效句柄；未初始化／内存不足／后端创建失败返回无效句柄。默认启用终端目标（阈值 `Trace`），文件目标停用。若构造期间另一线程完成了 `shutdown()`，返回无效句柄且不登记（见第 5 节）。 |
-| `get_logger(handle)` | 返回 `Logger*`；句柄无效、已销毁或已 `shutdown` 时返回 `nullptr`。`shutdown` 后重新 `init` 的旧句柄可能命中新日志器（ABA），不能据返回值判断句柄"是否还属于本轮"。 |
+| `get_logger(handle)` | 返回 `Logger*`；句柄无效、已销毁或已 `shutdown` 时返回 `nullptr`。返回的指针在同一轮 `init` / `shutdown` 生命周期内地址稳定，其它日志器的登记操作不会使它失效（见第 5 节）。`shutdown` 后重新 `init` 的旧句柄可能命中新日志器（ABA），不能据返回值判断句柄"是否还属于本轮"。 |
 | `destroy_logger(handle)` | flush 后释放该日志器；无效句柄或已销毁句柄是无操作（不会重复回收槽位）。 |
 
 ### 2.2 输出目标类型（`IDLogSink.hpp`）
@@ -180,8 +180,11 @@ target_link_libraries(app PRIVATE IDLog)     # 公开 include 与 vendor 头由 
   `create_logger` 的后端构造发生在锁外，插入前会在锁内重新确认仍处于已初始化状态：若构造期间另一线程
   完成了 `shutdown()`，该次调用返回无效句柄，不会把日志器登记进一个已关闭的登记表。这是"登记接口与
   `shutdown` 互斥"的具体含义，不构成让 `init` / `shutdown` 并发调用合法的许可。
-- `get_logger` 返回的 `Logger*` 只保证到下一次 `create_logger` / `destroy_logger` / `shutdown` 之前有效。
-  需要长期持有时保存 `LoggerHandle`，每次使用前重新 `get_logger`。
+- `get_logger` 返回的 `Logger*` 在同一轮 `init` / `shutdown` 生命周期内**地址稳定**：其它日志器的
+  `create_logger` / `destroy_logger` 不会使它失效，因此可以长期缓存并直接解引用（例如模块级日志器变量）。
+  该日志器自身被 `destroy_logger` 之后，条目仍留在池内并被清空（日志调用不产生输出、四个配置方法
+  返回 `false`，见第 6 节），槽位被后续 `create_logger` 复用时同一指针指向新日志器；`shutdown()` 之后
+  全部 `Logger*` 失效。
 - `destroy_logger` 之后句柄失效；该槽位可能被后续 `create_logger` 复用，调用方不得再使用已销毁的句柄。
 - `LoggerHandle` 与 `Logger*` 都只属于**当前那一轮** `init` / `shutdown` 生命周期。`shutdown()` 之后
   重新 `init()`，槽位下标从 0 重新分配，旧句柄的数值可能被新日志器复用（ABA）：`get_logger(旧句柄)`
