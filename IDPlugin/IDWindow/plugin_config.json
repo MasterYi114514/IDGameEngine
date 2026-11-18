@@ -1,9 +1,17 @@
 {
     "name": "IDWindow",
     "dependencies": [ "IDLog" ],
-    "kind": "module",
     "requirements": [],
-    "header_dirs": [
-        "include"
-    ]
+    "header_dirs": [ "include" ],
+    "common_headers": [
+        "Core/Core.hpp",
+        "IDHandle.hpp"
+    ],
+    "source_dirs": [ "src" ],
+    "vendor_dirs": [],
+    "shared_vendors": [
+        { "dir": "glfw-3.5.1", "target": "glfw" }
+    ],
+    "files": [ "LICENSE" ],
+    "options": []
 }

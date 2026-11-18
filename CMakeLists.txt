@@ -10,5 +10,5 @@ if(MSVC)
 endif()
 
 add_subdirectory(IDPlugin)
-add_subdirectory(Benchmark)
 add_subdirectory(ID)
+add_subdirectory(Benchmark)

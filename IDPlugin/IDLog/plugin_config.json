@@ -1,10 +1,19 @@
 {
     "name": "IDLog",
     "dependencies": [],
-    "kind": "module",
     "requirements": [ "SHARED_ONLY" ],
     "header_dirs": [
         "include",
-        "vendor/spdlog"
-    ]
+        "vendor/spdlog/include"
+    ],
+    "common_headers": [
+        "Core/Core.hpp",
+        "IDHandle.hpp",
+        "Singleton.hpp"
+    ],
+    "source_dirs": [ "src" ],
+    "vendor_dirs": [ "vendor/spdlog" ],
+    "shared_vendors": [],
+    "files": [],
+    "options": []
 }

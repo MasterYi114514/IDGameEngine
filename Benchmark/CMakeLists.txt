@@ -78,6 +78,7 @@ target_compile_definitions(Benchmark
     PRIVATE
         BENCHMARK_REPORT_PATH="${BENCHMARK_REPORT_FILE}"
         BENCHMARK_TEMP_DIR="${CMAKE_CURRENT_BINARY_DIR}/tmp"
+        BENCHMARK_ID_EXE="$<TARGET_FILE:ID>"
         BENCHMARK_BUILD_CONFIG="$<CONFIG>"
         BENCHMARK_LINK_MODE="${BENCHMARK_LINK_MODE}"
         BENCHMARK_LTO="${BENCHMARK_LTO_VALUE}"
@@ -96,6 +97,7 @@ target_compile_features(Benchmark
 )
 
 set_target_properties(Benchmark PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
     CXX_EXTENSIONS OFF
 )
 
@@ -115,6 +117,8 @@ target_link_libraries(Benchmark
         IDLog
         IDJson
         IDWindow
+        # ID 工具的核心库（STATIC）：Benchmark 经它的 PUBLIC include 取到 ID/src 下的 cmake/... 头
+        IDCore
 )
 
 # 接入成本对照实现：直接调用同一份 vendor GLFW 的等价接线（os-baseline）。
@@ -124,21 +128,5 @@ if(NOT IDWINDOW_BUILD_SHARED)
     target_link_libraries(Benchmark PRIVATE glfw)
 endif()
 
-# IDLog 是 SHARED：把运行期 DLL 复制到测试可执行文件旁边，避免依赖 PATH 或工作目录
-add_custom_command(TARGET Benchmark POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "$<TARGET_FILE:IDLog>"
-            "$<TARGET_FILE_DIR:Benchmark>"
-    COMMENT "copy IDLog shared library next to the Benchmark executable"
-)
-
-# IDWindow 在 SHARED 形态下同样需要在运行期就位：报告里的 window.link.form_shared_dll_loaded
-# 断言的是"运行期确实加载了 IDWindow.dll"，DLL 由本 POST_BUILD 放到 exe 旁边
-if(IDWINDOW_BUILD_SHARED)
-    add_custom_command(TARGET Benchmark POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "$<TARGET_FILE:IDWindow>"
-                "$<TARGET_FILE_DIR:Benchmark>"
-        COMMENT "copy IDWindow shared library next to the Benchmark executable"
-    )
-endif()
+# 运行期要调用 BENCHMARK_ID_EXE 指向的 ID 工具：只 build Benchmark 时也把 ID.exe 一并产出
+add_dependencies(Benchmark ID)

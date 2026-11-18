@@ -1,10 +1,24 @@
 {
     "name": "IDJson",
     "dependencies": [ "IDLog" ],
-    "kind": "module",
-    "requirements": [],
-    "header_dirs": [
-        "include"
+    "requirements": [ "STATIC_ONLY" ],
+    "header_dirs": [ "include" ],
+    "common_headers": [
+        "Core/Core.hpp",
+        "Arena/SegmentedArena.hpp"
     ],
-    "options": [ "ENABLE_LOG" ]
+    "source_dirs": [ "src" ],
+    "vendor_dirs": [],
+    "shared_vendors": [],
+    "files": [],
+    "options": [
+        {
+            "name": "ENABLE_LOG",
+            "type": "bool",
+            "default": "ON",
+            "description": "Enable the IDLog error-log bridge inside IDJson",
+            "defines": "ID_JSON_ENABLE_LOG",
+            "links_when_on": [ "IDLog" ]
+        }
+    ]
 }

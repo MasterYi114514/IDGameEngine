@@ -2,22 +2,19 @@ cmake_minimum_required(VERSION 4.1.0)
 
 project(IDWindow)
 
-# 静态库是默认形态：GLFW 直接编入本目标，消费者不需要额外链接项；
-# SHARED 形态下 GLFW 符号仍不进入导出面（vendor 侧 -fvisibility=hidden）
 option(IDWINDOW_BUILD_SHARED "Build IDWindow as a shared library" OFF)
 
 set(IDWINDOW_GLFW_DIR "${IDPLUGIN_VENDOR_PATH}/glfw-3.5.1")
+if(IDWINDOW_BUILD_SHARED)
+    set(IDWINDOW_LIBRARY_TYPE SHARED)
+else()
+    set(IDWINDOW_LIBRARY_TYPE STATIC)
+endif()
 if(NOT EXISTS "${IDWINDOW_GLFW_DIR}/CMakeLists.txt")
     message(FATAL_ERROR "找不到 vendor GLFW：${IDWINDOW_GLFW_DIR}")
 endif()
 if(TARGET glfw)
     message(FATAL_ERROR "glfw 目标已存在：GLFW 必须且只能由 IDWindow 接入")
-endif()
-
-if(IDWINDOW_BUILD_SHARED)
-    set(IDWINDOW_LIBRARY_TYPE SHARED)
-else()
-    set(IDWINDOW_LIBRARY_TYPE STATIC)
 endif()
 
 file(GLOB_RECURSE IDWINDOW_SRC_FILES CONFIGURE_DEPENDS
@@ -27,8 +24,6 @@ file(GLOB_RECURSE IDWINDOW_SRC_FILES CONFIGURE_DEPENDS
 
 add_library(IDWindow ${IDWINDOW_LIBRARY_TYPE} ${IDWINDOW_SRC_FILES})
 
-# SHARED：库自身以导出身份编译，消费者按 dllimport 声明；STATIC：公开头按"无导入/导出"编译。
-# 两个宏互斥，且都由本目标传递，消费者不需要自行定义
 if(IDWINDOW_BUILD_SHARED)
     target_compile_definitions(IDWindow
         PRIVATE
@@ -40,7 +35,6 @@ else()
             ID_WINDOW_STATIC
     )
 endif()
-
 if(ID_ON_DEBUG)
     target_compile_definitions(IDWindow
         PRIVATE
@@ -54,20 +48,19 @@ target_compile_features(IDWindow
 )
 
 set_target_properties(IDWindow PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin"
     CXX_EXTENSIONS OFF
 )
 
 target_include_directories(IDWindow
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
-# GLFW 只出现在 src/ 里：公开头不含任何 GLFW 头，消费者不需要 GLFW 的 include 路径
 target_link_libraries(IDWindow
     PUBLIC
         IDCommonHeaders
