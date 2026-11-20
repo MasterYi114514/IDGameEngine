@@ -8,6 +8,7 @@
 #include <string_view>
 #include <system_error>
 
+#include "IDJsonAggregate.hpp"
 #include "IDJsonDetail.hpp"
 
 /**
@@ -26,7 +27,6 @@
 namespace
 {
     using ID::Json::Detail::ArrayRef;
-    using ID::Json::Detail::ObjectEntry;
     using ID::Json::Detail::ObjectRef;
     using ID::Json::Detail::StringRef;
     using ID::Json::JsonDocument;
@@ -36,12 +36,6 @@ namespace
     using ID::Json::JsonValue;
     using ID::Json::kInlineStringCapacity;
     using ID::Json::kMaxJsonDepth;
-
-    // 聚合值的初始容量：小对象占多数，从 4 起步，按 2 倍扩容
-    inline constexpr std::uint32_t kInitialAggregateCapacity = 4;
-
-    // 对象索引的初始桶数（必须为 2 的幂）
-    inline constexpr std::uint32_t kInitialBucketCapacity = 16;
 
     // 十六进制位查表：非法字节记 0xFF
     constexpr std::array<std::uint8_t, 256> make_hex_table() noexcept
@@ -656,27 +650,10 @@ namespace
                     return error;
                 }
 
-                if (ref->count == ref->capacity)
+                if (!ID::Json::Detail::append_item(m_document.arena(), *ref, element))
                 {
-                    // 容量不足：换一块 2 倍大的连续块，旧块遗弃（arena 不回收单块，交给 reset()/析构）
-                    const std::uint32_t new_capacity =
-                        ref->capacity == 0 ? kInitialAggregateCapacity : ref->capacity * 2;
-                    auto* items = m_document.arena().allocate_array<JsonValue>(new_capacity);
-                    if (items == nullptr)
-                    {
-                        return fail(JsonError::out_of_memory, m_cursor);
-                    }
-                    if (ref->count != 0)
-                    {
-                        std::memcpy(items, ref->items,
-                                    static_cast<std::size_t>(ref->count) * sizeof(JsonValue));
-                    }
-                    ref->items    = items;
-                    ref->capacity = new_capacity;
+                    return fail(JsonError::out_of_memory, m_cursor);
                 }
-
-                ref->items[ref->count] = element;
-                ++ref->count;
 
                 skip_whitespace();
                 if (m_cursor == m_end)
@@ -775,10 +752,9 @@ namespace
                     return error;
                 }
 
-                error = append_entry(*ref, key_data, key_length, value);
-                if (error != JsonError::none)
+                if (!ID::Json::Detail::append_entry(m_document.arena(), *ref, key_data, key_length, value))
                 {
-                    return error;
+                    return fail(JsonError::out_of_memory, m_cursor);
                 }
 
                 skip_whitespace();
@@ -801,138 +777,6 @@ namespace
 
             out.m_type        = JsonType::Object;
             out.m_payload.ptr = ref;
-            return JsonError::none;
-        }
-
-        JsonError append_entry(ObjectRef& ref, const char* const key, const std::uint32_t key_length,
-                               const JsonValue& value) noexcept
-        {
-            std::uint32_t existing = 0;
-            if (find_entry_index(ref, key, key_length, existing))
-            {
-                // 重复键 last-wins：位置保持首次插入序，值取最后一次出现的
-                ref.entries[existing].value = value;
-                return JsonError::none;
-            }
-
-            if (ref.count == ref.capacity)
-            {
-                const std::uint32_t new_capacity =
-                    ref.capacity == 0 ? kInitialAggregateCapacity : ref.capacity * 2;
-                auto* entries = m_document.arena().allocate_array<ObjectEntry>(new_capacity);
-                if (entries == nullptr)
-                {
-                    return fail(JsonError::out_of_memory, m_cursor);
-                }
-                if (ref.count != 0)
-                {
-                    std::memcpy(entries, ref.entries,
-                                static_cast<std::size_t>(ref.count) * sizeof(ObjectEntry));
-                }
-                ref.entries  = entries;
-                ref.capacity = new_capacity;
-            }
-
-            ObjectEntry& entry = ref.entries[ref.count];
-            entry.key          = key;
-            entry.key_length   = key_length;
-            entry.value        = value;
-            ++ref.count;
-
-            if (ref.count > ID::Json::Detail::kObjectIndexThreshold)
-            {
-                // 索引装载因子保持 ≤ 0.5：超过就重建（旧桶数组遗弃给 arena 统一回收）
-                const bool need_rebuild =
-                    ref.buckets == nullptr ||
-                    static_cast<std::uint64_t>(ref.count) * 2 > static_cast<std::uint64_t>(ref.bucket_mask) + 1;
-                if (need_rebuild)
-                {
-                    return rebuild_index(ref);
-                }
-
-                const std::string_view key_view =
-                    key_length == 0 ? std::string_view{} : std::string_view(key, key_length);
-                std::uint32_t slot = ID::Json::Detail::fnv1a(key_view) & ref.bucket_mask;
-                while (ref.buckets[slot] != 0)
-                {
-                    slot = (slot + 1) & ref.bucket_mask;
-                }
-                ref.buckets[slot] = ref.count;      // 桶存"成员下标 + 1"，0 表示空桶
-            }
-            return JsonError::none;
-        }
-
-        bool find_entry_index(const ObjectRef& ref, const char* const key, const std::uint32_t key_length,
-                              std::uint32_t& out_index) const noexcept
-        {
-            if (ref.buckets != nullptr)
-            {
-                const std::string_view key_view =
-                    key_length == 0 ? std::string_view{} : std::string_view(key, key_length);
-                const std::uint32_t mask = ref.bucket_mask;
-                std::uint32_t       slot = ID::Json::Detail::fnv1a(key_view) & mask;
-                for (;;)
-                {
-                    const std::uint32_t bucket = ref.buckets[slot];
-                    if (bucket == 0)
-                    {
-                        return false;
-                    }
-                    const ObjectEntry& entry = ref.entries[bucket - 1];
-                    if (entry.key_length == key_length &&
-                        (key_length == 0 || std::memcmp(entry.key, key, key_length) == 0))
-                    {
-                        out_index = bucket - 1;
-                        return true;
-                    }
-                    slot = (slot + 1) & mask;
-                }
-            }
-
-            for (std::uint32_t index = 0; index < ref.count; ++index)
-            {
-                const ObjectEntry& entry = ref.entries[index];
-                if (entry.key_length == key_length &&
-                    (key_length == 0 || std::memcmp(entry.key, key, key_length) == 0))
-                {
-                    out_index = index;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        JsonError rebuild_index(ObjectRef& ref) noexcept
-        {
-            std::uint32_t bucket_count = kInitialBucketCapacity;
-            while (static_cast<std::uint64_t>(bucket_count) < static_cast<std::uint64_t>(ref.count) * 2)
-            {
-                bucket_count <<= 1;
-            }
-
-            auto* buckets = m_document.arena().allocate_array<std::uint32_t>(bucket_count);
-            if (buckets == nullptr)
-            {
-                return fail(JsonError::out_of_memory, m_cursor);
-            }
-            std::memset(buckets, 0, static_cast<std::size_t>(bucket_count) * sizeof(std::uint32_t));
-
-            const std::uint32_t mask = bucket_count - 1;
-            for (std::uint32_t index = 0; index < ref.count; ++index)
-            {
-                const ObjectEntry& entry = ref.entries[index];
-                const std::string_view key_view =
-                    entry.key_length == 0 ? std::string_view{} : std::string_view(entry.key, entry.key_length);
-                std::uint32_t slot = ID::Json::Detail::fnv1a(key_view) & mask;
-                while (buckets[slot] != 0)
-                {
-                    slot = (slot + 1) & mask;
-                }
-                buckets[slot] = index + 1;
-            }
-
-            ref.buckets     = buckets;
-            ref.bucket_mask = mask;
             return JsonError::none;
         }
 

@@ -8,6 +8,7 @@
  *  - `IDJsonDocument.hpp` ：JsonDocument（arena 与根值）
  *  - `IDJsonParser.hpp`   ：parse / parse_non_owning、错误码与错误日志桥
  *  - `IDJsonWriter.hpp`   ：serialize 与缩进选项
+ *  - `IDJsonBuilder.hpp`  ：JsonBuilder（按调用顺序构建对象/数组/标量并序列化）
  *
  *  @note 本伞头不包含任何 IDLog / spdlog / fmt 头：错误日志桥只用到 `ID::Log::Logger` 的前向声明。
  */
@@ -17,3 +18,4 @@
 #include "IDJsonDocument.hpp"
 #include "IDJsonParser.hpp"
 #include "IDJsonWriter.hpp"
+#include "IDJsonBuilder.hpp"

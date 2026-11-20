@@ -98,6 +98,25 @@ $LASTEXITCODE        # 期望 0
 
 `<config>` 是 `debug` 或 `release`；`<arch>` 缺省为 `host`，所以想要确定目录就显式给 `--arch`。
 
+### 已实测样例：IDJson 静态项目（MinGW x64 Debug）
+
+本机实测（Windows + PowerShell 5.1，GCC 16.2.0 / CMake 4.4.4）用了这两条命令。下面各条的本机实测覆盖 `build` 与运行期观察；`new` 的退出码**未验证**（原因见下）。
+
+```powershell
+$ID = 'F:\IDGameEngine\bin\ID.exe'
+
+& $ID project new   --name Knowbe --path 'F:\Knowbe' --plugin IDJson
+& $ID project build Knowbe --generator "MinGW Makefiles" --toolchain mingw --arch x64 --config debug
+```
+
+- `build` 实测退出码 `0`，收尾打印 `产物:`、`构建结论: success`、两行 `记录:` 与 `组装: 已提交`；它写出一份 `IDGenerated\log\build-debug-<UTC>-<序号>.log`，并在 `IDGenerated\build.json` 追加一条：`generator`、`requested_toolchain` / `actual_toolchain`、`identity`（`GNU` / `16.2.0` / `x86_64-w64-mingw32` / 指针宽度 `64`）、`configure_exit` / `build_exit`、`verdict` 与 `artifacts` 的路径和摘要。
+- `new` 是创建该项目的命令，但其退出码**未验证**：项目已存在时 `new` 不可重放，原因见下文「`new --check` 不可重放」。
+- 生成结果：`plugins.json` 只含直接选择的 `IDJson`（`static`，`ENABLE_LOG=ON`）；被依赖补齐的 `IDLog` 只出现在 `IDGenerated\resolved.json`，取值为 `"linkage": "dynamic"`、`"is_direct": false`、`"linkage_source": "requirement"`。
+- 产物：`<项目根>\bin\mingw\x64\debug\Knowbe.exe`（实测 57683 字节）；同一目录还有 `libIDJson.a`、`libIDLog.dll`、`libIDLog.dll.a`。
+- 运行期：直接运行该 exe，实测退出码 `0`，stdout 是 `Knowbe`。`objdump -p` 显示它的导入表只有 `KERNEL32.dll` 与 8 个 UCRT 的 `api-ms-win-crt-*`，**没有** `libIDLog.dll`：样例 `src\main.cpp` 只调用 `std::puts`，没有引用 IDJson / IDLog 的任何符号，所以链接行虽然含 `libIDLog.dll.a`（`ENABLE_LOG=ON` 带进来的依赖），却没有符号被拉取——静态库成员与 IDLog 的导入项都不进产物。`libIDLog.dll` 由构建直接输出到 exe 同目录（见第 11 节），同目录是「被加载器找到」的前提，但装载路径本次**未验证**：要验证它，需要一个真正引用 IDLog 符号的 exe。
+- 一致性检查可重放：`& $ID project update Knowbe --check` 实测退出码 `0`（写入 0 / 删除 0 / 冲突 0）。`new --check` 不可重放：项目已有 `plugins.json` 时再给 `--plugin` / `--empty` 的选择来源冲突规则见第 4 节末尾那条（`new` 时若项目根已经存在 `plugins.json`…）；本机只读实测的是 `--empty` 这一情形（`selection_source_conflict`，退出码 `3`）。
+- 限制 `g8_engine_option_not_projected` 对本样例的含义：生成的插件目标不投影任何工程级选项与宏（清单十项字段没有表达「插件消费工程级选项」的位置），所以「项目生成的目标与工程内构建在 debug 行为上等价」不成立；该限制不改变退出码，也不代表本次生成结果不可用。
+
 ## 4. 选插件
 
 `--plugin` 可以重复，一次只描述一个插件：
@@ -368,6 +387,8 @@ unchanged IDPlugin/IDWindow/CMakeLists.txt
 - **首次构建必须显式给 `--generator`**：工具不从环境猜生成器；只有同一构建目录里已有 `CMakeCache.txt` 时，后续构建才可以省略 `--generator`（此时要给 `--toolchain` 以定位目录）。`Ninja` 没有内建工具链标签，必须同时给 `--toolchain`。
 - **纯生成不需要 profile**：`new` / `update` 不带 `--build` 时不调用编译器，不需要 `--generator` / `--toolchain` / `--arch` / `--config`。
 - **项目路径含非 ASCII 字符时，本机 `MinGW Makefiles` 构建会失败**：原生 `mingw32-make` 会按 ANSI 代码页转交路径参数，子进程拿到乱码路径。工具会在诊断的「下一步」里指出这一点并建议改用 `Ninja` 或把项目移到纯 ASCII 路径。路径含**空格**没有问题。
+- **共享插件 DLL 靠「与 exe 同目录」被找到，不靠 RPATH**：Windows 没有 RPATH 机制，`BUILD_RPATH "$ORIGIN"` 在 MinGW 下也不产生 `-Wl,-rpath`（本机实测 exe 的链接行没有该参数）。工具把共享插件库直接输出到 `bin\<toolchain>\<arch>\<config>\`，与 exe 同目录；把产物搬到别处时要自己带上 DLL，否则引用到该插件符号的 exe 会在启动时装不上它。本条中「不产生 `-Wl,-rpath`」是本机实测，「DLL 与 exe 同目录即被加载器找到」属 Windows 加载器语义与设计约定，**尚未**用真正引用共享插件符号的 exe 实测——本机样例的 exe 导入表里没有 `libIDLog.dll`（见第 3 节）。
+- **生成的项目不能直接丢给 IDE 配置**：根 `CMakeLists.txt` 的 `output-dirs` 受控片段要求 configure 时传入 `-DID_BUILD_TOOLCHAIN` 与 `-DID_BUILD_ARCH`，缺了直接 `FATAL_ERROR`（`ID_OUTPUT_ROOT 缺少身份段`，实测 cmake 退出码 `1`）。要让 IDE 用，就在它的构建配置里补这两个变量；否则一律走 `ID project build`。
 - **Linux 与 MSVC 组合未实测**：代码里有对应分支，但本机没有验证过，不承诺可用；需要时自行验证并把结果反馈。
 - **`artifact_missing` 场景未实测**：产物校验的判据已在代码里实现，但「构建成功而产物不在约定位置」这条路径本机没有实际触发过。
 - **`IDGenerated\**` 是记录，不要手改**：`resolved.json`、`manifest.json`、`build.json`、`intent.json`、`log\`、`before\`、`backup\`。手工改动会被识别为 `unmanaged_content` / `record_invalid`；要恢复就重跑 `update`（必要时 `update --force`，它会先备份再覆盖）。

@@ -21,11 +21,17 @@ JSON 读取与写出库：把 JSON 文本解析成紧凑的只读 DOM（`JsonVal
 | 零分配标量 | `null`/`bool`/`int64`/`double` 与 ≤ 7 字节的字符串完全内联在 16 字节的值里，不向 arena 申请 |
 | 对象成员 | 插入序连续存放；成员数 ≤ 8 线性查找，> 8 建幂 2 开放寻址索引（FNV-1a，线性探测）；重复键 last-wins |
 | 序列化 | 紧凑或缩进输出，直写调用方缓冲；`double` 用最短往返表示并补 `.0` 保持类型 |
+| 构建与写出 | `JsonBuilder` 按调用顺序构建对象/数组/字符串/64 位整数/双精度/布尔/`null`，再序列化成文本；产物与 `parse` 的返回值在只读访问上同构，写出复用同一条 `serialize` 路径 |
 | 错误定位 | 失败时给出错误码 + 字节偏移 + 行 + 列；失败后文档被置空 |
 | 可选错误日志 | 挂接 `IDLog` 的 `Logger` 后，每次解析失败输出一条 `error`（含源名、错误码、行、列）；不挂接则零日志 |
 
-不提供的能力（本期明确不做）：原地修改 DOM、单值释放、序列化到 arena、UTF-8 合法性校验、流式/增量解析、
-注释或 JSON5 方言、`nullptr` 之外的空值表示。
+不提供的能力（本期明确不做）：
+
+- **构建完成后的原地修改**：没有 `set`/`erase`/排序一类接口；`JsonValue` 与 `JsonBuilder` 的产物都只读，改内容只能
+  `JsonBuilder::reset()` 后重建，或重新解析写出的文本。
+- **不承担解析职责的写出捷径**：构建只能经 `JsonBuilder` 的公开接口；不从文本构造值（那是 `parse` 的事），
+  也不为"省一次构造"另开一条绕过 DOM 的写出路径。
+- 单值释放、序列化到 arena、UTF-8 合法性校验、流式/增量解析、注释或 JSON5 方言、`nullptr` 之外的空值表示。
 
 ## 2. 接口清单
 
@@ -38,6 +44,7 @@ JSON 读取与写出库：把 JSON 文本解析成紧凑的只读 DOM（`JsonVal
 | `IDJsonDocument.hpp` | `JsonDocument`、默认段来源 |
 | `IDJsonParser.hpp` | `parse` / `parse_non_owning`、`JsonError`、`JsonParseError`、错误日志桥 |
 | `IDJsonWriter.hpp` | `serialize`、`JsonWriteOptions`、`JsonWriteError` |
+| `IDJsonBuilder.hpp` | `JsonBuilder`、`JsonBuildError`（构建 → 序列化） |
 | `IDJson.hpp` | 伞头，一次包含以上全部 |
 
 ### 2.2 值（`IDJsonValue.hpp`）
@@ -203,6 +210,63 @@ ID_JSON_API const char* to_string(JsonWriteError error) noexcept;
 - 字符串转义与解析对称：`"`、`\`、`\b`、`\f`、`\n`、`\r`、`\t` 用短转义，其它 `< 0x20` 用 `\u00XX`；
   `>= 0x20` 的字节原样透传（UTF-8 不校验）。
 
+### 2.6 构建（`IDJsonBuilder.hpp`）
+
+```cpp
+inline constexpr std::uint32_t kMaxJsonBuildDepth = 256;   // = kMaxJsonWriteDepth
+
+enum class JsonBuildError : std::uint8_t
+{
+    none = 0,
+    not_initialized,      // 内嵌文档的 arena 或帧栈未配置成功（见 is_ready）
+    out_of_memory,        // arena 分配失败
+    depth_exceeded,       // 嵌套层数达到 kMaxJsonBuildDepth
+    root_already_set,     // 根值已写入，又追加了第二个根值
+    no_open_object,       // 没有打开对象时调用 key()
+    no_open_container,    // 没有打开的容器时调用 close()
+    no_pending_key,       // 对象里追加值，但之前没有调用 key()
+    key_already_pending,  // 上一个键还没有值，又调用了 key()
+    key_without_value,    // 关闭对象时最后一个键还没有值
+    too_large             // 字符串/键超过 4 GiB - 1 字节，或计数超过 32 位上限
+};
+
+class ID_JSON_API JsonBuilder
+{
+public:
+    explicit JsonBuilder(std::size_t block_size = kDefaultBlockSize,
+                         Common::SegmentAllocFn alloc_fn = default_segment_alloc,
+                         Common::SegmentFreeFn free_fn = default_segment_free) noexcept;
+
+    bool is_ready() const noexcept;
+    const JsonValue& root() const noexcept;
+    void reset() noexcept;
+
+    JsonBuildError open_object() noexcept;               // 打开对象（成为根或当前容器的下一个值）
+    JsonBuildError open_array() noexcept;                // 打开数组
+    JsonBuildError close() noexcept;                     // 关闭当前容器
+    JsonBuildError key(std::string_view key) noexcept;   // 对象里下一个值的键（复制到 arena）
+    JsonBuildError string(std::string_view value) noexcept;
+    JsonBuildError integer(std::int64_t value) noexcept;
+    JsonBuildError number(double value) noexcept;
+    JsonBuildError boolean(bool value) noexcept;
+    JsonBuildError null_value() noexcept;
+
+    std::size_t serialize(char* out, std::size_t capacity, const JsonWriteOptions& options = {},
+                          JsonWriteError* err = nullptr) const noexcept;
+    std::size_t serialize(std::string& out, const JsonWriteOptions& options = {}) const;
+};
+
+ID_JSON_API const char* to_string(JsonBuildError error) noexcept;
+```
+
+- 追加顺序就是写出顺序：对象成员保持插入序，数组元素保持下标序；重复键 last-wins 且位置固定在首次插入处
+  （与解析侧一致）。
+- 字符串 ≤ 7 字节内联在值里，更长的内容与键复制进内嵌文档的 arena；`root()` 返回的引用在 `reset()`/析构前有效。
+- 首个错误是粘性的：一旦返回非 `none`，`root()` 立即置空、帧栈清空，之后的调用一律返回同一错误码。
+- `serialize` 是 `IDJsonWriter.hpp` 同名函数的转发（缓冲重载）或在其之上的两步封装（`std::string` 重载），
+  转义、数字格式、缩进、深度上限与读侧只有一份实现。
+- 不提供 `set`/`erase` 一类的原地修改：一个值提交后就只读，改内容只能 `reset()` 后重建。
+
 ## 3. 最小可编译示例
 
 ```cpp
@@ -264,7 +328,74 @@ g++ -std=c++20 -O2 -I IDPlugin/IDJson/include -I IDPlugin/Common example.cpp \
     <构建目录>/IDPlugin/IDJson/libIDJson.a -o example
 ```
 
-### 3.1 作为 CMake 目标消费
+### 3.1 构建并写出（只用公开头）
+
+```cpp
+#include "IDJson.hpp"
+
+#include <string>
+
+int main()
+{
+    ID::Json::JsonBuilder builder;   // 内嵌自己的文档，段大小默认 64 KiB
+    if (!builder.is_ready())
+    {
+        return 1;
+    }
+
+    if (builder.open_object() != ID::Json::JsonBuildError::none)
+    {
+        return 1;
+    }
+
+    builder.key("id");
+    builder.integer(7);              // 有符号 64 位整数 → JsonType::Int
+
+    builder.key("name");
+    builder.string("demo");          // 字符串按字节保存，不做 UTF-8 校验
+
+    builder.key("tags");             // 数组作为成员
+    builder.open_array();
+    builder.string("a");
+    builder.string("b");
+    builder.close();
+
+    builder.key("ratio");
+    builder.number(0.5);             // JsonType::Double，写出来是 0.5
+
+    builder.key("ok");
+    builder.boolean(true);
+
+    builder.key("nothing");
+    builder.null_value();
+
+    builder.close();                 // 关闭根对象
+
+    // 写出：缓冲重载与 std::string 重载都只转发到 IDJsonWriter 的 serialize
+    std::string text;
+    if (builder.serialize(text) == 0)   // 0 = 失败（如 NaN/±Inf）
+    {
+        return 1;
+    }
+    // text == {"id":7,"name":"demo","tags":["a","b"],"ratio":0.5,"ok":true,"nothing":null}
+
+    // 构建产物与 parse 的返回值同构：find / operator[] / 遍历 / serialize 都能直接用
+    const ID::Json::JsonValue* id = builder.root().find("id");
+    if (id == nullptr || !id->is_int() || id->as_int64() != 7)
+    {
+        return 1;
+    }
+
+    // 复用构建器（频繁写多帧时用）：丢弃内容、保留 arena 段
+    builder.reset();
+    return 0;
+}
+```
+
+每次构建调用都要看返回值；首个错误是粘性的，之后的调用一律返回同一错误码。`JsonBuilder` 不可拷贝、不可移动，
+一个构建器同一时刻只归一个线程使用。
+
+### 3.2 作为 CMake 目标消费
 
 ```cmake
 # 插件自身的普通库构建入口已经在本目录的 CMakeLists.txt 里
@@ -305,6 +436,10 @@ ID::Log::init() → create_logger() → （可选 set_sink_path / set_sink_level
   不同线程各自持有各文档并行解析是安全的。
 - `parse` / `parse_non_owning` 在调用线程内完成，不创建线程。
 - `serialize` 是纯函数（只读值、只用调用方缓冲与栈上状态），可由多线程并发调用，读同一个 `root` 也安全。
+- `JsonBuilder` 同一时刻只归一个线程使用（内部无锁、无原子）；不同线程各自持有各自的构建器并行构建是安全的。
+  构建完成后，把 `root()` 交给 `serialize` 只读使用可以由多个线程并发进行。
+- 构建器内嵌自己的文档：`root()` 与其中全部 `string_view` 在 `JsonBuilder::reset()` 或构建器析构前有效，
+  这两者会一次性作废它们。
 - `attach_error_logger` / `detach_error_logger` 可在任意线程调用（内部是 relaxed 原子指针）；
   它们不提供比"指针可见性"更强的同步语义。
 - 文档内全部指针与 `string_view` 在 `reset()` 或析构时**一次性失效**，此后使用属于悬垂访问。
@@ -323,6 +458,12 @@ ID::Log::init() → create_logger() → （可选 set_sink_path / set_sink_level
   表达该范围），文档同样被置空，不进入解析。
 - 序列化失败：返回 0 并给出 `JsonWriteError`；`non_finite_number` 时不产生任何输出。
 - 容量不足不是失败：`serialize` 返回所需字节数，调用方扩容后重试。
+- 构建失败：返回具体 `JsonBuildError`；首个错误是粘性的（后续调用返回同一码），`root()` 立即置为 null，
+  与解析失败置空同口径。错误码文本用 `to_string(JsonBuildError)` 取。
+- 构建器未就绪（`block_size` 过小、`alloc_fn` 为空）不抛异常：`is_ready()` 为 false，构建调用返回
+  `not_initialized`；帧栈申请失败时返回 `out_of_memory`。
+- `JsonBuilder::serialize(std::string&)` 在写出失败时返回 0 且**不改写**目标串；它靠标准库扩容，
+  分配失败会抛 `std::bad_alloc`（标准库行为）。要绝不抛异常的路径，用缓冲重载。
 - 类型不匹配的访问（`as_*`、`operator[]`、`find`、遍历）返回缺省值或空结果，不产生未定义行为。
 - 越界下标返回 `kNullValue`（不越界读）。
 - 解析失败日志只在**失败冷路径**产生一条 `error`；未挂接或选项 `IDJSON_ENABLE_LOG=OFF` 时为零日志。
@@ -340,6 +481,11 @@ ID::Log::init() → create_logger() → （可选 set_sink_path / set_sink_level
 | 解析错误路径 | 冷路径（`ID_NOINLINE` + `ID_COLD`）：行/列统计要从缓冲区起点数换行，是 O(已读长度) |
 | 错误日志 | 每条失败一条 `error`；未挂接时只读一次原子指针即返回 |
 | 序列化 | 单次遍历，不分配，不读 arena；缩进只用 `memset` 填空格 |
+| 构建标量与短串 | 只写 16 字节的值本身：`null`/`bool`/整数/浮点与 ≤ 7 字节字符串零分配 |
+| 构建长串/键 | 每次一个字符块 + （长串时）一个描述块向 arena 申请；键一律复制进 arena |
+| 构建聚合值 | 数组/对象初始容量 4，按 2 倍扩容换新块（旧块留给 `reset()`/析构统一归还）；成员数 > 8 建索引，与解析侧同一份实现 |
+| 构建帧栈 | 构造与 `reset()` 时一次性从 arena 申请深度 256 的帧数组；一次构建过程内无额外分配 |
+| 构建错误路径 | 失败冷路径：只需一次比较就返回粘性错误码，不再分配、不再遍历 |
 
 具体吞吐/延迟**未测量**：本文件不给数字、不给量级估计，也不做评级；正式读数以 `Benchmark` 的报告为准。
 
@@ -349,7 +495,8 @@ ID::Log::init() → create_logger() → （可选 set_sink_path / set_sink_level
    调用方要自行校验（或保证输入可信）。
 2. **对象键按字节比较**：区分大小写，不做 Unicode 规范化（`"é"` 的两种编码是不同键）。
 3. **重复键 last-wins**：成员位置保持首次插入序，值取最后一次出现的值；重复键不会报错。
-4. **不支持原地修改**：`JsonValue` 是只读视图；要改内容只能重新解析或重新解析写出的文本。
+4. **不支持原地修改**：`JsonValue` 是只读视图，`JsonBuilder` 也只按调用顺序追加（没有 `set`/`erase`）；要改内容
+   只能 `JsonBuilder::reset()` 后重建，或重新解析写出的文本。
 5. **`parse_non_owning` 的输入生命周期**：输入缓冲必须活到 `reset()`/析构，否则字符串视图悬垂；含转义的
    字符串在两种模式下都会复制到 arena（无法零拷贝）。
 6. **深度上限固定**：`kMaxJsonDepth` 与 `kMaxJsonWriteDepth` 都是 256，不可由参数覆盖。
@@ -385,5 +532,12 @@ ID::Log::init() → create_logger() → （可选 set_sink_path / set_sink_level
 - 开发自检：解析（owning / non_owning、嵌套、转义、代理对、数字边界、短串内联）、错误路径定位、
   序列化（紧凑/缩进/round-trip/非有限值）、对象索引与重复键、文档生命周期、错误日志桥（含 detach 后零新增），
   在 GCC 与 MSVC 两个组合上运行通过。
+- 构建入口（`JsonBuilder`）的开发自检：MinGW GCC 16.2.0 / Debug / `STATIC` 真实构建通过，自检程序只包含
+  `IDJson.hpp`（不使用任何 `Detail::` 或私有头）并覆盖嵌套对象/数组、需转义字符串（引号、反斜杠、控制字符、
+  `\u00XX` 边界）、整数与负数、浮点（含类型保真的 `.0`）、UTF-8 多字节、`parse(serialize(build(x)))` 往返等值、
+  构建错误路径、`reset()` 复用、成员索引与扩容、`std::string` 与缓冲两种写出重载；全部通过。
+  `Benchmark` 的 IDJson 域结果与改动前一致（379 passed / 0 failed / 4 skipped / 2 uncovered）。
 - 以上都是**开发自检，不是正式测试**；正式正确性测试与性能测量归 `Benchmark`，当前**性能未测量**。
-- 未验证：32 位 GCC 的运行期（只有 `-m32 -c` 的编译期证据）、Linux、clang、`SHARED` 形态交付。
+- 未验证：32 位 GCC 的运行期（只有 `-m32 -c` 的编译期证据）、Linux、clang、`SHARED` 形态交付；
+  `JsonBuilder` 在 MSVC 与 32 位目标上的编译与运行（上面的 MSVC 结论只覆盖改动前就已存在的解析/序列化面），
+  以及 `JsonBuilder` 的性能（未测量）。

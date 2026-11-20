@@ -1,3 +1,4 @@
+#include "IDJsonBuilder.hpp"
 #include "IDJsonParser.hpp"
 #include "IDJsonWriter.hpp"
 
@@ -40,6 +41,25 @@ namespace ID::Json
             case JsonWriteError::none:              return "none";
             case JsonWriteError::non_finite_number: return "non_finite_number";
             case JsonWriteError::too_deep:          return "too_deep";
+        }
+        return "unknown_error";
+    }
+
+    const char* to_string(JsonBuildError error) noexcept
+    {
+        switch (error)
+        {
+            case JsonBuildError::none:                  return "none";
+            case JsonBuildError::not_initialized:       return "not_initialized";
+            case JsonBuildError::out_of_memory:         return "out_of_memory";
+            case JsonBuildError::depth_exceeded:        return "depth_exceeded";
+            case JsonBuildError::root_already_set:      return "root_already_set";
+            case JsonBuildError::no_open_object:        return "no_open_object";
+            case JsonBuildError::no_open_container:     return "no_open_container";
+            case JsonBuildError::no_pending_key:        return "no_pending_key";
+            case JsonBuildError::key_already_pending:   return "key_already_pending";
+            case JsonBuildError::key_without_value:     return "key_without_value";
+            case JsonBuildError::too_large:             return "too_large";
         }
         return "unknown_error";
     }
